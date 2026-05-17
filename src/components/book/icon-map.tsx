@@ -1,0 +1,33 @@
+import {
+  BookOpen,
+  Boxes,
+  Bug,
+  Cpu,
+  Database,
+  FileSignature,
+  Layers3,
+  PanelTop,
+  Puzzle,
+  Radio,
+  Rocket,
+  SlidersHorizontal,
+  Sparkles,
+  Table,
+} from "lucide-react";
+
+export const iconMap = {
+  BookOpen,
+  Database,
+  Table,
+  SlidersHorizontal,
+  PanelTop,
+  Boxes,
+  Layers3,
+  Radio,
+  Cpu,
+  Puzzle,
+  FileSignature,
+  Sparkles,
+  Bug,
+  Rocket,
+};

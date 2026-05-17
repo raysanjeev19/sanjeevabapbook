@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ABAP Mentor OS
 
-## Getting Started
+Premium mobile-first SAP ABAP + S/4HANA interview preparation platform built with Next.js App Router, TypeScript, Tailwind CSS, Framer Motion, Zustand, TanStack Query, shadcn-style Radix UI primitives, Prisma, PostgreSQL, OpenAI, Jest, RTL, and Playwright.
 
-First, run the development server:
+## Setup
 
 ```bash
+npm install
+cp .env.example .env
+npm run prisma:generate
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Database
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Set `DATABASE_URL` in `.env`, then run:
 
-## Learn More
+```bash
+npm run prisma:migrate
+npm run prisma:seed
+```
 
-To learn more about Next.js, take a look at the following resources:
+The UI runs from bundled generated seed content even before Postgres is connected. Prisma schema includes chapters, questions, answers, followups, interview logs, bookmarks, progress, notes, scores, and revision tracking.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## AI Interviewer
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Set:
 
-## Deploy on Vercel
+```bash
+OPENAI_API_KEY="sk-..."
+OPENAI_MODEL="gpt-4.1-mini"
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Without a key, the app returns a local deterministic evaluator so the platform remains usable.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Testing
+
+```bash
+npm run lint
+npm run typecheck
+npm test
+npm run build
+npm run test:e2e
+```
+
+## Deployment
+
+Deploy to Vercel with `DATABASE_URL`, `OPENAI_API_KEY`, and `OPENAI_MODEL` configured. Run Prisma migrations against your production PostgreSQL database before seeding production content.
+
+## Production Notes
+
+- Replace local-first Zustand persistence with authenticated user sessions for multi-device sync.
+- Move OpenAI interview logs to Prisma once auth is connected.
+- Add rate limits to `/api/interview`.
+- Use Vercel Postgres, Neon, Supabase, or RDS for PostgreSQL.
+- Keep the generated content model and seed script as the source of truth for importing any real user-provided question list.

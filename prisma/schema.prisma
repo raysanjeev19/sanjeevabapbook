@@ -1,0 +1,201 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String?        @unique
+  name          String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  bookmarks     Bookmark[]
+  notes         Note[]
+  progress      Progress[]
+  scores        Score[]
+  revisionItems RevisionItem[]
+  aiLogs        AiInterviewLog[]
+}
+
+model Chapter {
+  id          String     @id @default(cuid())
+  slug        String     @unique
+  title       String
+  description String
+  icon        String
+  order       Int
+  difficulty  String
+  questions   Question[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Question {
+  id              String         @id
+  slug            String         @unique
+  chapterId       String
+  chapter         Chapter        @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  prompt          String
+  difficulty      String
+  experienceLevel String
+  companyBadges   String[]
+  tags            String[]
+  answers         Answer?
+  followups       Followup[]
+  bookmarks       Bookmark[]
+  notes           Note[]
+  progress        Progress[]
+  scores          Score[]
+  revisionItems   RevisionItem[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([chapterId])
+  @@index([difficulty])
+  @@index([experienceLevel])
+}
+
+model Answer {
+  id                              String   @id @default(cuid())
+  questionId                      String   @unique
+  question                        Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  simpleAnswer                    String
+  detailedAnswer                  String
+  hinglishExplanation             String
+  realInterviewExplanation        String
+  fresherExplanation              String
+  twoYearsExperiencedAnswer       String
+  s4hanaPerspective               String
+  realtimeProjectScenario         String
+  productionSupportScenario       String
+  debuggingScenario               String
+  performanceConsiderations       String
+  bestPractices                   String
+  commonMistakes                  String
+  trapQuestions                   String[]
+  crossQuestions                  String[]
+  followupQuestions               String[]
+  hrStyleExplanation              String
+  technicalDeepDive               String
+  codeExamples                    String
+  outputExamples                  String
+  realSapTableExamples            String
+  realClientRequirementExample    String
+  realtimeTicketExample           String
+  interviewTips                   String
+  interviewerExpectations         String
+  whatNotToSay                    String
+  commonRejectionReasons          String
+  advancedFollowupQuestions       String[]
+  s4hanaMigrationImpact           String
+  hanaOptimizationConcepts        String
+  relatedCdsConcepts              String
+  relatedOdataConcepts            String
+  relatedEnhancementConcepts      String
+  relatedPerformanceTuningConcepts String
+  relatedAuthorizationConcepts    String
+  relatedDebuggingConcepts        String
+  relatedTransportConcepts        String
+  relatedSupportIssueExamples     String
+  relatedProductionIssueFixes     String
+  easyUnderstanding               String
+  hinglishMasterExplanation       String
+  interviewMeKyaBolnaHai          String
+  interviewerKyaSochtaHai         String
+  realtimeProjectExplanation      String
+  twoYearsExperienceQuestions     String
+  s4hanaHanaCdsOdataConnection    String
+  codeWalkthrough                 String
+  debuggingSection                String
+  supportProjectSection           String
+  implementationProjectSection    String
+  memoryTricks                    String
+  aiMentorPrompt                  String
+  followupAnswerBank              Json
+}
+
+model Followup {
+  id         String   @id @default(cuid())
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  prompt     String
+  category   String
+  difficulty String
+}
+
+model Bookmark {
+  id         String   @id @default(cuid())
+  userId     String
+  questionId String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, questionId])
+}
+
+model Note {
+  id         String   @id @default(cuid())
+  userId     String
+  questionId String
+  body       String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Progress {
+  id           String   @id @default(cuid())
+  userId       String
+  questionId   String
+  completed    Boolean  @default(false)
+  confidence   Int      @default(0)
+  lastViewedAt DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question     Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questionId])
+}
+
+model Score {
+  id         String   @id @default(cuid())
+  userId     String
+  questionId String
+  value      Int
+  mode       String
+  feedback   String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+}
+
+model RevisionItem {
+  id           String   @id @default(cuid())
+  userId       String
+  questionId   String
+  dueAt        DateTime
+  intervalDays Int      @default(1)
+  strength     Int      @default(1)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question     Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questionId])
+}
+
+model AiInterviewLog {
+  id             String   @id @default(cuid())
+  userId         String?
+  chapterSlug    String
+  mode           String
+  transcript     Json
+  confidenceScore Int
+  weakTopics     String[]
+  improvements   String[]
+  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt      DateTime @default(now())
+}
