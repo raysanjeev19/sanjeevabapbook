@@ -1,46 +1,44 @@
 "use client";
 
 import * as Accordion from "@radix-ui/react-accordion";
-import * as Tabs from "@radix-ui/react-tabs";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowUp,
   Bookmark,
+  BookOpen,
   Bot,
   Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Clipboard,
+  Clock,
+  Code2,
   Eye,
   EyeOff,
   Gauge,
-  Home,
+  HelpCircle,
   Languages,
   Lightbulb,
+  Lock,
+  MessageSquare,
   RotateCcw,
   StickyNote,
   WandSparkles,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { allQuestions, getAnswerLabelsForQuestion, getChapterColor, requiredAnswerSections } from "@/lib/content";
+import { allQuestions, getChapterColor } from "@/lib/content";
 import type { Question } from "@/lib/types";
-import { cn, percent } from "@/lib/utils";
+import { cn, percent, readingMinutes } from "@/lib/utils";
 import { useStudyStore } from "@/store/use-study-store";
 import { Badge, difficultyVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-
-/* Tab icons for quick visual identification */
-const tabIcons: Record<string, React.ReactNode> = {
-  easyUnderstanding: <Lightbulb size={13} />,
-  hinglishMasterExplanation: <Languages size={13} />,
-  interviewMeKyaBolnaHai: <Bot size={13} />,
-  interviewerKyaSochtaHai: <Eye size={13} />,
-  codeWalkthrough: <StickyNote size={13} />,
-};
+import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { ReaderControls } from "@/components/book/reader-controls";
+import { AnswerText } from "@/components/book/answer-text";
+import { BrandLogo } from "@/components/layout/brand-logo";
 
 export function QuestionReader({ question }: { question: Question }) {
   const bookmarkIds = useStudyStore((state) => state.bookmarks);
@@ -54,6 +52,10 @@ export function QuestionReader({ question }: { question: Question }) {
   const setNote = useStudyStore((state) => state.setNote);
   const viewQuestion = useStudyStore((state) => state.viewQuestion);
   const toggleFocusMode = useStudyStore((state) => state.toggleFocusMode);
+  const fontScale = useStudyStore((state) => state.fontScale);
+  const readerWidth = useStudyStore((state) => state.readerWidth);
+  const readerFont = useStudyStore((state) => state.readerFont);
+  const recallMode = useStudyStore((state) => state.recallMode);
 
   const bookmarked = bookmarkIds.includes(question.id);
   const isDone = completed.includes(question.id);
@@ -61,23 +63,53 @@ export function QuestionReader({ question }: { question: Question }) {
   const previousQuestion = allQuestions[questionIndex - 1];
   const nextQuestion = allQuestions[questionIndex + 1];
   const readingProgress = percent(questionIndex + 1, allQuestions.length);
-  const visibleAnswerLabels = getAnswerLabelsForQuestion(question);
   const chapterColor = getChapterColor(question.chapterSlug);
 
   const [showFloatingNext, setShowFloatingNext] = useState(false);
-  const [activeTab, setActiveTab] = useState("hinglishMasterExplanation");
+  const [activeTab, setActiveTab] = useState<"easy" | "master" | "interview" | "code">("easy");
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [revealed, setRevealed] = useState(false);
+  const answerHidden = recallMode && !revealed;
+
+  /* Reset the reveal when navigating to a new question (render-time, not an effect). */
+  const [lastQuestionId, setLastQuestionId] = useState(question.id);
+  if (question.id !== lastQuestionId) {
+    setLastQuestionId(question.id);
+    setRevealed(false);
+    setActiveTab("easy");
+  }
+
+  /* Estimate reading time across the answer sections + code. */
+  const minutes = useMemo(() => {
+    return readingMinutes(
+      question.answers.easyUnderstanding ?? "",
+      question.answers.hinglishMasterExplanation ?? "",
+      question.answers.interviewMeKyaBolnaHai ?? "",
+      question.answers.codeExamples ?? "",
+    );
+  }, [question]);
+
+  /* Column width + typeface follow the reader's preferences. */
+  const measureClass = readerWidth === "wide" ? "max-w-[80ch]" : "max-w-[68ch]";
+  const readingStyle: React.CSSProperties = {
+    fontSize: `${(1.075 * fontScale).toFixed(3)}rem`,
+    ...(readerFont === "sans" ? { fontFamily: "var(--font-inter), system-ui, sans-serif" } : {}),
+  };
 
   useEffect(() => {
     viewQuestion(question.id);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [question.id, viewQuestion]);
 
-  /* Scroll listener for floating next button */
+  /* Scroll listener: floating button + reading progress for the top bar */
   useEffect(() => {
     const handleScroll = () => {
-      const scrolled = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const scrolled = max > 0 ? window.scrollY / max : 0;
+      setScrollProgress(Math.min(100, Math.max(0, Math.round(scrolled * 100))));
       setShowFloatingNext(scrolled > 0.65 && !!nextQuestion);
     };
+    handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, [nextQuestion]);
@@ -118,40 +150,36 @@ export function QuestionReader({ question }: { question: Question }) {
 
   return (
     <main
-      className="aurora min-h-screen px-4 py-5 text-slate-50 sm:px-6 lg:px-8"
-      style={{ "--accent": chapterColor, "--accent-glow": `${chapterColor}35` } as React.CSSProperties}
+      className="min-h-screen bg-background px-4 py-5 sm:px-6 lg:px-8"
+      style={{ "--accent": chapterColor, "--accent-glow": `${chapterColor}33` } as React.CSSProperties}
     >
-      {/* Top reading progress bar */}
-      <div className="fixed left-0 top-0 z-50 h-1 w-full bg-slate-950/70">
-        <motion.div
-          className="h-full shadow-[0_0_14px_var(--accent-glow)]"
-          style={{ backgroundColor: chapterColor }}
-          initial={{ width: 0 }}
-          animate={{ width: `${readingProgress}%` }}
-          transition={{ duration: 0.5 }}
+      {/* Top reading progress bar — reflects how far through this page you've read */}
+      <div className="fixed left-0 top-0 z-50 h-[3px] w-full bg-border">
+        <div
+          className="h-full transition-[width] duration-150"
+          style={{ backgroundColor: chapterColor, width: `${scrollProgress}%` }}
         />
       </div>
 
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-5xl">
         {/* Breadcrumb + actions */}
-        <div className="glass mb-5 flex items-center justify-between gap-2 rounded-2xl px-4 py-2.5 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+        <div className="mb-6 flex items-center justify-between gap-2 rounded-xl border border-border bg-surface px-4 py-2.5">
           <div className="flex items-center gap-1.5 text-sm">
             <Link href="/" className="flex items-center gap-2">
-              <Image src="/logo.png" alt="CodeGurukul" width={24} height={24} className="rounded" />
+              <BrandLogo size={26} />
             </Link>
-            <ChevronRight size={11} className="text-slate-600" />
+            <ChevronRight size={11} className="text-faint" />
             <Link
               href={`/chapters/${question.chapterSlug}`}
-              className="max-w-[100px] truncate text-slate-400 transition hover:text-white sm:max-w-none"
+              className="max-w-[100px] truncate text-muted transition-colors hover:text-foreground sm:max-w-none"
             >
               {chapterName}
             </Link>
-            <ChevronRight size={11} className="text-slate-600" />
-            <span className="font-semibold text-white">Q{questionIndex + 1}</span>
+            <ChevronRight size={11} className="text-faint" />
+            <span className="font-semibold text-foreground">Q{questionIndex + 1}</span>
           </div>
           <div className="flex items-center gap-2">
-            {/* Keyboard shortcuts hint */}
-            <div className="mr-2 hidden items-center gap-1.5 text-xs text-slate-500 sm:flex">
+            <div className="mr-1 hidden items-center gap-1.5 text-xs text-faint sm:flex">
               <span className="kbd">&larr;</span>
               <span className="kbd">&rarr;</span>
               <span className="kbd">B</span>
@@ -187,28 +215,14 @@ export function QuestionReader({ question }: { question: Question }) {
             >
               <Check size={18} />
             </Button>
+            <ReaderControls />
+            <ThemeToggle />
           </div>
         </div>
 
         {/* Question header */}
-        <motion.header
-          className="book-page relative overflow-hidden rounded-xl border p-5 sm:p-8"
-          style={{
-            borderColor: `${chapterColor}20`,
-            boxShadow: `0 30px 120px ${chapterColor}15`,
-          }}
-          initial={{ rotateY: -12, opacity: 0, x: 16 }}
-          animate={{ rotateY: 0, opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-        >
-          {/* Ribbon */}
-          <div
-            className="absolute right-6 top-0 h-24 w-4 rounded-b-full"
-            style={{
-              backgroundColor: chapterColor,
-              boxShadow: `0 0 32px ${chapterColor}85`,
-            }}
-          />
+        <header className="relative overflow-hidden rounded-xl border border-border bg-surface p-6 sm:p-9">
+          <div className="absolute left-0 top-0 h-full w-1" style={{ backgroundColor: chapterColor }} />
 
           <div className="flex flex-wrap gap-2">
             <Badge variant={difficultyVariant(question.difficulty)}>{question.difficulty}</Badge>
@@ -218,99 +232,229 @@ export function QuestionReader({ question }: { question: Question }) {
             ))}
           </div>
 
-          <h1 className="mt-5 text-2xl font-bold leading-tight text-white sm:text-4xl lg:text-5xl">
+          <h1 className="mt-5 max-w-3xl font-serif text-[1.9rem] font-semibold leading-[1.18] text-foreground sm:text-4xl">
             {question.prompt}
           </h1>
 
-          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <div className="mt-4 flex items-center gap-2 text-xs text-muted">
+            <Clock size={13} />
+            <span>~{minutes} min read</span>
+            <span className="text-faint">·</span>
+            <span>Q{questionIndex + 1} of {allQuestions.length}</span>
+          </div>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
             <Tracker icon={<Gauge size={17} />} label="Confidence" value={`${confidence}%`} color={chapterColor} />
             <Tracker
               icon={<RotateCcw size={17} />}
               label="Revision"
               value={isDone ? "Completed" : "Due Today"}
-              color={isDone ? "#34D399" : "#FBBF24"}
+              color={isDone ? "#0e7c72" : chapterColor}
             />
             <Tracker icon={<StickyNote size={17} />} label="Book Progress" value={`${readingProgress}%`} color={chapterColor} />
           </div>
-        </motion.header>
+        </header>
 
-        {/* Content area */}
-        <div className={cn("mt-5 grid gap-5", !focusMode && "lg:grid-cols-[1fr_320px]")}>
-          {/* Main content — Tabs */}
-          <Card className="overflow-hidden" accent={chapterColor}>
-            <Tabs.Root value={activeTab} onValueChange={setActiveTab}>
-              <Tabs.List className="flex gap-1.5 overflow-x-auto border-b border-white/10 p-3">
-                {visibleAnswerLabels.map((item) => (
-                  <Tabs.Trigger
-                    key={item.key}
-                    value={item.key}
-                    className="flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-slate-400 transition data-[state=active]:text-slate-950"
-                    style={
-                      activeTab === item.key
-                        ? { backgroundColor: chapterColor, color: "#0f172a" }
-                        : undefined
-                    }
-                  >
-                    {tabIcons[item.key] ?? null}
-                    {item.label}
-                  </Tabs.Trigger>
-                ))}
-              </Tabs.List>
+        {/* Tab definitions — defined inside render so chapterColor is in scope */}
+        {(() => {
+          const TABS = [
+            { key: "easy"      as const, label: "Seedha Samjho",       sublabel: "Simple words mein",          Icon: Lightbulb,     color: "#F59E0B" },
+            { key: "master"    as const, label: "Deep Dive",            sublabel: "Expert-level explanation",   Icon: BookOpen,      color: chapterColor },
+            { key: "interview" as const, label: "Interview Script",     sublabel: "Word-by-word bolna hai",     Icon: MessageSquare, color: "#10B981" },
+            { key: "code"      as const, label: "Code Example",         sublabel: "ABAP code + comments",       Icon: Code2,         color: "#6366F1" },
+          ];
+          const activeTabCfg = TABS.find((t) => t.key === activeTab) ?? TABS[0];
 
-              <AnimatePresence mode="wait">
-                {visibleAnswerLabels.map((item) => (
-                  <Tabs.Content key={item.key} value={item.key} className="p-5" forceMount={activeTab === item.key ? true : undefined}>
-                    {activeTab === item.key && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <div className="mb-4 flex items-center justify-between gap-3">
-                          <h2 className="text-xl font-bold text-white">{item.label}</h2>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => {
-                              void navigator.clipboard.writeText(String(question.answers[item.key]));
-                              toast.success("Copied answer section");
-                            }}
-                          >
-                            <Clipboard size={14} /> Copy
-                          </Button>
-                        </div>
-                        <article
+          const activeContent =
+            activeTab === "easy"      ? question.answers.easyUnderstanding :
+            activeTab === "master"    ? question.answers.hinglishMasterExplanation :
+            activeTab === "interview" ? question.answers.interviewMeKyaBolnaHai :
+                                        question.answers.codeExamples;
+
+          return (
+        <div className={cn("mt-6 grid gap-6", !focusMode && "lg:grid-cols-[1fr_300px]")}>
+          {/* Main reading column */}
+          <div className="min-w-0 space-y-5">
+            {answerHidden ? (
+              <Card className="overflow-hidden">
+                <RecallCover color={chapterColor} minutes={minutes} onReveal={() => setRevealed(true)} />
+              </Card>
+            ) : (
+              <>
+                {/* ── Tab card ── */}
+                <Card className="overflow-hidden">
+                  {/* Tab bar */}
+                  <div className="flex overflow-x-auto border-b border-border bg-surface-2/40">
+                    {TABS.map((tab) => {
+                      const active = activeTab === tab.key;
+                      return (
+                        <button
+                          key={tab.key}
+                          onClick={() => setActiveTab(tab.key)}
                           className={cn(
-                            "whitespace-pre-wrap rounded-lg border border-white/[0.08] bg-black/30 p-5 text-[15px] leading-8 text-slate-200 sm:text-base",
-                            item.key === "codeWalkthrough" && "font-mono text-sm leading-7",
+                            "group flex flex-1 min-w-[90px] flex-col items-center gap-1.5 px-3 py-3.5 text-center transition-all duration-150",
+                            active ? "bg-surface" : "hover:bg-surface-2/70",
                           )}
-                          style={
-                            item.key === "codeWalkthrough"
-                              ? { color: `${chapterColor}cc` }
-                              : undefined
-                          }
+                          style={active ? { boxShadow: `inset 0 -2px 0 ${tab.color}` } : undefined}
                         >
-                          {String(question.answers[item.key])}
-                        </article>
-                      </motion.div>
+                          <tab.Icon
+                            size={16}
+                            style={{ color: active ? tab.color : undefined }}
+                            className={cn(!active && "text-muted group-hover:text-foreground transition-colors")}
+                          />
+                          <span
+                            className={cn("text-[11px] font-semibold leading-tight", active ? "text-foreground" : "text-muted group-hover:text-foreground")}
+                            style={active ? { color: tab.color } : undefined}
+                          >
+                            {tab.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Section header row */}
+                  <div
+                    className="flex items-center gap-3 border-b px-6 py-3.5"
+                    style={{ borderBottomColor: `${activeTabCfg.color}28`, backgroundColor: `${activeTabCfg.color}09` }}
+                  >
+                    <span
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                      style={{ backgroundColor: `${activeTabCfg.color}1e`, color: activeTabCfg.color }}
+                    >
+                      <activeTabCfg.Icon size={15} />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground">{activeTabCfg.label}</p>
+                      <p className="text-[11px] text-muted">{activeTabCfg.sublabel}</p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="shrink-0 text-muted hover:text-foreground"
+                      onClick={() => {
+                        void navigator.clipboard.writeText(activeContent ?? "");
+                        toast.success("Copied!");
+                      }}
+                    >
+                      <Clipboard size={13} /> Copy
+                    </Button>
+                  </div>
+
+                  {/* Tab content */}
+                  <div className="p-6 sm:p-8">
+                    {activeTab === "code" ? (
+                      <pre className={cn("code-block overflow-x-auto whitespace-pre-wrap rounded-xl border border-border bg-surface-2 p-5 text-foreground", measureClass)}>
+                        {question.answers.codeExamples}
+                      </pre>
+                    ) : activeTab === "interview" ? (
+                      <div
+                        className={cn("rounded-xl border-l-[3px] bg-surface-2/40 p-5", measureClass)}
+                        style={{ borderLeftColor: "#10B981" }}
+                      >
+                        <AnswerText text={question.answers.interviewMeKyaBolnaHai} className="reading" style={readingStyle} />
+                      </div>
+                    ) : (
+                      <AnswerText
+                        text={activeTab === "easy" ? question.answers.easyUnderstanding : question.answers.hinglishMasterExplanation}
+                        className={cn("reading", measureClass)}
+                        style={readingStyle}
+                      />
                     )}
-                  </Tabs.Content>
-                ))}
-              </AnimatePresence>
-            </Tabs.Root>
-          </Card>
+                  </div>
+                </Card>
+
+                {/* ── Follow-up Questions card ── */}
+                {question.answers.followupAnswerBank?.length > 0 && (
+                  <Card className="overflow-hidden">
+                    <div className="flex items-center gap-3 border-b border-border px-5 py-4">
+                      <span
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold"
+                        style={{ backgroundColor: `${chapterColor}18`, color: chapterColor }}
+                      >
+                        <HelpCircle size={15} />
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-foreground">Follow-up Questions</span>
+                          <span
+                            className="rounded-full px-2 py-0.5 text-[10px] font-bold"
+                            style={{ backgroundColor: `${chapterColor}18`, color: chapterColor }}
+                          >
+                            {question.answers.followupAnswerBank.length}
+                          </span>
+                        </div>
+                        <p className="mt-0.5 text-xs text-muted">Interviewer ye bhi pooch sakta hai — ready raho</p>
+                      </div>
+                    </div>
+
+                    <Accordion.Root type="single" collapsible className="divide-y divide-border">
+                      {question.answers.followupAnswerBank.map((followup, index) => (
+                        <Accordion.Item key={followup.question} value={followup.question} className="group">
+                          <Accordion.Trigger className="flex w-full items-start gap-3 px-5 py-4 text-left transition-colors hover:bg-surface-2/50 data-[state=open]:bg-surface-2/50">
+                            <span
+                              className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold"
+                              style={{ backgroundColor: `${chapterColor}18`, color: chapterColor }}
+                            >
+                              {index + 1}
+                            </span>
+                            <span className="flex-1 text-sm font-medium text-foreground leading-snug">{followup.question}</span>
+                            <ChevronDown size={15} className="mt-0.5 shrink-0 text-muted transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                          </Accordion.Trigger>
+                          <Accordion.Content className="overflow-hidden data-[state=open]:animate-slide-down data-[state=closed]:animate-slide-up">
+                            <div className="space-y-2.5 px-5 pb-5 pt-1">
+                              <MentorBlock title="Hinglish Explanation" body={followup.hinglishExplanation} color={chapterColor} />
+                              <MentorBlock title="Interview Answer"     body={followup.interviewAnswer}    color="#10B981" />
+                              <MentorBlock title="Real-time Example"    body={followup.realtimeExplanation} color={chapterColor} />
+                              <MentorBlock title="Avoid These Mistakes" body={followup.mistakes}           color="#EF4444" />
+                              {followup.codeExample?.trim() && (
+                                <pre className="code-block overflow-x-auto rounded-lg border border-border bg-surface-2 p-3 text-[0.82rem] text-foreground">
+                                  {followup.codeExample}
+                                </pre>
+                              )}
+                            </div>
+                          </Accordion.Content>
+                        </Accordion.Item>
+                      ))}
+                    </Accordion.Root>
+                  </Card>
+                )}
+              </>
+            )}
+          </div>
 
           {/* Sidebar */}
-          <aside
-            className={cn(
-              "space-y-4 transition-all duration-300",
-              focusMode && "hidden",
+          <aside className={cn("space-y-4", focusMode && "hidden")}>
+            {/* Quick tab switcher in sidebar */}
+            {!answerHidden && (
+              <Card className="overflow-hidden">
+                <div className="border-b border-border px-4 py-3">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-muted">Sections</p>
+                </div>
+                <div className="flex flex-col divide-y divide-border">
+                  {TABS.map((tab) => {
+                    const active = activeTab === tab.key;
+                    return (
+                      <button
+                        key={tab.key}
+                        onClick={() => setActiveTab(tab.key)}
+                        className={cn(
+                          "flex items-center gap-2.5 px-4 py-2.5 text-sm text-left transition-colors",
+                          active ? "bg-surface-2/70 font-semibold text-foreground" : "text-muted hover:bg-surface-2/50 hover:text-foreground",
+                        )}
+                      >
+                        <tab.Icon size={13} style={{ color: active ? tab.color : undefined }} className={cn(!active && "text-muted")} />
+                        <span style={active ? { color: tab.color } : undefined}>{tab.label}</span>
+                        {active && <span className="ml-auto h-1.5 w-1.5 rounded-full" style={{ backgroundColor: tab.color }} />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </Card>
             )}
-          >
-            {/* Confidence tracker */}
-            <Card className="p-5" accent={chapterColor}>
-              <h2 className="font-semibold text-white">Confidence Tracker</h2>
+
+            <Card className="p-5">
+              <h2 className="text-sm font-semibold text-foreground">Confidence Tracker</h2>
               <input
                 aria-label="Confidence"
                 className="mt-4 w-full"
@@ -321,12 +465,11 @@ export function QuestionReader({ question }: { question: Question }) {
                 onChange={(event) => setConfidence(question.id, Number(event.target.value))}
                 style={{ accentColor: chapterColor }}
               />
-              <div className="mt-2 text-sm text-slate-300">{confidence}% interview ready</div>
+              <div className="mt-2 text-sm text-muted">{confidence}% interview ready</div>
             </Card>
 
-            {/* AI Mentor Tools */}
             <Card className="p-5">
-              <h2 className="font-semibold text-white">AI Mentor Tools</h2>
+              <h2 className="text-sm font-semibold text-foreground">AI Mentor Tools</h2>
               <div className="mt-4 grid gap-2">
                 <AiTool icon={<Bot size={15} />} label="AI Mentor" prompt={question.answers.aiMentorPrompt} color={chapterColor} />
                 <AiTool
@@ -350,21 +493,19 @@ export function QuestionReader({ question }: { question: Question }) {
               </div>
             </Card>
 
-            {/* Notes */}
             <Card className="p-5">
-              <h2 className="font-semibold text-white">Notes</h2>
+              <h2 className="text-sm font-semibold text-foreground">Notes</h2>
               <textarea
-                className="mt-3 min-h-32 w-full rounded-lg border border-white/10 bg-black/30 p-3 text-sm text-slate-100 outline-none transition focus:border-[color:var(--accent)]"
+                className="mt-3 min-h-32 w-full rounded-lg border border-border p-3 text-sm text-foreground outline-none"
                 value={note}
                 onChange={(event) => setNote(question.id, event.target.value)}
                 placeholder="Add your recall hook, weak point, or project example..."
               />
             </Card>
 
-            {/* Interview mode */}
-            <Card className="p-5" accent={chapterColor}>
-              <h2 className="font-semibold text-white">Interview Mode</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-300">
+            <Card className="p-5">
+              <h2 className="text-sm font-semibold text-foreground">Interview Mode</h2>
+              <p className="mt-2 text-sm leading-6 text-muted">
                 Speak this answer in 60 seconds: definition, project scenario, debugging, performance, S/4HANA.
               </p>
               <Button asChild className="mt-4 w-full">
@@ -373,60 +514,11 @@ export function QuestionReader({ question }: { question: Question }) {
             </Card>
           </aside>
         </div>
-
-        {/* Code walkthrough + Follow-ups */}
-        <Card className="mt-5 p-5" accent={chapterColor}>
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 className="text-xl font-bold text-white">Code Walkthrough Preview</h2>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => {
-                void navigator.clipboard.writeText(question.answers.codeExamples);
-                toast.success("Copied code example");
-              }}
-            >
-              <Clipboard size={14} /> Copy
-            </Button>
-          </div>
-          <pre
-            className="mb-6 overflow-x-auto rounded-lg border border-white/[0.08] bg-black/40 p-4 font-mono text-sm leading-7"
-            style={{ color: `${chapterColor}bb` }}
-          >
-            {question.answers.codeExamples}
-          </pre>
-
-          <h2 className="text-xl font-bold text-white">Follow-up Questions With Proper Answers</h2>
-          <Accordion.Root type="single" collapsible className="mt-4 space-y-2">
-            {question.answers.followupAnswerBank.map((followup, index) => (
-              <Accordion.Item
-                key={followup.question}
-                value={followup.question}
-                className="rounded-lg border border-white/[0.08] bg-white/[0.03]"
-              >
-                <Accordion.Trigger className="flex w-full items-center justify-between gap-3 p-4 text-left text-sm font-semibold text-white">
-                  {followup.question}
-                  <Badge>{question.followups[index]?.category ?? "Follow-up"}</Badge>
-                </Accordion.Trigger>
-                <Accordion.Content className="space-y-3 px-4 pb-4 text-sm leading-7 text-slate-300">
-                  <MentorBlock title="Hinglish Explanation" body={followup.hinglishExplanation} color={chapterColor} />
-                  <MentorBlock title="Interview Answer" body={followup.interviewAnswer} color={chapterColor} />
-                  <MentorBlock title="Real-time Explanation" body={followup.realtimeExplanation} color={chapterColor} />
-                  <MentorBlock title="Mistakes" body={followup.mistakes} color={chapterColor} />
-                  <pre
-                    className="overflow-x-auto rounded-lg border border-white/[0.08] bg-black/40 p-3 font-mono text-sm"
-                    style={{ color: `${chapterColor}bb` }}
-                  >
-                    {followup.codeExample}
-                  </pre>
-                </Accordion.Content>
-              </Accordion.Item>
-            ))}
-          </Accordion.Root>
-        </Card>
+          );
+        })()}
 
         {/* Prev / Next navigation */}
-        <nav className="mt-5 grid gap-3 sm:grid-cols-2">
+        <nav className="mt-6 grid gap-3 sm:grid-cols-2">
           <Button
             asChild
             variant="secondary"
@@ -435,7 +527,7 @@ export function QuestionReader({ question }: { question: Question }) {
             <Link href={previousQuestion ? `/questions/${previousQuestion.id}` : `/questions/${question.id}`}>
               <ChevronLeft size={18} />
               <span className="text-left">
-                <span className="block text-xs uppercase text-slate-400">Previous</span>
+                <span className="block text-xs uppercase text-faint">Previous</span>
                 <span className="line-clamp-1">{previousQuestion?.prompt ?? "Start of book"}</span>
               </span>
             </Link>
@@ -446,7 +538,7 @@ export function QuestionReader({ question }: { question: Question }) {
           >
             <Link href={nextQuestion ? `/questions/${nextQuestion.id}` : `/questions/${question.id}`}>
               <span className="text-left">
-                <span className="block text-xs uppercase text-slate-900/60">Next</span>
+                <span className="block text-xs uppercase opacity-70">Next</span>
                 <span className="line-clamp-1">{nextQuestion?.prompt ?? "Book complete"}</span>
               </span>
               <ChevronRight size={18} />
@@ -454,52 +546,70 @@ export function QuestionReader({ question }: { question: Question }) {
           </Button>
         </nav>
 
-        <div className="mt-5 text-center text-xs text-slate-500">
-          {requiredAnswerSections.length} learning sections available for this question
+        <div className="mt-6 text-center text-xs text-faint">
+          5 learning sections · {allQuestions.length} questions in this book
         </div>
       </div>
 
-      {/* Floating "Next Question" button */}
-      <AnimatePresence>
-        {showFloatingNext && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-6 right-6 z-50 flex items-center gap-2"
+      {/* Floating controls */}
+      {showFloatingNext && (
+        <div className="animate-fade-in fixed bottom-6 right-6 z-50 flex items-center gap-2">
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            aria-label="Scroll to top"
           >
-            <Button
-              variant="secondary"
-              size="icon"
-              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              aria-label="Scroll to top"
-            >
-              <ArrowUp size={16} />
+            <ArrowUp size={16} />
+          </Button>
+          {nextQuestion && (
+            <Button asChild>
+              <Link href={`/questions/${nextQuestion.id}`}>
+                Next Question <ChevronRight size={16} />
+              </Link>
             </Button>
-            {nextQuestion && (
-              <Button asChild>
-                <Link href={`/questions/${nextQuestion.id}`}>
-                  Next Question <ChevronRight size={16} />
-                </Link>
-              </Button>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </div>
+      )}
     </main>
   );
 }
 
+function RecallCover({ color, minutes, onReveal }: { color: string; minutes: number; onReveal: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center px-6 py-16 text-center sm:py-20">
+      <span
+        className="flex h-12 w-12 items-center justify-center rounded-full"
+        style={{ backgroundColor: `${color}1f`, color }}
+      >
+        <Lock size={20} />
+      </span>
+      <h2 className="mt-4 font-serif text-xl font-semibold text-foreground">Answer hidden</h2>
+      <p className="mt-2 max-w-sm text-sm leading-6 text-muted">
+        Active recall is on. Try to answer the question out loud first — then reveal to check yourself.
+        <span className="mt-1 block text-xs text-faint">~{minutes} min read once revealed</span>
+      </p>
+      <Button className="mt-5" onClick={onReveal}>
+        <Eye size={16} /> Reveal answer
+      </Button>
+    </div>
+  );
+}
+
+
 function MentorBlock({ title, body, color }: { title: string; body: string; color: string }) {
   return (
-    <div className="rounded-lg border border-white/[0.08] bg-black/20 p-3">
+    <div
+      className="rounded-lg border p-3.5"
+      style={{ borderColor: `${color}25`, backgroundColor: `${color}08` }}
+    >
       <div
-        className="text-xs font-semibold uppercase tracking-[0.1em]"
+        className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest"
         style={{ color }}
       >
         {title}
       </div>
-      <p className="mt-2">{body}</p>
+      <AnswerText text={body} className="text-[0.9rem] leading-relaxed" />
     </div>
   );
 }
@@ -522,12 +632,12 @@ function AiTool({ icon, label, prompt, color }: { icon: React.ReactNode; label: 
 
 function Tracker({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: string; color: string }) {
   return (
-    <div className="rounded-lg border border-white/[0.08] bg-white/[0.04] p-4">
+    <div className="rounded-lg border border-border bg-surface-2 p-4">
       <div className="flex items-center gap-2" style={{ color }}>
         {icon}
         <span className="text-[10px] font-semibold uppercase tracking-[0.1em]">{label}</span>
       </div>
-      <div className="mt-2 text-lg font-bold text-white">{value}</div>
+      <div className="mt-2 text-lg font-bold text-foreground">{value}</div>
     </div>
   );
 }

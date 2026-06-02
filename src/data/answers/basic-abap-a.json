@@ -1,0 +1,362 @@
+{
+  "basic-abap-001": {
+    "easyUnderstanding": "SAP ek duniya ka number 1 ERP software hai jo companies finance, HR, sales, purchase, aur inventory manage karne ke liye use karti hain — jaise Tata, Infosys, Reliance. ABAP ka full form hai Advanced Business Application Programming — yeh SAP ka apna programming language hai. Jaise Android ke liye Java hai, waisi hi SAP ke andar custom development ke liye ABAP hai. Simple formula yaad rakho: SAP = business platform, ABAP = development tool inside SAP. Real project me ABAP developer custom reports, forms, interfaces, enhancements, aur data migration programs banata hai.",
+    "hinglishMasterExplanation": "Interview me 'What is SAP ABAP?' poochha jaaye toh sirf 'programming language hai' bolna kafi nahi. Pehle SAP ka role bolo: SAP ek ERP system hai jo business processes digitally manage karta hai — finance me BKPF/BSEG, sales me VBAK/VBAP, material me MARA/MARC. Phir ABAP ka role bolo: standard SAP me jo capability nahi hoti woh ABAP se add karte hain. Example: client ko custom monthly sales report chahiye tha region-wise — maine ABAP se ALV report banaya VBAK aur VBAP se. Invoice format customize karna tha — SmartForm banaya ABAP driver program ke saath. Validation add karni thi save pe — BAdI implement kiya. Debugging angle bhi bolna: 'ST22 for dumps, ST05 for SQL performance, SAT for runtime.'"    ,
+    "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'SAP is the world's leading ERP software used to manage business processes like finance, HR, sales, procurement, and inventory. ABAP — Advanced Business Application Programming — is SAP's native language used to build custom reports, forms, interfaces, BAdI-based enhancements, and data migration programs. In my project, I have developed ALV reports for sales analysis, SmartForms for invoice printing, and user exit implementations for custom validations.'",
+    "codeExamples": "REPORT zdemo_abap_basics.\n\nDATA: lv_date  TYPE d,\n      lv_count TYPE i,\n      ls_mara  TYPE mara.\n\nlv_date  = sy-datum.       \" Today's date\nlv_count = 0.\n\nSELECT SINGLE *\n  FROM mara\n  WHERE matnr = '000000000000000001'\n  INTO @ls_mara.\n\nIF sy-subrc = 0.\n  lv_count = lv_count + 1.\n  WRITE: / 'Material found:', ls_mara-matnr, ls_mara-mtart.\nELSE.\n  MESSAGE 'Material not found' TYPE 'I'.\nENDIF.",
+    "followupAnswerBank": [
+      {
+        "question": "Can you explain SAP ABAP with a real project example?",
+        "hinglishExplanation": "Real project me ABAP ka use bahut jagah hota hai. Example: client ko ek custom vendor aging report chahiye tha — standard SAP me nahi tha. Maine ABAP me ALV report banaya, LFB1/BSIK tables se data liya, vendor-wise outstanding calculate kiya, aur output me aging buckets (0-30, 31-60, 61-90 days) dikhaye. Functional team ne FS di, maine TS banayi, code likha, UAT ke baad transport kiya.",
+        "interviewAnswer": "In my project, I developed a custom vendor aging report using ABAP. I read vendor open items from BSIK and vendor master from LFB1, calculated days outstanding, grouped into aging buckets, and displayed using OO ALV. The report reduced manual reconciliation work by 80%.",
+        "realtimeExplanation": "Real project me ABAP developer FS se TS banata hai, code likhta hai, unit test karta hai, transport karta hai. Post-go-live pe support bhi karta hai — dump analysis, performance fix.",
+        "mistakes": "Sirf 'ABAP is a programming language' bolna weak hai. Always add: what you built, which tables you used, what business problem it solved.",
+        "codeExample": "SELECT vbeln, netwr, erdat\n  FROM vbak\n  INTO TABLE @DATA(lt_orders)\n  WHERE erdat >= @lv_date - 30\n    AND vkorg = '1000'."
+      },
+      {
+        "question": "What production issue can happen in SAP ABAP programs?",
+        "hinglishExplanation": "Common production issues: program dump (ST22 me check karo — SAPSQL_ARRAY_INSERT_DUPREC, RAISE_EXCEPTION, etc.), SELECT me MANDT check miss hua toh wrong client data, LOOP AT ke andar SELECT tha toh performance hit (10 lakh records x DB call = disaster), message class delete ho gayi toh program crash.",
+        "interviewAnswer": "Common production issues include runtime dumps (ST22), slow reports due to SELECT inside LOOP, missing SY-SUBRC checks causing wrong data processing, and transport sequence errors. I analyze ST22 for the exact exception class and line number, ST05 for SQL performance.",
+        "realtimeExplanation": "Production issue aaye: ST22 open karo, exception aur short text padho, program aur include find karo, breakpoint lagate ho debug mode me reproduce karte ho.",
+        "mistakes": "Bina ST22 check kiye guess karna galat hai. Always ST22 first, then reproduce with exact input.",
+        "codeExample": "\" After every SELECT, check SY-SUBRC\nSELECT * FROM mara INTO TABLE @DATA(lt_mat).\nIF sy-subrc <> 0.\n  MESSAGE 'No data found' TYPE 'W'.\n  RETURN.\nENDIF."
+      },
+      {
+        "question": "How will you debug an ABAP issue end to end?",
+        "hinglishExplanation": "Debugging steps: pehle exact input reproduce karo (user ke same values). SE38 me program open karo, breakpoint lagao relevant line pe. /H type karke debugger enter karo. Variables watch karo — SY-SUBRC, internal table contents, key fields. Agar background job hai toh SM37 se job log dekho, spool check karo.",
+        "interviewAnswer": "I set an external or session breakpoint at the suspected code, reproduce the issue with the user's exact input, then use the ABAP debugger to watch variable values, SY-SUBRC, internal table contents, and call stack. For performance issues, I use ST05 for SQL trace and SAT for runtime analysis.",
+        "realtimeExplanation": "Debugging flow: breakpoint → reproduce → step through → inspect → fix → regression test → transport.",
+        "mistakes": "Sirf gut feeling se code fix karna. Always reproduce first, then debug with actual data.",
+        "codeExample": "\" Set external breakpoint\nBREAK-POINT ID zbp_debug.   \" Or press F9 in ABAP editor\n\" Then reproduce the issue to hit the breakpoint"
+      },
+      {
+        "question": "What is the performance angle in ABAP programming?",
+        "hinglishExplanation": "ABAP performance ke top issues: SELECT * (sirf zaruri fields select karo), SELECT inside LOOP (FOR ALL ENTRIES ya JOIN use karo), full table scan (WHERE me indexed field use karo), large internal table bina key (hashed/sorted table use karo). ST05 se SQL trace dekho, SAT se ABAP runtime analyze karo.",
+        "interviewAnswer": "Performance best practices: avoid SELECT *, avoid SELECT inside LOOP (use FOR ALL ENTRIES or JOINs), use WHERE clauses with indexed fields, prefer FIELD-SYMBOL over work area for large tables, verify with ST05 SQL trace and SAT runtime analysis.",
+        "realtimeExplanation": "Performance issue aaye: ST05 open karo, heaviest SQL query identify karo, table access pattern dekho, index check karo SE11 se.",
+        "mistakes": "Performance improvement claim karo bina ST05/SAT evidence ke — interviewer always asks 'how did you measure it?'",
+        "codeExample": "\" Bad: SELECT inside LOOP\nLOOP AT lt_orders ASSIGNING FIELD-SYMBOL(<o>).\n  SELECT SINGLE * FROM vbap WHERE vbeln = <o>-vbeln INTO @DATA(ls_item). \" N DB calls!\nENDLOOP.\n\n\" Good: Single SELECT\nSELECT * FROM vbap WHERE vbeln IN (SELECT vbeln FROM vbak WHERE ...) INTO TABLE @DATA(lt_items)."
+      },
+      {
+        "question": "How does ABAP development change in S/4HANA?",
+        "hinglishExplanation": "S/4HANA me ABAP practices kaafi change hue. Old: SELECT * FROM MARA, JOINs sab ABAP side pe. New: CDS views use karo, SELECT sirf needed fields, avoid SELECT * completely. Old tables change hue — ACDOCA ne BKPF/BSEG/FAGLFLEXA replace kiya, MATDOC ne MKPF/MSEG replace kiya. Custom code check karne ke liye ATC (ABAP Test Cockpit) aur /SDF/SCI_SCAN use karo.",
+        "interviewAnswer": "In S/4HANA, avoid obsolete statements, use CDS views for reporting instead of DB joins in ABAP, use Open SQL with new syntax (@variable), avoid SELECT * and avoid accessing deprecated tables like BKPF directly — use compatibility views. Run ATC to identify remediation needs before migration.",
+        "realtimeExplanation": "S/4HANA migration project me custom code remediation first step hai — ATC scan karo, find all obsolete statements, fix one by one.",
+        "mistakes": "ECC code directly S/4HANA pe chalana bina remediation ke — dumps aur wrong data guarantee hai.",
+        "codeExample": "\" S/4HANA compatible SELECT\nSELECT bukrs, belnr, gjahr, dmbtr\n  FROM acdoca   \" Universal Journal\n  WHERE bukrs = @p_bukrs\n    AND gjahr = @p_gjahr\n  INTO TABLE @DATA(lt_journal)."
+      },
+      {
+        "question": "What would a project-ready ABAP developer say about their work?",
+        "hinglishExplanation": "Project-ready answer me yeh points zaroor: FS se TS conversion karna, technically complex requirements samajhna, correct SAP objects choose karna (report/class/FM/BAdI), unit test karna, peer review, transport properly move karna, aur post-deployment validation karna. Support me: reproduce, debug, RCA, fix, regression test.",
+        "interviewAnswer": "A project-ready ABAP developer reads the functional spec, identifies the correct technical approach (ALV report, enhancement, OData service, etc.), writes modular testable code, covers positive/negative scenarios in unit testing, moves through transport with proper sequence, and provides post-go-live support including dump analysis and performance tuning.",
+        "realtimeExplanation": "Project readiness = technical + communication + process. Know your code, know your transactions, know how to escalate.",
+        "mistakes": "Only saying 'I write code and test it.' Interviewer wants to hear the full SDLC ownership — FS, TS, code, test, transport, support.",
+        "codeExample": "\" Proper program structure\nREPORT zproject_ready.\n\" Selection screen\n\" Events: INITIALIZATION, AT SELECTION-SCREEN, START-OF-SELECTION\n\" Subroutines/Methods for data fetch, processing, display\n\" Error handling with MESSAGE and SY-SUBRC checks throughout"
+      },
+      {
+        "question": "Which SAP transactions are most important for ABAP developers?",
+        "hinglishExplanation": "Development: SE38 (programs), SE37 (function modules), SE24 (classes), SE11 (DDIC), SE80 (object navigator), SE93 (transaction codes). Data: SE16N (table data). Debug/Performance: ST22 (dumps), SM37 (jobs), ST05 (SQL trace), SAT (runtime). Basis touchpoints: SM50 (work processes), STMS (transports), SU53 (authorization).",
+        "interviewAnswer": "Key transactions: SE38/SE80 for ABAP development, SE37 for function modules, SE24 for OO classes, SE11 for data dictionary, SE16N for table data. For support: ST22 for dumps, SM37 for background jobs, ST05 for SQL trace, SAT for runtime analysis, SU53 for authorization failures.",
+        "realtimeExplanation": "Pehle din project pe: SE38, SE11, SE16N yaad karo. Support karte waqt: ST22, SM37, ST05 roz use hoge.",
+        "mistakes": "Only knowing development transactions. Support transactions (ST22, SM37, ST05, SU53) are equally important for any project role.",
+        "codeExample": "\" Commonly used in code\nCALL TRANSACTION 'VA03' AND SKIP FIRST SCREEN.\n\" Check SM37 for job execution\n\" ST22 shows: exception class, program, include, line number"
+      },
+      {
+        "question": "What is the common trap question in ABAP interviews?",
+        "hinglishExplanation": "Top trap questions: (1) SELECT * kab use karna chahiye? — Never, always specify fields. (2) SY-SUBRC check karna kyun zaroori? — Bina check ke wrong data process hoga. (3) FORM vs METHOD: why prefer methods? — Testing, encapsulation, polymorphism. (4) FOR ALL ENTRIES with empty table? — Selects ALL records! Always check before FAE.",
+        "interviewAnswer": "Common trap questions: 'When to use SELECT *' (never — always specify fields for performance), 'What happens if FOR ALL ENTRIES table is empty' (selects all records — always check before using), 'Difference between sy-subrc 4 and sy-subrc 8' (4 = not found, 8 = ambiguous for SELECT SINGLE with multiple results).",
+        "realtimeExplanation": "Trap questions test whether you've actually coded, not just read theory. Prepare with real code examples for each.",
+        "mistakes": "Saying FOR ALL ENTRIES is always safe — it's dangerous with empty driver table. This single mistake causes production incidents.",
+        "codeExample": "\" FOR ALL ENTRIES trap\nIF lt_orders IS NOT INITIAL.  \" MUST check! Empty = SELECT ALL\n  SELECT * FROM vbap\n    FOR ALL ENTRIES IN @lt_orders\n    WHERE vbeln = @lt_orders-vbeln\n    INTO TABLE @DATA(lt_items).\nENDIF."
+      }
+    ]
+  },
+  "basic-abap-002": {
+    "easyUnderstanding": "Classical report matlab ek simple list — WRITE statement se data screen pe aata hai, user kuch kar nahi sakta output ke baad. Interactive report me user screen pe kisi line pe click karta hai toh additional detail aata hai — jaise sales order number pe click karo toh uske items dikhte hain. Classical = one-way output (like a printed page). Interactive = clickable, drill-down capability. Real project me classical report simple MIS ke liye aur interactive report management ke liye jahan multiple views chahiye.",
+    "hinglishMasterExplanation": "Classical aur interactive ka farak interview me bahut poochha jaata hai. Classical report: WRITE statement se linear output, user output ke baad kuch nahi kar sakta. Interactive report: HIDE statement se line ke saath data store hota hai, jab user click karta hai toh AT LINE-SELECTION event fire hota hai, wahaan aap HIDE data use karke detail fetch karte ho. AT USER-COMMAND me custom PF-STATUS buttons handle hote hain. Example: 'Maine ek sales report banaya jisme order list classical part me thi, AT LINE-SELECTION pe order number pe click karo toh items aate hain — yeh interactive part tha.' S/4HANA me ALV preferred hai, interactive classical reports kam use hoti hain lekin concept important hai.",
+    "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'Classical report uses WRITE statements for sequential, non-interactive output — once data is displayed, user cannot interact. Interactive report uses HIDE to store data with each line, and AT LINE-SELECTION fires when a user clicks a line, allowing drill-down navigation. I used interactive reports in my project for sales drill-down — clicking an order showed its line items using AT LINE-SELECTION with HIDE data.'",
+    "codeExamples": "REPORT zinteractive_demo.\n\nDATA: lt_orders TYPE TABLE OF vbak.\n\nSELECT vbeln, netwr FROM vbak INTO TABLE @lt_orders UP TO 20 ROWS.\n\nLOOP AT lt_orders ASSIGNING FIELD-SYMBOL(<ord>).\n  WRITE: / <ord>-vbeln, <ord>-netwr.\n  HIDE: <ord>-vbeln.          \" Store order number with this line\nENDLOOP.\n\nAT LINE-SELECTION.\n  DATA: lt_items TYPE TABLE OF vbap.\n  SELECT posnr, matnr, netwr FROM vbap\n    WHERE vbeln = @<ord>-vbeln  \" Recovered from HIDE\n    INTO TABLE @lt_items.\n  LOOP AT lt_items ASSIGNING FIELD-SYMBOL(<it>).\n    WRITE: /5 <it>-posnr, <it>-matnr, <it>-netwr.\n  ENDLOOP.",
+    "followupAnswerBank": [
+      {
+        "question": "Can you explain classical vs interactive report with a real project example?",
+        "hinglishExplanation": "Real project me maine ek vendor outstanding report banaya. Classical part: WRITE se vendor list dikhai — vendor code, name, outstanding amount. Interactive part: user kisi vendor pe click karta hai toh AT LINE-SELECTION me us vendor ke sab open items aate hain BSIK table se. HIDE statement ne vendor code store kiya tha us line ke saath.",
+        "interviewAnswer": "I built a vendor outstanding report with two levels: the header level showing vendors with total outstanding (classical WRITE), and the detail level showing individual open items when a vendor line was clicked (AT LINE-SELECTION using HIDE data to fetch from BSIK).",
+        "realtimeExplanation": "Functional spec clearly mention karta hai drill-down chahiye ya nahi. Agar chahiye toh interactive, otherwise classical ya ALV.",
+        "mistakes": "Saying AT LINE-SELECTION works without HIDE — you need HIDE to know which line was clicked and what data to fetch.",
+        "codeExample": "HIDE: lv_vendor.  \" Store with line\nAT LINE-SELECTION.\n  SELECT * FROM bsik WHERE lifnr = @lv_vendor INTO TABLE @DATA(lt_items)."
+      },
+      {
+        "question": "What production issue can happen with classical or interactive reports?",
+        "hinglishExplanation": "Common issues: (1) HIDE data lost — agar WRITE ke baad HIDE nahi kiya toh AT LINE-SELECTION me blank aayega. (2) AT LINE-SELECTION me SELECT bina condition — agar HIDE fail ho toh full table scan. (3) Large output causing memory issues — classical WRITE without pagination causes TSV_TNEW_PAGE_ALLOC_FAILED dump.",
+        "interviewAnswer": "Production issues: missing HIDE causes blank data in AT LINE-SELECTION; large output without pagination triggers memory dumps (TSV_TNEW_PAGE_ALLOC_FAILED); double-click vs single-click confusion in interactive mode. ST22 shows the dump with exact line and exception.",
+        "realtimeExplanation": "User complains 'clicking order shows nothing' — check if HIDE is coded before AT LINE-SELECTION. Classic HIDE debugging issue.",
+        "mistakes": "Assuming AT LINE-SELECTION always gets the correct line data without verifying HIDE was called.",
+        "codeExample": "\" Correct pattern\nWRITE: / lv_order.\nHIDE: lv_order.   \" THIS is what makes AT LINE-SELECTION work\nAT LINE-SELECTION.\n  \" lv_order now has the value from the clicked line"
+      },
+      {
+        "question": "How will you debug a classical or interactive report issue?",
+        "hinglishExplanation": "Debug steps: (1) SE38 me program open karo, HIDE statement ke baad breakpoint lagao. (2) Program run karo, list aane do. (3) Kisi line pe click karo — AT LINE-SELECTION pe breakpoint hit hona chahiye. (4) HIDE variable ki value check karo — agar blank hai toh HIDE line miss hai ya conditional block ke andar chhupa hai.",
+        "interviewAnswer": "I set a breakpoint inside AT LINE-SELECTION, run the report, click a line, and check the HIDE variable value in the debugger. If it's blank, HIDE was not called or is inside a conditional block that didn't execute. I then trace the WRITE+HIDE sequence to find the gap.",
+        "realtimeExplanation": "Most AT LINE-SELECTION bugs are because HIDE was inside IF block that didn't execute, or WRITE and HIDE were in different sequence.",
+        "mistakes": "Directly checking AT LINE-SELECTION code without verifying HIDE was called with correct data.",
+        "codeExample": "\" Add breakpoint here to debug\nAT LINE-SELECTION.\n  BREAK-POINT.   \" Check lv_vendor value here\n  IF lv_vendor IS INITIAL.\n    MESSAGE 'HIDE data missing!' TYPE 'W'.\n  ENDIF."
+      },
+      {
+        "question": "What is the performance angle in classical and interactive reports?",
+        "hinglishExplanation": "Classical report performance: WRITE pe overhead kam hai lekin large output me pagination aur memory issue ho sakta hai. Interactive: AT LINE-SELECTION me SELECT ho toh har click pe DB call — agar user 100 baar click kare toh 100 DB calls. Solution: pehli SELECT me sab data fetch karo aur cache karo, click pe sirf filter karo internal table se.",
+        "interviewAnswer": "Performance tip: in interactive reports, pre-fetch all detail data in START-OF-SELECTION and store in a global internal table, then in AT LINE-SELECTION only READ TABLE from the cached data instead of making a fresh database SELECT on every click. This reduces DB hits from N to 1.",
+        "realtimeExplanation": "User says 'each click is slow' — check AT LINE-SELECTION for SELECT statements. Pre-caching is the fix.",
+        "mistakes": "Doing SELECT in AT LINE-SELECTION every time. This causes N database calls for N user clicks.",
+        "codeExample": "\" Pre-fetch in START-OF-SELECTION\nSELECT * FROM vbap INTO TABLE @DATA(gt_items).  \" Global table\n\nAT LINE-SELECTION.\n  \" Read from cached table — no DB hit\n  READ TABLE gt_items WITH KEY vbeln = lv_order ASSIGNING FIELD-SYMBOL(<it>)."
+      },
+      {
+        "question": "How does interactive reporting change in S/4HANA?",
+        "hinglishExplanation": "S/4HANA me classical interactive reports discouraged hain. SAP pushes ALV OO (CL_GUI_ALV_GRID) ya Fiori apps. ALV me hotspot, double-click event, aur drill-down built-in hai bina HIDE ke. Fiori me navigation annotations CDS views se aate hain. But interview me poochha jaaye toh classical interactive ka concept explain karo — SAP ke legacy landscape me abhi bhi use hota hai.",
+        "interviewAnswer": "In S/4HANA, OO ALV with hotspot/double-click events replaces classical interactive reports. CL_GUI_ALV_GRID handles user command events without HIDE. For new development, Fiori with CDS-based navigation is preferred. However, existing classical interactive reports still run with backward compatibility.",
+        "realtimeExplanation": "Migration project me classical interactive reports ko ALV ya Fiori me convert karne ka kaam aata hai — yeh kaam ABAP developer karta hai.",
+        "mistakes": "Saying interactive reports are obsolete. They still run but new development should use ALV or Fiori patterns.",
+        "codeExample": "\" Modern ALV approach replaces HIDE+AT LINE-SELECTION\nDATA: lo_alv TYPE REF TO cl_gui_alv_grid.\nCREATE OBJECT lo_alv\n  EXPORTING i_parent = lo_container.\n\" Set HOTSPOT on field catalog instead of HIDE"
+      },
+      {
+        "question": "What would a project-ready ABAP developer say about interactive reports?",
+        "hinglishExplanation": "Project-ready answer: 'Pehle functional spec se confirm karo ki drill-down chahiye ya nahi. Agar chahiye aur system purana hai toh classical interactive banaunga HIDE + AT LINE-SELECTION. Agar modern system hai toh ALV hotspot ya OData service Fiori ke saath. Performance ke liye detail data pre-cache karunga, AT LINE-SELECTION me filter karunga.'",
+        "interviewAnswer": "A project-ready developer would first confirm from the FS whether drill-down is needed, then choose the appropriate technique: classical interactive for legacy systems, OO ALV with hotspot for modern SAP, or Fiori with navigation for S/4HANA. They'd also pre-fetch detail data in START-OF-SELECTION to avoid DB calls on every click.",
+        "realtimeExplanation": "In real projects, the choice between classical and ALV depends on system version, existing standards, and client IT team's preference.",
+        "mistakes": "Building interactive reports without reading the functional spec — sometimes a simple ALV with subtotals is enough, no drill-down needed.",
+        "codeExample": "\" Decision logic\n\" Legacy ECC system → Classical interactive with HIDE\n\" Modern ECC/S4 → OO ALV with HOTSPOT\n\" S/4HANA new dev → Fiori + CDS navigation"
+      },
+      {
+        "question": "Which SAP transactions are relevant to classical and interactive reports?",
+        "hinglishExplanation": "SE38: program write/edit/test karo. SA38: program execute karo. SM37: agar report background me chali toh job status dekho. ST22: dump aaye toh analyze karo. SP01: spool output check karo. SE80: object navigator me program manage karo. SM50: agar program hang ho toh work process kill karo.",
+        "interviewAnswer": "Key transactions: SE38 to develop/modify the program, SA38 to execute, SM37 for background execution monitoring, ST22 for dump analysis, SP01 for spool output check. SE80 for managing the program within a package. SM50 to monitor long-running processes.",
+        "realtimeExplanation": "Development me SE38 daily use hota hai. Production support me ST22 aur SM37 daily use hote hain.",
+        "mistakes": "Forgetting SP01 — many report issues are actually spool issues, not code issues.",
+        "codeExample": "\" Background job scheduling for report\nSUBMIT zmy_report WITH s_date IN s_date\n                 TO SAP-SPOOL\n                 SPOOL PARAMETERS ls_spool\n                 WITHOUT SPOOL DYNPRO AND RETURN."
+      },
+      {
+        "question": "What is the common trap question about classical vs interactive reports?",
+        "hinglishExplanation": "Trap question 1: 'AT LINE-SELECTION me SY-LILLI ka kya matlab hai?' — SY-LILLI me current line number hota hai jahan user ne click kiya. Trap 2: 'HIDE se kya HIDE hota hai — screen se ya sirf store hota hai?' — Sirf store hota hai, screen pe still dikh sakta hai. Trap 3: 'Kya AT LINE-SELECTION me aap kisi bhi variable access kar sakte ho?' — Nahi, sirf HIDE kiye variables accessible hote hain.",
+        "interviewAnswer": "Common trap: 'Can you access any variable in AT LINE-SELECTION?' Answer: only variables stored with HIDE are accessible because the runtime restores HIDE variables when a line is selected. Another trap: 'What is SY-LILLI?' — it holds the line number of the clicked line, useful for identifying which row was selected.",
+        "realtimeExplanation": "Ye trap questions prove karte hain ki aapne actually interactive report likha hai — theory se ye detail nahi aata.",
+        "mistakes": "Saying all global variables are accessible in AT LINE-SELECTION — only HIDE variables are guaranteed to hold the correct line's data.",
+        "codeExample": "AT LINE-SELECTION.\n  \" SY-LILLI = line number clicked\n  \" Only HIDE variables have correct values here\n  WRITE: / 'Clicked line:', sy-lilli.\n  \" lv_vendor is from HIDE — other vars may have last-iteration values"
+      }
+    ]
+  },
+  "basic-abap-003": {
+    "easyUnderstanding": "ABAP me data type ek blueprint hai — kitni memory, kaunsa format. Data object matlab actual variable jo aapne declare kiya. Elementary types: C (character text), N (numeric text jaise pincode), I (integer numbers), P (packed decimal for amounts), F (floating point), D (date YYYYMMDD), T (time HHMMSS), X (hexadecimal), STRING (variable length text), XSTRING (variable hex). Complex types: structures (multiple fields) aur internal tables (rows of data). Reference types: REF TO (object references). Interview shortcut: 'Types = categories, Objects = actual variables in memory.'",
+    "hinglishMasterExplanation": "ABAP data types interview me isliye important hain kyunki wrong type choose karo toh runtime errors, rounding issues, ya wrong output aata hai. Elementary types me most important: P type — business amounts ke liye use karo, decimals define karo (P DECIMALS 2). I type — counting ke liye. D type — date operations ke liye (SY-DATUM bhi D type hai). STRING — variable length text jab exact length pata nahi. Complex: structure ek row ka structure define karta hai (TYPE BEGIN OF/END OF), internal table multiple rows store karta hai. Reference: REF TO CLASS_NAME se object reference. Data object = variable instantiated with DATA, CONSTANTS, PARAMETERS. Interview me add karo: 'Wrong type causes CONVT_NO_NUMBER dump — example: number value C type variable me.' ",
+    "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'ABAP has three categories of data types: elementary (C for character, N for numeric text, I for integer, P for packed decimal amounts, D for date, T for time, STRING for variable length text), complex types (structures using BEGIN OF/END OF, and internal tables), and reference types (REF TO for object references). Data objects are actual variables declared using these types with DATA, CONSTANTS, or PARAMETERS statements. In projects, I use P type for monetary values with DECIMALS 2, D for date calculations, and STRING for variable-length texts.'",
+    "codeExamples": "DATA: lv_name    TYPE c LENGTH 40,      \" Fixed char\n      lv_pincode TYPE n LENGTH 6,        \" Numeric text\n      lv_count   TYPE i,                 \" Integer\n      lv_amount  TYPE p DECIMALS 2,      \" Packed decimal\n      lv_date    TYPE d,                 \" Date YYYYMMDD\n      lv_time    TYPE t,                 \" Time HHMMSS\n      lv_text    TYPE string,            \" Variable length\n      ls_mara    TYPE mara,              \" Structure\n      lt_mara    TYPE TABLE OF mara,     \" Internal table\n      lo_object  TYPE REF TO cl_gui_alv_grid.  \" Reference\n\nlv_date   = sy-datum.     \" Today's date\nlv_count  = lv_count + 1.\nlv_amount = '1234.56'.",
+    "followupAnswerBank": [
+      {
+        "question": "Can you explain ABAP data types with a real project example?",
+        "hinglishExplanation": "Real project me data type selection matter karta hai. Example: invoice amount ke liye P DECIMALS 2 use kiya. Agar galti se I (integer) type use karo toh paisa 1234.56 → 1234 ho jaata hai, rounding issue! Material number ke liye N type (numeric text, leading zeros preserve hote hain). Customer name ke liye STRING (variable length).",
+        "interviewAnswer": "In my invoice processing program, I used P DECIMALS 2 for amount fields to preserve decimal precision, N LENGTH 10 for material numbers to maintain leading zeros, and STRING for customer notes with variable length. Using I type for amounts would cause rounding errors and N type preserves leading zeros that C type drops.",
+        "realtimeExplanation": "Wrong type causes either data truncation, rounding, or runtime dump CONVT_NO_NUMBER. Always verify with functional team what data format is expected.",
+        "mistakes": "Using C type for amounts or numbers — leading zeros dropped, decimal places lost. Always use the semantically correct type.",
+        "codeExample": "DATA: lv_matnr  TYPE matnr,       \" N type, 18 chars, leading zeros\n      lv_dmbtr  TYPE dmbtr,       \" P type, BKPF amount field\n      lv_lifnr  TYPE lifnr.       \" C type, vendor number"
+      },
+      {
+        "question": "What production issue can happen with wrong data types?",
+        "hinglishExplanation": "Production issues from wrong types: (1) CONVT_NO_NUMBER dump — text value number type me convert karne ki koshish. (2) Rounding errors — amount I type me store kiya, decimal lost. (3) Leading zeros lost — material number C type me, MARA me match nahi mila. (4) Date comparison wrong — date string 'YYYY-MM-DD' format D type se compare nahi hoga.",
+        "interviewAnswer": "Common production issues: CONVT_NO_NUMBER dump when string data is assigned to numeric type, precision loss when monetary P type values are stored in I type, and leading-zero loss when material/vendor numbers use C instead of N or the domain type. ST22 shows CONVT_NO_NUMBER with the exact field and value that caused the conversion error.",
+        "realtimeExplanation": "ST22 dump 'CONVT_NO_NUMBER' dekha? Field aur value check karo — almost always wrong type mismatch.",
+        "mistakes": "Hardcoding '1000' as C type and comparing to a field defined as N type — leading zero issues.",
+        "codeExample": "\" This causes CONVT_NO_NUMBER dump\nDATA: lv_num TYPE i.\nlv_num = 'ABC'.  \" Runtime error!\n\n\" Safe type check\nIF lv_value CO '0123456789'.\n  lv_num = lv_value.  \" Now safe\nENDIF."
+      },
+      {
+        "question": "How will you debug a data type related issue?",
+        "hinglishExplanation": "Data type issue debug karna: ST22 open karo — CONVT_NO_NUMBER dump me 'Field content' dekho, kaunsa value convert nahi hua. Breakpoint lagao assignment statement ke pehle. Debugger me variable ki actual type aur value dekho. ABAP debugger me 'Display' button se type details milti hai.",
+        "interviewAnswer": "For data type issues, I check ST22 for CONVT_NO_NUMBER or similar exceptions to find the exact field and value. I set a breakpoint before the assignment, inspect the variable type and value in the ABAP debugger, and check if the source value matches the target type. For STRING vs fixed-length issues, I check field length and trailing spaces.",
+        "realtimeExplanation": "Most type issues aate hain jab interface se data aata hai — CSV/Excel se upload me type mismatch common hai.",
+        "mistakes": "Assuming the source data is always clean — always validate/convert before assigning to typed variables.",
+        "codeExample": "\" Safe conversion with check\nDATA: lv_str TYPE string VALUE '123.45'.\nDATA: lv_amt TYPE p DECIMALS 2.\nIF lv_str IS NOT INITIAL AND lv_str CO '0123456789.'.\n  lv_amt = lv_str.  \" Safe now\nENDIF."
+      },
+      {
+        "question": "What is the performance angle in ABAP data type selection?",
+        "hinglishExplanation": "Performance: STRING type dynamic memory allocation karta hai — har assignment pe memory reallocation. Large loops me C LENGTH fixed type faster hota hai. P type arithmetic faster than F type (floating point rounding overhead). Internal table ke saath: exact type use karo LIKE mara-matnr instead of generic C LENGTH 18 — database joins aur comparisons faster hote hain typed fields se.",
+        "interviewAnswer": "Performance considerations: fixed-length C types are faster than STRING in loops due to no dynamic memory allocation. P type is preferred over F for business amounts as P has deterministic precision with no floating-point rounding overhead. Using domain-typed fields (LIKE mara-matnr) ensures proper key comparison in database SELECT and READ TABLE operations.",
+        "realtimeExplanation": "Large data migration programs me STRING vs C type choice impact karta hai — millions of rows process ho rahe ho toh type matters.",
+        "mistakes": "Using STRING for everything 'to be safe' — it's slower in loops due to heap allocation.",
+        "codeExample": "\" Faster: fixed type in loop\nDATA: lv_text TYPE c LENGTH 255.  \" Faster in 1M iterations\n\" Slower:\nDATA: lv_str  TYPE string.        \" Heap allocation per assignment"
+      },
+      {
+        "question": "How does data type handling change in S/4HANA?",
+        "hinglishExplanation": "S/4HANA me Open SQL new syntax ke saath data types me kuch changes: (1) Built-in types me INT8 add hua — 64-bit integer, large counts ke liye. (2) DECFLOAT16/DECFLOAT34 — decimal floating point types beter precision ke saath. (3) ABAP 7.4+ me inline declarations: DATA(lv_var) = value — type automatically inferred. (4) Table types ke liye FINAL keyword — immutable internal tables.",
+        "interviewAnswer": "In S/4HANA with ABAP 7.4+, inline declarations (DATA(var) = expression) automatically infer data types. New types INT8 for 64-bit integers and DECFLOAT for precise decimal arithmetic were added. Also, MESH and other table link features use reference types more heavily. Obsolete types like F with fixed precision are increasingly replaced by DECFLOAT.",
+        "realtimeExplanation": "S/4HANA ABAP 7.4+ me inline declaration bahut convenient hai — DATA(ls_mara) = VALUE mara( matnr = 'X' ).",
+        "mistakes": "Using old DATA: ... TYPE ... declarations everywhere in S/4HANA code when inline declarations are available and cleaner.",
+        "codeExample": "\" Modern ABAP inline types\nDATA(lv_count) = 0.              \" Type I inferred\nDATA(ls_order) = VALUE vbak( ).  \" Structure type inferred\nDATA(lt_items) = VALUE vbap_t( ). \" Table type inferred"
+      },
+      {
+        "question": "What would a project-ready ABAP developer say about data types?",
+        "hinglishExplanation": "Project-ready answer: 'Main hamesha domain-specific types use karta hoon — LIKE mara-matnr instead of C LENGTH 18. Amount fields ke liye always P DECIMALS 2. Date fields ke liye D type directly. String concatenation ke liye STRING. Inline declarations ABAP 7.4+ me. Aur har assignment ke baad agar zaroori ho toh type check karta hoon — especially interface data ke liye.'",
+        "interviewAnswer": "A project-ready developer uses domain-defined types (LIKE table-field) instead of raw C/N/I declarations to ensure type safety and consistency with the database schema. They use P DECIMALS for monetary values, D for dates, STRING only when length is genuinely variable, and leverage inline DATA() declarations in modern systems for cleaner code.",
+        "realtimeExplanation": "Good type discipline prevents most runtime conversion errors and makes peer code reviews easier.",
+        "mistakes": "Using generic types everywhere — C LENGTH 255 for everything. Makes code harder to maintain and prone to subtle conversion bugs.",
+        "codeExample": "\" Project-ready type usage\nDATA: lv_matnr TYPE mara-matnr,    \" Exact domain type\n      lv_netwr TYPE vbak-netwr,     \" Currency/amount type\n      lv_erdat TYPE vbak-erdat,     \" Date type from domain\n      lv_memo  TYPE string.         \" Variable text only when needed"
+      },
+      {
+        "question": "Which SAP tables or objects are related to ABAP data types?",
+        "hinglishExplanation": "DDIC me data types define hote hain. SE11 me Domain create karo (technical type + length + value range). Data Element pe domain assign karo (business meaning add karo). Table field pe data element assign karo. ABAP program me TYPE mara-matnr like karo — indirectly domain ka type use ho jaata hai. Important tables: DD01L (domains), DD04L (data elements), DD02L (tables), DD03L (fields).",
+        "interviewAnswer": "Data types are managed in DDIC (SE11): domains define technical type/length/value range (table DD01L), data elements link domain to business meaning (table DD04L), and table fields reference data elements (table DD03L). In ABAP code, using LIKE table-field or TYPE data-element ensures correct typing through the DDIC chain.",
+        "realtimeExplanation": "Type mismatch issues trace karo SE11 me — domain aur data element check karo, exact type aur length confirm karo.",
+        "mistakes": "Hardcoding C LENGTH 10 when the actual domain says N LENGTH 10 — leading zero behavior will differ.",
+        "codeExample": "\" Check type chain in SE11\n\" Domain: MATNR → Type N, Length 18\n\" Data Element: MATNR → Domain MATNR\n\" Field: MARA-MATNR → Data Element MATNR\nDATA: lv_matnr TYPE mara-matnr.  \" Inherits full type chain"
+      },
+      {
+        "question": "What is the common trap question about ABAP data types?",
+        "hinglishExplanation": "Top traps: (1) 'C aur N me kya farak?' — C generic text (spaces valid), N only digits (non-digit convert to 0). (2) 'P aur F me kya farak?' — P fixed precision (exact), F floating point (rounding errors possible — never use for money!). (3) 'STRING vs C LENGTH?' — STRING dynamic heap, C static stack. (4) 'Type C LENGTH 3 me value '1234' assign karo — kya hoga?' — Truncation to '123' bina error, trap!",
+        "interviewAnswer": "Common traps: P vs F — never use F (floating point) for monetary amounts due to rounding errors; use P DECIMALS instead. C vs N — C allows any character including spaces, N allows only digits (non-digits silently become 0). STRING vs C — STRING has dynamic allocation overhead. Assigning a longer value to C type silently truncates without a runtime error — a silent data corruption trap.",
+        "realtimeExplanation": "Financial programs me F type use karna ek common mistake hai — rounding errors after many calculations compound into significant errors.",
+        "mistakes": "Using F type for financial amounts. Use P DECIMALS 2 always for monetary values.",
+        "codeExample": "\" P type preserves exact decimal\nDATA: lv_p TYPE p DECIMALS 2 VALUE '123.45'. \" Exact: 123.45\nDATA: lv_f TYPE f VALUE '123.45'.              \" May store: 123.449999...\nWRITE: / lv_p.  \" 123.45\nWRITE: / lv_f.  \" Unexpected result possible"
+      }
+    ]
+  },
+  "basic-abap-004": {
+    "easyUnderstanding": "PARAMETERS ek single input field banata hai selection screen pe. SELECT-OPTIONS ek range input banata hai — user multiple values, ranges, aur include/exclude conditions de sakta hai. PARAMETERS example: 'Enter one company code.' SELECT-OPTIONS: 'Enter material numbers (can be multiple, or range M001 to M099, or exclude M050).' SELECT-OPTIONS internally ek range table banata hai jisme sign (I=include/E=exclude), option (EQ/BT/GT/LT/etc.), low value, aur high value hote hain. WHERE clause me directly IN operator se use hota hai.",
+    "hinglishMasterExplanation": "Interview me PARAMETERS vs SELECT-OPTIONS bahut common question hai. PARAMETERS simple hai: ek value, ek variable. Agar user alag alag material numbers dena chahta hai ya range dena chahta hai toh PARAMETERS kafi nahi — SELECT-OPTIONS use karo. SELECT-OPTIONS s_matnr FOR mara-matnr likha toh automatically ek range table banta hai. Yeh table WHERE matnr IN s_matnr me directly use hota hai — ABAP runtime automatically sab conditions handle karta hai (single value, range, multiple, exclude). Practical tip: SELECT-OPTIONS me OBLIGATORY add karo agar mandatory hai, NO-EXTENSION add karo agar single range chahiye (multiple single values band karo), NO INTERVALS add karo agar sirf single values chahiye.",
+    "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'PARAMETERS creates a single-value input field on the selection screen, while SELECT-OPTIONS creates a range table with sign, option, low, and high fields — allowing users to enter single values, ranges, or multiple entries with include/exclude conditions. SELECT-OPTIONS integrates directly into OPEN SQL using the IN operator. In my reports I use SELECT-OPTIONS for material, vendor, and date range inputs because it gives users flexibility to specify multiple values or ranges without code changes.'",
+    "codeExamples": "REPORT zparams_vs_selopts.\n\n\" PARAMETERS: single value input\nPARAMETERS: p_bukrs TYPE bukrs OBLIGATORY DEFAULT '1000'.\n\n\" SELECT-OPTIONS: range input\nSELECT-OPTIONS: s_matnr FOR mara-matnr,\n                s_erdat FOR vbak-erdat DEFAULT sy-datum - 30 TO sy-datum.\n\nSTART-OF-SELECTION.\n  \" PARAMETERS used directly\n  SELECT * FROM t001 WHERE bukrs = @p_bukrs INTO TABLE @DATA(lt_co).\n\n  \" SELECT-OPTIONS used with IN\n  SELECT matnr, erdat FROM vbak\n    WHERE matnr IN @s_matnr\n      AND erdat IN @s_erdat\n    INTO TABLE @DATA(lt_orders).\n\n  IF sy-subrc = 0.\n    WRITE: / 'Found', lines( lt_orders ), 'orders'.\n  ENDIF.",
+    "followupAnswerBank": [
+      {
+        "question": "Can you explain PARAMETERS vs SELECT-OPTIONS with a real project example?",
+        "hinglishExplanation": "Sales report banaya tha: company code ke liye PARAMETERS (sirf ek company run hoti hai), material number ke liye SELECT-OPTIONS (user multiple materials ya range de sake). User ne s_matnr me 'M001 to M099' diya, code me SELECT WHERE matnr IN s_matnr chala — bilkul sahi kaam kiya. Agar PARAMETERS hota toh ek ek material run karna padta.",
+        "interviewAnswer": "In my sales analysis report, I used PARAMETERS for company code (single mandatory value) and SELECT-OPTIONS for material number to allow users to specify multiple materials or ranges. The SELECT-OPTIONS range table integrated directly into the WHERE clause without any manual loop.",
+        "realtimeExplanation": "Functional spec me 'user should be able to filter by multiple materials' — SELECT-OPTIONS automatic choice hai.",
+        "mistakes": "Using PARAMETERS for material number when multiple materials are needed — user calls you every day to run the report separately for each material.",
+        "codeExample": "PARAMETERS: p_bukrs TYPE bukrs.  \" Single company code\nSELECT-OPTIONS: s_matnr FOR mara-matnr.  \" Multiple materials\nSELECT * FROM vbap WHERE matnr IN @s_matnr INTO TABLE @DATA(lt)."
+      },
+      {
+        "question": "What production issue can happen with PARAMETERS or SELECT-OPTIONS?",
+        "hinglishExplanation": "Issues: (1) SELECT-OPTIONS date range galat se overlap — user ne wrong range diya, no validation, wrong report. (2) SELECT-OPTIONS empty — user kuch nahi diya, report sab data le aaya (timeout). (3) PARAMETERS me invalid value — OBLIGATORY nahi tha, blank value se SELECT fails. (4) SELECT-OPTIONS with EXCLUDE sign — user ne E (exclude) diya, expected data nahi aaya.",
+        "interviewAnswer": "Production issues: empty SELECT-OPTIONS causing full-table SELECT (timeout/dump), invalid date ranges with no validation pulling incorrect period data, and OBLIGATORY missing on PARAMETERS causing blank key fields in SELECT. Always validate in AT SELECTION-SCREEN: check IS INITIAL, check date range logic (low <= high).",
+        "realtimeExplanation": "User says 'report took 3 hours' — check if SELECT-OPTIONS was empty, causing SELECT without WHERE condition.",
+        "mistakes": "Not adding IS INITIAL check for SELECT-OPTIONS before using in SELECT — empty table = no WHERE restriction = full table scan.",
+        "codeExample": "AT SELECTION-SCREEN.\n  IF s_matnr IS INITIAL.\n    MESSAGE 'Please enter at least one material' TYPE 'E'.\n  ENDIF.\n  IF s_erdat-low > s_erdat-high.\n    MESSAGE 'Date range: From must be <= To' TYPE 'E'.\n  ENDIF."
+      },
+      {
+        "question": "How will you debug a PARAMETERS or SELECT-OPTIONS issue?",
+        "hinglishExplanation": "Debug: (1) AT SELECTION-SCREEN pe breakpoint lagao, check karo kya values aa rahi hain. (2) SELECT-OPTIONS ki actual range table dekho debugger me — sab rows dekho (sign, option, low, high). (3) SELECT statement ke baad SY-SUBRC check karo. (4) Agar WHERE IN clause kaam nahi kar raha — range table manually inspect karo debugger me.",
+        "interviewAnswer": "To debug SELECT-OPTIONS issues, I set a breakpoint in START-OF-SELECTION and inspect the range table contents in the ABAP debugger — checking each row's sign, option, low, and high values. I also verify the generated SQL in ST05 to confirm the WHERE condition is correct. For PARAMETERS, I check if mandatory checks fire and if the default value is set correctly.",
+        "realtimeExplanation": "ST05 trace me dekho kaunsa SQL generate hua — WHERE condition me aapke SELECT-OPTIONS values aaye ya nahi.",
+        "mistakes": "Assuming the WHERE IN clause is correct without checking the actual range table contents — an EXCLUDE row might be removing expected data.",
+        "codeExample": "AT SELECTION-SCREEN.\n  BREAK-POINT.  \" Check s_matnr table here in debugger\n  \" Look at: SIGN (I/E), OPTION (EQ/BT/etc), LOW, HIGH values"
+      },
+      {
+        "question": "What is the performance angle with PARAMETERS and SELECT-OPTIONS?",
+        "hinglishExplanation": "SELECT-OPTIONS performance: agar user bahut saari single values de toh SQL me bahut saara OR condition generate hota hai — sometimes 1000 values ke liye DB slow ho jaata hai. Solution: FOR ALL ENTRIES ya smaller batches. Date range — always indexed field pe SELECT-OPTIONS rakho. PARAMETERS single value hamesha fastest — exact key match.",
+        "interviewAnswer": "Performance consideration: SELECT-OPTIONS with many single values generates multiple OR conditions in SQL which can be slow. If users might enter hundreds of values, consider using FOR ALL ENTRIES with a pre-filtered internal table, or partitioning the SELECT into batches. Date range fields in SELECT-OPTIONS should correspond to indexed table fields for performance.",
+        "realtimeExplanation": "ST05 me dekho — agar 500 OR conditions hain toh query slow hoga. Refactor with FOR ALL ENTRIES.",
+        "mistakes": "Allowing unlimited SELECT-OPTIONS entries on a non-indexed field — N entries = N OR conditions = full table scan effectively.",
+        "codeExample": "\" Check index exists for this field in SE11\n\" Add WHERE with most selective condition first\nSELECT matnr FROM mara\n  WHERE mtart IN @s_mtart   \" Indexed? Check SE11\n    AND matnr IN @s_matnr\n  INTO TABLE @DATA(lt_mat)."
+      },
+      {
+        "question": "How does SELECT-OPTIONS change in S/4HANA?",
+        "hinglishExplanation": "S/4HANA me SELECT-OPTIONS ka concept same hai lekin CDS views aur OData me equivalent hote hain. Fiori apps me filter bar use karta hai jo internally WHERE clause banata hai — same concept. Modern ABAP me RANGE type explicitly use karo: DATA: lr_matnr TYPE RANGE OF mara-matnr. New syntax: lr_matnr = VALUE #( ( sign = 'I' option = 'EQ' low = 'M001' high = '' ) ).",
+        "interviewAnswer": "In S/4HANA, SELECT-OPTIONS still work in reports but Fiori apps use OData $filter parameters that translate to ABAP RANGE tables. Modern ABAP code uses RANGE type with VALUE constructor: VALUE #( ( sign='I' option='EQ' low='X' ) ). CDS views can be filtered with WHERE ... IN ... equivalent using associations and parameters.",
+        "realtimeExplanation": "OData service me filter aata hai — Gateway layer usse RANGE convert karta hai, aur ABAP code me RANGE table milti hai.",
+        "mistakes": "Thinking SELECT-OPTIONS is obsolete in S/4HANA — still used in reports. OData/Fiori me RANGE equivalent use hota hai.",
+        "codeExample": "\" Modern RANGE type usage (equivalent to SELECT-OPTIONS)\nDATA: lr_matnr TYPE RANGE OF matnr.\nlr_matnr = VALUE #( ( sign = 'I' option = 'BT' low = 'M001' high = 'M099' ) ).\nSELECT * FROM mara WHERE matnr IN @lr_matnr INTO TABLE @DATA(lt_mat)."
+      },
+      {
+        "question": "What would a project-ready ABAP developer say about selection screens?",
+        "hinglishExplanation": "Project-ready answer: 'Main hamesha functional spec se check karta hoon ki user single value de sakta hai ya multiple. Single → PARAMETERS. Multiple/range → SELECT-OPTIONS. Har SELECT-OPTIONS ke liye AT SELECTION-SCREEN me validation add karta hoon — empty check, date range check. Default values sensible rakhta hoon. Optional fields ke liye OPTIONAL addition use karta hoon.'",
+        "interviewAnswer": "A project-ready developer reads the FS to determine if single or multiple values are needed, uses PARAMETERS for single mandatory values and SELECT-OPTIONS for ranges/multiple values, adds proper validations in AT SELECTION-SCREEN (IS INITIAL check, date range validation), sets sensible defaults, and tests with positive and negative inputs including empty selection.",
+        "realtimeExplanation": "Good selection screen design reduces support calls. Users ki galti se wrong data nahi aata agar validations theek hain.",
+        "mistakes": "Building selection screen without validation — users enter wrong values, report gives wrong output, support ticket raised.",
+        "codeExample": "\" Complete validated selection screen\nPARAMETERS:  p_bukrs TYPE bukrs OBLIGATORY DEFAULT '1000'.\nSELECT-OPTIONS: s_matnr FOR mara-matnr,\n                s_dates FOR sy-datum DEFAULT sy-datum - 30 TO sy-datum.\nAT SELECTION-SCREEN.\n  IF s_dates-low > s_dates-high.\n    MESSAGE 'Invalid date range' TYPE 'E'.\n  ENDIF."
+      },
+      {
+        "question": "Which SAP transactions are relevant to PARAMETERS and SELECT-OPTIONS?",
+        "hinglishExplanation": "SE38: selection screen design karo. SA38: program execute karo with selection screen. SE93: transaction code banao for the report. Variants: SE38 → Goto → Variants — user ke liye preset values save karo. SM36: background job schedule karo with specific variant. SHD0: screen variants for hiding/making fields mandatory without code change.",
+        "interviewAnswer": "Key transactions: SE38 to develop the selection screen, SA38 to run the report, SE93 to create transaction code, SE38 → Goto → Variants to save parameter combinations for users or background jobs. SM36/SM37 for scheduling with variants. SHD0 for screen variants if business wants to enforce mandatory fields without code change.",
+        "realtimeExplanation": "User bolta hai: 'Mujhe har month same parameters se report run karni hai' — variant banao SM36 se schedule karo.",
+        "mistakes": "Not creating variants for regularly scheduled reports — users manually enter same parameters every time, human error chance.",
+        "codeExample": "\" Variant saved values are used when:\nSUBMIT zmy_report USING SELECTION-SET 'MONTHLY_RUN'.  \" Variant name"
+      },
+      {
+        "question": "What is the common trap question about PARAMETERS vs SELECT-OPTIONS?",
+        "hinglishExplanation": "Trap 1: 'SELECT-OPTIONS me LOW aur HIGH dono khali hain lekin user ne press kiya — kya hoga SELECT me?' — IS INITIAL false hoga (ek row hai with blank low/high), WHERE IN condition behavior unexpected. Trap 2: 'PARAMETERS ke liye DEFAULT kab ignore hota hai?' — Agar user variant me alag value save ki ho. Trap 3: 'SELECT-OPTIONS me NO-EXTENSION aur NO INTERVALS ka difference?' — NO-EXTENSION: multiple single values band. NO INTERVALS: range entries band (low-high).",
+        "interviewAnswer": "Trap questions: 'What does IS INITIAL return for an empty SELECT-OPTIONS?' — FALSE if user clicked the selection screen without entering values (one empty row exists). Always check if the table has meaningful entries. 'Difference between NO-EXTENSION and NO INTERVALS?' — NO-EXTENSION prevents multiple single entries, NO INTERVALS prevents range (low-high) entries. These additions are frequently confused in interviews.",
+        "realtimeExplanation": "IS INITIAL check se galat — always rows count check karo ya meaningful data check karo.",
+        "mistakes": "Using IS INITIAL check on SELECT-OPTIONS thinking it catches empty input — it doesn't if user clicked without entering (one empty row exists).",
+        "codeExample": "\" Safe check for meaningful SELECT-OPTIONS\nIF s_matnr IS INITIAL OR\n   ( lines( s_matnr ) = 1 AND s_matnr[ 1 ]-low IS INITIAL ).\n  MESSAGE 'Please enter material criteria' TYPE 'E'.\nENDIF."
+      }
+    ]
+  },
+  "basic-abap-005": {
+    "easyUnderstanding": "ABAP report me 4 main events ek sequence me fire hote hain. INITIALIZATION: selection screen dikhne se pehle, default values set karo yahan. AT SELECTION-SCREEN: user ne values enter kari — validate karo, wrong values pe error do (screen rok lo). START-OF-SELECTION: yahan main code likhte hain — database se data lo, process karo. END-OF-SELECTION: sab processing ke baad, summary ya totals print karo. Easy yaad rakhne ka trick: 'I-A-S-E' — Initialize, Attain, Start, End.",
+    "hinglishMasterExplanation": "Events sequence ek report ka lifecycle hai — sab ek order me fire hote hain. INITIALIZATION: screen show hone se pehle, programmatic defaults set karo — PARAMETERS ko dynamically populate karo ya hide-show logic set karo. AT SELECTION-SCREEN: yahan validation karo — date range check, mandatory fields check, cross-field validation. Error aaye toh MESSAGE ... TYPE 'E' do — screen user ke paas rukti hai. AT SELECTION-SCREEN OUTPUT: screen display hone se pehle fields active/inactive karo using LOOP AT SCREEN. START-OF-SELECTION: main processing — SELECT, internal tables, calculations sab yahan. END-OF-SELECTION: final output — totals, summary lines, grand total. Interview me add karo: 'AT SELECTION-SCREEN me I galti se kuch nahi kiya toh galat data process hoga. END-OF-SELECTION miss kiya toh summary nahi aayegi.'",
+    "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'ABAP report events fire in sequence: INITIALIZATION runs before the selection screen to set defaults programmatically. AT SELECTION-SCREEN fires after user input for validation — using MESSAGE TYPE E to stop on errors. START-OF-SELECTION contains the main data fetch and processing logic. END-OF-SELECTION runs after processing for summaries or final output. Missing AT SELECTION-SCREEN validation causes invalid data to be processed; missing END-OF-SELECTION skips report totals.'",
+    "codeExamples": "REPORT zevent_sequence.\n\nPARAMETERS: p_bukrs TYPE bukrs,\n             p_from  TYPE dats,\n             p_to    TYPE dats.\n\nINITIALIZATION.\n  p_bukrs = '1000'.              \" Set programmatic default\n  p_from  = sy-datum - 30.       \" Last 30 days\n  p_to    = sy-datum.\n\nAT SELECTION-SCREEN.\n  IF p_from > p_to.\n    MESSAGE 'From date must be <= To date' TYPE 'E'.\n  ENDIF.\n  IF p_bukrs IS INITIAL.\n    MESSAGE 'Company code is mandatory' TYPE 'E'.\n  ENDIF.\n\nSTART-OF-SELECTION.\n  DATA: lt_docs TYPE TABLE OF bkpf.\n  SELECT * FROM bkpf\n    WHERE bukrs = @p_bukrs\n      AND bldat BETWEEN @p_from AND @p_to\n    INTO TABLE @lt_docs.\n\nEND-OF-SELECTION.\n  WRITE: / 'Total documents:', lines( lt_docs ).",
+    "followupAnswerBank": [
+      {
+        "question": "Can you explain ABAP events with a real project example?",
+        "hinglishExplanation": "Real project: financial report banaya. INITIALIZATION me current fiscal year default set kiya. AT SELECTION-SCREEN me: company code valid hai ya nahi (T001 se check), date range validate kiya. START-OF-SELECTION me BKPF/BSEG se accounting documents SELECT kiye, amount calculate kiye. END-OF-SELECTION me company-wise total WRITE kiya.",
+        "interviewAnswer": "In my financial reconciliation report, INITIALIZATION set the default company code from user master. AT SELECTION-SCREEN validated the date range and company code against T001. START-OF-SELECTION fetched data from BKPF/BSEG. END-OF-SELECTION displayed company-wise totals with grand total.",
+        "realtimeExplanation": "Event sequence kisi bhi ABAP report me same hai — customize karo apni requirement ke hisaab se.",
+        "mistakes": "Putting validation in START-OF-SELECTION instead of AT SELECTION-SCREEN — program processes data then gives error, wasting time.",
+        "codeExample": "AT SELECTION-SCREEN.\n  SELECT SINGLE bukrs FROM t001 WHERE bukrs = @p_bukrs.\n  IF sy-subrc <> 0.\n    MESSAGE 'Invalid company code' TYPE 'E'.\n  ENDIF."
+      },
+      {
+        "question": "What production issue can happen with ABAP events?",
+        "hinglishExplanation": "Common issues: (1) INITIALIZATION me error — agar default value set karne me code fails toh selection screen hi nahi aayegi. (2) AT SELECTION-SCREEN me validation miss — invalid dates se START-OF-SELECTION me empty SELECT. (3) END-OF-SELECTION me heavy SELECT — performance issue. (4) AT SELECTION-SCREEN OUTPUT galat logic — fields unexpected hide/show.",
+        "interviewAnswer": "Production issues: validation missing in AT SELECTION-SCREEN causes invalid data processing; code in INITIALIZATION that crashes prevents selection screen from appearing; heavy database access in END-OF-SELECTION after already fetching data in START-OF-SELECTION causes double processing. Always put validation in AT SELECTION-SCREEN, data fetch in START-OF-SELECTION.",
+        "realtimeExplanation": "User says 'report ran for 4 hours with wrong date' — validation was missing in AT SELECTION-SCREEN.",
+        "mistakes": "Putting data fetches in INITIALIZATION (runs before screen, before user input) — logic error.",
+        "codeExample": "\" Wrong: SELECT in INITIALIZATION\nINITIALIZATION.\n  SELECT * FROM mara INTO TABLE @DATA(lt_all).  \" Wrong! Before user input\n\" Correct: SELECT in START-OF-SELECTION\nSTART-OF-SELECTION.\n  SELECT * FROM mara WHERE mtart IN @s_mtart INTO TABLE @DATA(lt_mat)."
+      },
+      {
+        "question": "How will you debug an ABAP event sequence issue?",
+        "hinglishExplanation": "Debug: SE38 me breakpoints sab events pe lagao — INITIALIZATION, AT SELECTION-SCREEN, START-OF-SELECTION. Program run karo. Debugger me check karo kaunsa event kab fire hua. Variable values check karo har event pe. Agar INITIALIZATION me variable value expected nahi — wahan se issue start hota hai.",
+        "interviewAnswer": "I place breakpoints at the beginning of each event block — INITIALIZATION, AT SELECTION-SCREEN, START-OF-SELECTION, and END-OF-SELECTION. Running the program in debug mode shows exactly when each event fires and what values variables hold at each point. This reveals sequence-related issues like code running in the wrong event.",
+        "realtimeExplanation": "Event sequence issue mostly hota hai jab developer naya hai aur code galat event me likhta hai.",
+        "mistakes": "Putting validation logic in START-OF-SELECTION — user can't correct input once processing has started.",
+        "codeExample": "INITIALIZATION.\n  BREAK-POINT.  \" Hit 1: Before screen\nAT SELECTION-SCREEN.\n  BREAK-POINT.  \" Hit 2: After user input\nSTART-OF-SELECTION.\n  BREAK-POINT.  \" Hit 3: Main processing"
+      },
+      {
+        "question": "What is the performance angle in ABAP events?",
+        "hinglishExplanation": "Performance: INITIALIZATION me bhot zyada code nahi likhna chahiye — user screen pe wait karta hai. AT SELECTION-SCREEN me sirf validation karo, data fetch mat karo. START-OF-SELECTION me ek efficient SELECT (avoid multiple SELECT calls, use JOIN ya FOR ALL ENTRIES). END-OF-SELECTION me sirf output generate karo, heavy processing mat karo.",
+        "interviewAnswer": "Performance guidelines per event: INITIALIZATION should be lightweight (default setting only), AT SELECTION-SCREEN should do minimal validation queries, START-OF-SELECTION should contain the single optimized SELECT (verified with ST05), and END-OF-SELECTION should only format/display already-fetched data. Avoid any SELECT in END-OF-SELECTION.",
+        "realtimeExplanation": "Event design = performance design. Wrong event = wrong performance profile.",
+        "mistakes": "Doing database SELECT in AT SELECTION-SCREEN for validation on every keystroke — use CALL FUNCTION wisely.",
+        "codeExample": "\" Efficient pattern\nINITIALIZATION. p_from = sy-datum - 30.   \" Lightweight\nAT SELECTION-SCREEN.\n  \" One validation SELECT only if needed\nSTART-OF-SELECTION.\n  SELECT ... INTO TABLE @DATA(lt_data).     \" Single main SELECT\nEND-OF-SELECTION.\n  \" Loop over already-fetched data"
+      },
+      {
+        "question": "How do ABAP events change in S/4HANA?",
+        "hinglishExplanation": "S/4HANA me classical report events same hain. But new RAP model me events different hain — validations, determinations, actions. Fiori apps me selection screen concept nahi hai — Fiori filters use karo. But agar traditional ABAP report chal raha hai ECC se migrated toh sab events as-is kaam karte hain. ATC scan events ke baad wale code me obsolete statements check karta hai.",
+        "interviewAnswer": "ABAP report events (INITIALIZATION, AT SELECTION-SCREEN, START-OF-SELECTION, END-OF-SELECTION) work identically in S/4HANA for traditional reports. New RAP programming model has different event-like handlers: validations and determinations in behavior implementations. For Fiori, filter inputs replace selection screens but the ABAP backend still processes ranges equivalently.",
+        "realtimeExplanation": "ECC to S/4HANA migration me report events ke liye koi change nahi — data model changes matter more.",
+        "mistakes": "Assuming events change in S/4HANA — the report event model is backward compatible.",
+        "codeExample": "\" Same events work in S/4HANA\nSTART-OF-SELECTION.\n  \" Use S/4HANA released APIs instead of old tables\n  SELECT bukrs, belnr FROM acdoca  \" S/4HANA table\n    WHERE bukrs = @p_bukrs\n    INTO TABLE @DATA(lt_docs)."
+      },
+      {
+        "question": "What would a project-ready ABAP developer say about ABAP events?",
+        "hinglishExplanation": "Project-ready: 'Main hamesha sahi event me sahi kaam karta hoon. Defaults → INITIALIZATION. Input validation → AT SELECTION-SCREEN. Main processing → START-OF-SELECTION. Summary → END-OF-SELECTION. AT SELECTION-SCREEN OUTPUT me screen dynamics karta hoon. AT USER-COMMAND me toolbar buttons handle karta hoon interactive reports me.'",
+        "interviewAnswer": "A project-ready developer places defaults in INITIALIZATION, input validation in AT SELECTION-SCREEN (with MESSAGE TYPE E to prevent proceeding), main data processing in START-OF-SELECTION, and summary output in END-OF-SELECTION. They use AT SELECTION-SCREEN OUTPUT for dynamic screen behavior and AT USER-COMMAND for interactive report button handling.",
+        "realtimeExplanation": "Correct event usage = clean, maintainable, performant reports. Wrong events = bugs and performance issues.",
+        "mistakes": "Putting everything in START-OF-SELECTION including defaults and validation — code works but is wrong design, hard to maintain.",
+        "codeExample": "\" Clean event structure\nINITIALIZATION.    \" Defaults only\nAT SELECTION-SCREEN. \" Validation only\nSTART-OF-SELECTION. \" Data + processing\nEND-OF-SELECTION.   \" Output summary"
+      },
+      {
+        "question": "Which SAP transactions are relevant to ABAP events?",
+        "hinglishExplanation": "SE38: event code likhte hain. SA38/transaction code se program run karo. SM50: agar program hang ho jaye toh work process dekho. Dump in INITIALIZATION — ST22 check karo (screen nahi aayi). AT SELECTION-SCREEN validation dump — bhi ST22. Long running START-OF-SELECTION — SM50 → cancel, then ST05/SAT for performance.",
+        "interviewAnswer": "Development: SE38 to write event code. Execution: SA38 or custom transaction. Debugging: ABAP debugger via /H. For issues: ST22 for dumps in any event, SM50 to monitor/cancel long-running processes, ST05 SQL trace to optimize START-OF-SELECTION queries, SAT for runtime analysis of the full event sequence.",
+        "realtimeExplanation": "INITIALIZATION dump? Open ST22 — usually wrong default value assignment or SY-DATUM comparison issue.",
+        "mistakes": "Not checking ST22 first when program crashes during any event — ST22 has all the answers.",
+        "codeExample": "\" Transaction flow with events:\n\" User runs SA38 → INITIALIZATION → Selection screen shown\n\" User fills screen → AT SELECTION-SCREEN OUTPUT\n\" User presses Enter/F8 → AT SELECTION-SCREEN\n\" Valid → START-OF-SELECTION → END-OF-SELECTION → Output"
+      },
+      {
+        "question": "What is the common trap question about ABAP events?",
+        "hinglishExplanation": "Trap 1: 'AT SELECTION-SCREEN me MESSAGE TYPE I bolne ke baad processing ruk jaayegi?' — No! TYPE I sirf popup deta hai, processing chalti rahti hai. Rokna hai toh TYPE E. Trap 2: 'INITIALIZATION me internal table declare kar sakte ho?' — No! Data declarations program start me honi chahiye, INITIALIZATION event me nahi. Trap 3: 'START-OF-SELECTION kab fire hota hai agar AT SELECTION-SCREEN me TYPE A message diya?' — Never, TYPE A aborts.",
+        "interviewAnswer": "Trap questions: 'Does MESSAGE TYPE I stop processing in AT SELECTION-SCREEN?' — No, only TYPE E stops. TYPE I shows a popup then processing continues. 'Can you declare variables inside event blocks?' — No, DATA declarations must be at program level. 'When does START-OF-SELECTION run if AT SELECTION-SCREEN issues TYPE A?' — Never, TYPE A aborts the entire program.",
+        "realtimeExplanation": "Type E vs Type I in AT SELECTION-SCREEN ek common bug hai — developer thinks 'I' will stop, but it doesn't.",
+        "mistakes": "Using MESSAGE TYPE 'I' in AT SELECTION-SCREEN thinking it stops processing — it doesn't. Use TYPE 'E'.",
+        "codeExample": "AT SELECTION-SCREEN.\n  IF p_date > sy-datum.\n    MESSAGE 'Future dates not allowed' TYPE 'E'. \" Stops and shows error\n    \" NOT TYPE 'I' — that would just show info and continue!"
+      }
+    ]
+  }
+}

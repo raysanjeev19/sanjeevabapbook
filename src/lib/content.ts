@@ -1,5 +1,15 @@
 import type { Chapter, Difficulty, Followup, Question, QuestionAnswer } from "@/lib/types";
 
+// Load pre-generated answers (produced by `npm run generate:answers`).
+// Falls back to empty object so templates still work before generation runs.
+let generatedAnswers: Record<string, Partial<QuestionAnswer>> = {};
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  generatedAnswers = require("../data/generated-answers.json") as Record<string, Partial<QuestionAnswer>>;
+} catch {
+  // file not yet generated — templates will be used
+}
+
 type ChapterSeed = {
   slug: string;
   title: string;
@@ -794,7 +804,10 @@ export const chapters: Chapter[] = chapterSeeds.map((seed, chapterIndex) => {
     experienceLevel: levels[(chapterIndex + index) % levels.length],
     companyBadges: [companies[index % companies.length], companies[(index + 3) % companies.length]],
     tags: inferTags(prompt, seed),
-    answers: buildAnswer(prompt, seed),
+    answers: {
+        ...buildAnswer(prompt, seed),
+        ...(generatedAnswers[`${seed.slug}-${String(index + 1).padStart(3, "0")}`] ?? {}),
+      },
     followups: buildFollowups(prompt, seed, index),
   }));
 

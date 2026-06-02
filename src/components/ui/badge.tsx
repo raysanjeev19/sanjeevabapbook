@@ -3,18 +3,16 @@ import { cn } from "@/lib/utils";
 type BadgeVariant = "default" | "beginner" | "intermediate" | "advanced" | "expert" | "accent";
 
 const variantClasses: Record<BadgeVariant, string> = {
-  default:
-    "border-white/10 bg-white/[0.07] text-cyan-100",
+  default: "border-border bg-surface-2 text-muted",
   beginner:
-    "border-emerald-400/20 bg-emerald-400/10 text-emerald-300",
+    "border-emerald-600/25 bg-emerald-600/10 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300",
   intermediate:
-    "border-blue-400/20 bg-blue-400/10 text-blue-300",
+    "border-blue-600/25 bg-blue-600/10 text-blue-700 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-300",
   advanced:
-    "border-purple-400/20 bg-purple-400/10 text-purple-300",
+    "border-purple-600/25 bg-purple-600/10 text-purple-700 dark:border-purple-400/20 dark:bg-purple-400/10 dark:text-purple-300",
   expert:
-    "border-red-400/20 bg-red-400/10 text-red-300",
-  accent:
-    "border-[color:var(--accent)]/20 bg-[color:var(--accent)]/10 text-[color:var(--accent)]",
+    "border-red-600/25 bg-red-600/10 text-red-700 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-300",
+  accent: "border-accent/25 bg-accent-soft text-accent",
 };
 
 export function difficultyVariant(difficulty: string): BadgeVariant {
@@ -38,7 +36,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] transition-colors",
+        "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em]",
         variantClasses[variant],
         className,
       )}

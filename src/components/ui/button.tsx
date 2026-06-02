@@ -4,17 +4,17 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex h-11 items-center justify-center gap-2 rounded-md px-4 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.97]",
+  "inline-flex h-11 items-center justify-center gap-2 rounded-md px-4 text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
         default:
-          "bg-cyan-300 text-slate-950 shadow-[0_0_24px_rgba(103,232,249,0.28)] hover:bg-cyan-200 hover:shadow-[0_0_36px_rgba(103,232,249,0.4)]",
+          "bg-accent text-accent-contrast hover:opacity-90",
         secondary:
-          "border border-white/10 bg-white/[0.07] text-slate-100 hover:bg-white/[0.12] hover:border-white/20",
-        ghost: "text-slate-200 hover:bg-white/[0.08]",
-        danger: "bg-rose-400 text-slate-950 hover:bg-rose-300",
-        glow: "border border-[color:var(--accent)]/30 bg-[color:var(--accent)]/10 text-[color:var(--accent)] hover:bg-[color:var(--accent)]/20 shadow-[0_0_20px_var(--accent-glow)]",
+          "border border-border bg-surface text-foreground hover:bg-surface-2 hover:border-border-strong",
+        ghost: "text-muted hover:bg-surface-2 hover:text-foreground",
+        danger: "bg-[#c0392b] text-white hover:opacity-90 dark:bg-[#e06b5e] dark:text-[#14110e]",
+        glow: "border border-accent/40 bg-accent-soft text-accent hover:bg-accent/15",
       },
       size: {
         default: "h-11 px-4",

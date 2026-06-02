@@ -3,6 +3,13 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+export type ReaderWidth = "cozy" | "wide";
+export type ReaderFont = "serif" | "sans";
+
+export const FONT_SCALE_MIN = 0.9;
+export const FONT_SCALE_MAX = 1.4;
+export const FONT_SCALE_STEP = 0.1;
+
 type StudyState = {
   completed: string[];
   bookmarks: string[];
@@ -11,13 +18,25 @@ type StudyState = {
   notes: Record<string, string>;
   streak: number;
   focusMode: boolean;
+  // Reading preferences
+  fontScale: number;
+  readerWidth: ReaderWidth;
+  readerFont: ReaderFont;
+  recallMode: boolean;
   toggleBookmark: (id: string) => void;
   markComplete: (id: string) => void;
   viewQuestion: (id: string) => void;
   setConfidence: (id: string, value: number) => void;
   setNote: (id: string, body: string) => void;
   toggleFocusMode: () => void;
+  adjustFontScale: (delta: number) => void;
+  setReaderWidth: (width: ReaderWidth) => void;
+  setReaderFont: (font: ReaderFont) => void;
+  toggleRecallMode: () => void;
 };
+
+const clampFontScale = (value: number) =>
+  Math.min(FONT_SCALE_MAX, Math.max(FONT_SCALE_MIN, Math.round(value * 100) / 100));
 
 export const useStudyStore = create<StudyState>()(
   persist(
@@ -29,6 +48,10 @@ export const useStudyStore = create<StudyState>()(
       notes: {},
       streak: 7,
       focusMode: false,
+      fontScale: 1,
+      readerWidth: "cozy",
+      readerFont: "serif",
+      recallMode: false,
       toggleBookmark: (id) =>
         set((state) => ({
           bookmarks: state.bookmarks.includes(id)
@@ -56,6 +79,11 @@ export const useStudyStore = create<StudyState>()(
         set((state) => ({
           focusMode: !state.focusMode,
         })),
+      adjustFontScale: (delta) =>
+        set((state) => ({ fontScale: clampFontScale(state.fontScale + delta) })),
+      setReaderWidth: (width) => set({ readerWidth: width }),
+      setReaderFont: (font) => set({ readerFont: font }),
+      toggleRecallMode: () => set((state) => ({ recallMode: !state.recallMode })),
     }),
     { name: "sap-abap-study-state" },
   ),

@@ -1,13 +1,10 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
 import {
-  ArrowLeft,
   Bot,
   ChevronRight,
   GraduationCap,
-  Home,
   Mic,
   MicOff,
   RotateCcw,
@@ -16,13 +13,14 @@ import {
   Volume2,
   Zap,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import type { Chapter, Question } from "@/lib/types";
 import { percent } from "@/lib/utils";
 import { Badge, difficultyVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { BrandLogo } from "@/components/layout/brand-logo";
 
 type Message = {
   role: "interviewer" | "candidate";
@@ -273,51 +271,46 @@ export function AiInterviewer({ chapter }: { chapter: Chapter }) {
 
   return (
     <main
-      className="aurora min-h-screen px-4 py-5 text-slate-50 sm:px-6 lg:px-8"
-      style={{ "--accent": chapter.color, "--accent-glow": `${chapter.color}35` } as React.CSSProperties}
+      className="min-h-screen bg-background px-4 py-5 sm:px-6 lg:px-8"
+      style={{ "--accent": chapter.color, "--accent-glow": `${chapter.color}33` } as React.CSSProperties}
     >
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-6xl">
         {/* Top nav */}
-        <nav className="glass mb-5 rounded-2xl px-4 py-2.5 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 text-sm">
-              <Link href="/" className="flex items-center gap-2">
-                <Image src="/logo.png" alt="CodeGurukul" width={24} height={24} className="rounded" />
-              </Link>
-              <ChevronRight size={11} className="text-slate-600" />
-              <Link href="/interview" className="text-slate-400 transition hover:text-white">
-                Interview
-              </Link>
-              <ChevronRight size={11} className="text-slate-600" />
-              <span className="max-w-[120px] truncate font-semibold text-white sm:max-w-none">
-                {chapter.title}
-              </span>
-            </div>
+        <nav className="mb-6 flex items-center justify-between gap-2 rounded-xl border border-border bg-surface px-4 py-2.5">
+          <div className="flex items-center gap-1.5 text-sm">
+            <Link href="/" className="flex items-center gap-2">
+              <BrandLogo size={26} />
+            </Link>
+            <ChevronRight size={11} className="text-faint" />
+            <Link href="/interview" className="text-muted transition-colors hover:text-foreground">
+              Interview
+            </Link>
+            <ChevronRight size={11} className="text-faint" />
+            <span className="max-w-[120px] truncate font-semibold text-foreground sm:max-w-none">
+              {chapter.title}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
             <Badge variant={difficultyVariant(chapter.difficulty)}>{mode}</Badge>
+            <ThemeToggle />
           </div>
         </nav>
 
         {/* Header */}
-        <section
-          className="book-page relative overflow-hidden rounded-xl border p-4 sm:p-6"
-          style={{ borderColor: `${chapter.color}20` }}
-        >
-          <div
-            className="absolute right-5 top-0 h-20 w-3.5 rounded-b-full"
-            style={{ backgroundColor: chapter.color, boxShadow: `0 0 24px ${chapter.color}70` }}
-          />
-          <h1 className="text-xl font-bold text-white sm:text-3xl">{chapter.title} Interview</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+        <section className="relative overflow-hidden rounded-xl border border-border bg-surface p-6 sm:p-7">
+          <div className="absolute left-0 top-0 h-full w-1" style={{ backgroundColor: chapter.color }} />
+          <h1 className="font-serif text-2xl font-semibold text-foreground sm:text-3xl">{chapter.title} Interview</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
             Full chapter interview covers all questions + follow-ups. Topic drill goes deep on one topic.
             Voice or type your answers.
           </p>
         </section>
 
-        <div className="mt-5 grid gap-5 lg:grid-cols-[300px_1fr]">
+        <div className="mt-6 grid gap-5 lg:grid-cols-[300px_1fr]">
           {/* Sidebar */}
           <aside className="space-y-3">
-            <Card className="p-4" accent={chapter.color}>
-              <h2 className="text-sm font-semibold text-white">Interview Mode</h2>
+            <Card className="p-4">
+              <h2 className="text-sm font-semibold text-foreground">Interview Mode</h2>
               <div className="mt-3 grid gap-1.5">
                 {modes.map((item) => (
                   <Button
@@ -336,9 +329,9 @@ export function AiInterviewer({ chapter }: { chapter: Chapter }) {
             </Card>
 
             <Card className="p-4">
-              <h2 className="text-sm font-semibold text-white">Topic Drill</h2>
+              <h2 className="text-sm font-semibold text-foreground">Topic Drill</h2>
               <select
-                className="mt-2 w-full rounded-lg border border-white/10 bg-slate-950 p-2.5 text-xs text-white outline-none"
+                className="mt-2 w-full rounded-lg border border-border p-2.5 text-xs text-foreground outline-none"
                 value={selectedQuestionId}
                 onChange={(event) => {
                   const nextQuestion = chapter.questions.find((question) => question.id === event.target.value) ?? chapter.questions[0];
@@ -356,37 +349,37 @@ export function AiInterviewer({ chapter }: { chapter: Chapter }) {
             </Card>
 
             <Card className="p-4">
-              <h2 className="text-sm font-semibold text-white">Progress</h2>
-              <div className="mt-3 h-2 rounded-full bg-white/10">
+              <h2 className="text-sm font-semibold text-foreground">Progress</h2>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-surface-2">
                 <div
-                  className="h-full rounded-full transition-all"
+                  className="h-full rounded-full transition-[width]"
                   style={{ width: `${progress}%`, backgroundColor: chapter.color }}
                 />
               </div>
               <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
-                <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-2">
-                  <div className="text-[10px] text-slate-500">Asked</div>
-                  <div className="font-bold text-white">{Math.min(currentIndex, queue.length)}/{queue.length}</div>
+                <div className="rounded-lg border border-border bg-surface-2 p-2">
+                  <div className="text-[10px] text-muted">Asked</div>
+                  <div className="font-bold text-foreground">{Math.min(currentIndex, queue.length)}/{queue.length}</div>
                 </div>
-                <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-2">
-                  <div className="text-[10px] text-slate-500">Avg Score</div>
-                  <div className="font-bold text-white">{finalReport?.score ?? averageScore}/100</div>
+                <div className="rounded-lg border border-border bg-surface-2 p-2">
+                  <div className="text-[10px] text-muted">Avg Score</div>
+                  <div className="font-bold text-foreground">{finalReport?.score ?? averageScore}/100</div>
                 </div>
               </div>
             </Card>
 
             {finalReport && (
-              <Card className="p-4" accent={finalReport.score >= 70 ? "#34D399" : "#FBBF24"}>
+              <Card className="p-4" accent={finalReport.score >= 70 ? "#0e7c72" : chapter.color}>
                 <div className="flex items-center gap-2">
-                  <Trophy size={16} className="text-amber-300" />
-                  <h2 className="text-sm font-semibold text-white">Final Report</h2>
+                  <Trophy size={16} className="text-accent" />
+                  <h2 className="text-sm font-semibold text-foreground">Final Report</h2>
                 </div>
                 <div className="mt-3 text-4xl font-bold" style={{ color: chapter.color }}>
                   {finalReport.score}
                 </div>
-                <div className="mt-4 space-y-3 text-xs leading-5 text-slate-300">
+                <div className="mt-4 space-y-3 text-xs leading-5 text-muted">
                   <div>
-                    <div className="font-semibold text-white">Weak Areas</div>
+                    <div className="font-semibold text-foreground">Weak Areas</div>
                     <ul className="mt-1.5 list-inside list-disc">
                       {finalReport.weakTopics.map((item) => (
                         <li key={item}>{item}</li>
@@ -394,7 +387,7 @@ export function AiInterviewer({ chapter }: { chapter: Chapter }) {
                     </ul>
                   </div>
                   <div>
-                    <div className="font-semibold text-white">Ab Kya Padhna Hai</div>
+                    <div className="font-semibold text-foreground">Ab Kya Padhna Hai</div>
                     <ul className="mt-1.5 list-inside list-disc">
                       {finalReport.studyPlan.map((item) => (
                         <li key={item}>{item}</li>
@@ -410,17 +403,17 @@ export function AiInterviewer({ chapter }: { chapter: Chapter }) {
           <div className="space-y-4">
             <Card className="flex min-h-[500px] flex-col overflow-hidden sm:min-h-[580px]">
               {/* Chat header */}
-              <div className="flex items-center justify-between gap-2 border-b border-white/[0.08] p-3 sm:p-4">
+              <div className="flex items-center justify-between gap-2 border-b border-border p-3 sm:p-4">
                 <div className="flex items-center gap-2.5">
                   <span
-                    className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-950"
-                    style={{ backgroundColor: chapter.color }}
+                    className="flex h-9 w-9 items-center justify-center rounded-lg"
+                    style={{ backgroundColor: `${chapter.color}1f`, color: chapter.color }}
                   >
                     <Bot size={18} />
                   </span>
                   <div>
-                    <h2 className="text-sm font-semibold text-white">Senior SAP Interviewer</h2>
-                    <p className="text-[11px] text-slate-500">{mode} · {queue.length} questions</p>
+                    <h2 className="text-sm font-semibold text-foreground">Senior SAP Interviewer</h2>
+                    <p className="text-[11px] text-muted">{mode} · {queue.length} questions</p>
                   </div>
                 </div>
                 <div className="flex gap-1.5">
@@ -436,38 +429,32 @@ export function AiInterviewer({ chapter }: { chapter: Chapter }) {
               {/* Chat messages */}
               <div ref={chatRef} className="flex-1 space-y-2.5 overflow-y-auto p-3 sm:p-4">
                 {messages.map((message, index) => (
-                  <motion.div
+                  <div
                     key={`${message.role}-${index}`}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
                     className={message.role === "candidate" ? "ml-auto max-w-[88%]" : "mr-auto max-w-[88%]"}
                   >
                     <div
                       className={
                         message.role === "candidate"
-                          ? "rounded-xl rounded-br-sm p-3 text-sm leading-6 text-slate-950"
-                          : "rounded-xl rounded-bl-sm border border-white/[0.08] bg-white/[0.05] p-3 text-sm leading-6 text-slate-200"
+                          ? "rounded-xl rounded-br-sm p-3 text-sm leading-6 text-[#14110e]"
+                          : "rounded-xl rounded-bl-sm border border-border bg-surface-2 p-3 text-sm leading-6 text-foreground"
                       }
-                      style={
-                        message.role === "candidate"
-                          ? { backgroundColor: chapter.color }
-                          : undefined
-                      }
+                      style={message.role === "candidate" ? { backgroundColor: chapter.color } : undefined}
                     >
                       {message.body}
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
 
               {/* Input */}
-              <div className="border-t border-white/[0.08] p-3 sm:p-4">
-                <div className="mb-2 rounded-lg border border-white/[0.06] bg-white/[0.03] p-2 text-[11px] leading-4 text-slate-500">
+              <div className="border-t border-border p-3 sm:p-4">
+                <div className="mb-2 rounded-lg border border-border bg-surface-2 p-2 text-[11px] leading-4 text-muted">
                   Formula: Definition + example + project + debugging/support + performance
                 </div>
                 <div className="flex gap-2">
                   <textarea
-                    className="min-h-16 flex-1 resize-none rounded-lg border border-white/10 bg-black/30 p-2.5 text-sm text-white outline-none transition focus:border-[color:var(--accent)]"
+                    className="min-h-16 flex-1 resize-none rounded-lg border border-border p-2.5 text-sm text-foreground outline-none"
                     value={answer}
                     onChange={(event) => setAnswer(event.target.value)}
                     placeholder="Type or speak your answer..."
@@ -497,17 +484,17 @@ export function AiInterviewer({ chapter }: { chapter: Chapter }) {
             </Card>
 
             {/* Quiz */}
-            <Card className="p-4" accent={chapter.color}>
+            <Card className="p-4">
               <div className="flex items-center gap-2">
                 <GraduationCap size={16} style={{ color: chapter.color }} />
-                <h2 className="text-sm font-semibold text-white">Smart Quiz</h2>
-                <span className="ml-auto text-xs text-slate-500">Score: {quizScore}/{quizIndex}</span>
+                <h2 className="text-sm font-semibold text-foreground">Smart Quiz</h2>
+                <span className="ml-auto text-xs text-muted">Score: {quizScore}/{quizIndex}</span>
               </div>
-              <div className="mt-3 rounded-lg border border-white/[0.08] bg-black/20 p-3">
+              <div className="mt-3 rounded-lg border border-border bg-surface-2 p-3">
                 <Badge variant={difficultyVariant(quizQuestion.difficulty)} className="text-[10px]">
                   Quiz {quizIndex + 1}
                 </Badge>
-                <h3 className="mt-2 text-sm font-semibold text-white">{quizQuestion.prompt}</h3>
+                <h3 className="mt-2 text-sm font-semibold text-foreground">{quizQuestion.prompt}</h3>
                 <div className="mt-3 grid gap-1.5">
                   {quizOptions(quizQuestion).map((option, index) => (
                     <Button
