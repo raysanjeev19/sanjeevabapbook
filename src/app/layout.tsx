@@ -19,13 +19,6 @@ export const metadata: Metadata = {
   title: { default: "CodeGurukul — SAP ABAP Interview Mastery", template: "%s | CodeGurukul" },
   description:
     "A calm, reading-first SAP ABAP and S/4HANA interview prep. 573+ curated questions, mentor-style Hinglish answers, AI mock interviews, and chapter-wise study paths.",
-  icons: {
-    icon: [
-      { url: "/icon.svg", type: "image/svg+xml" },
-      { url: "/favicon.ico", sizes: "any" },
-    ],
-    apple: "/icon.svg",
-  },
   openGraph: {
     title: "CodeGurukul — SAP ABAP Interview Mastery",
     description: "573+ curated SAP ABAP questions with Hinglish answers, interview scripts, and code examples.",
