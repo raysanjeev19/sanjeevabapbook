@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Background rounded square -->
+  <rect width="32" height="32" rx="7" fill="#0e7c72"/>
+  <!-- Open book icon (simplified, white) -->
+  <path d="M16 9 C13 9 10 10 8.5 11.5 L8.5 23 C10 21.5 13 21 16 21 C19 21 22 21.5 23.5 23 L23.5 11.5 C22 10 19 9 16 9 Z" fill="none" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
+  <line x1="16" y1="9" x2="16" y2="21" stroke="white" stroke-width="1.5"/>
+</svg>

@@ -132,6 +132,14 @@
         "realtimeExplanation": "Parameter ID practical use: Data Element KUNNR has Parameter ID 'KUN'. In ABAP: GET PARAMETER ID 'KUN' FIELD lv_kunnr — retrieves customer number from memory that was set in another screen. SET PARAMETER ID 'KUN' FIELD lv_kunnr — saves to memory. This allows 'carry forward' of values between transactions.",
         "mistakes": "Trap: 'Domain value range = mandatory validation.' Wrong — domain value range only validates values entered through UI. ABAP direct DB inserts bypass domain validation. Application-level validation in ABAP code is still needed.",
         "codeExample": "* Parameter ID usage (Data Element property)\n\" Data Element KUNNR has Parameter ID = 'KUN'\n\n\" GET parameter (retrieve from memory)\nGET PARAMETER ID 'KUN' FIELD lv_kunnr.\nIF sy-subrc = 0.\n  \" Use carried-forward customer number\nENDIF.\n\n\" SET parameter (store to memory for next screen)\nSET PARAMETER ID 'KUN' FIELD lv_kunnr.\n\" Next transaction's KUNNR field auto-populated"
+      },
+      {
+        "question": "What is a Conversion Exit and when is it needed?",
+        "hinglishExplanation": "Conversion Exit DDIC domain ki property hai jo automatically input/output convert karta hai. ALPHA — customer/vendor numbers mein leading zeros add karta hai jab user input karta hai, aur remove karta hai display pe. User types \"1000\" → ALPHA_INPUT → \"0000001000\" DB mein store. Display pe \"0000001000\" → ALPHA_OUTPUT → \"1000\" dikhta hai. Domain mein set karo, sab fields pe automatically apply hota hai.",
+        "interviewAnswer": "A Conversion Exit is set on a DDIC domain and automatically converts values on input and output. Most common: ALPHA on KUNNR/LIFNR — user enters \"1000\", ALPHA_INPUT pads to \"0000001000\" for database storage, ALPHA_OUTPUT removes leading zeros for display. In ABAP, call CONVERSION_EXIT_ALPHA_INPUT before SELECT statements to avoid leading zeros mismatch — very common bug if forgotten.",
+        "realtimeExplanation": "Classic bug: ABAP SELECT WHERE kunnr = p_kunnr. User entered \"1000\", query sent \"1000\" to DB, DB has \"0000001000\" — no results returned. Fix: Call CONVERSION_EXIT_ALPHA_INPUT on p_kunnr before SELECT. This is one of the most common fresher mistakes in ABAP development.",
+        "mistakes": "Galti: Forgetting ALPHA conversion before SELECT on KUNNR/LIFNR/MATNR fields. User-entered \"1000\" will never match database \"0000001000\" without conversion. Always convert input parameters before WHERE clause for fields with ALPHA domain.",
+        "codeExample": "* WRONG - no conversion\nSELECT * FROM kna1 WHERE kunnr = @p_kunnr.  \" Returns 0 rows!\n\n* CORRECT - apply conversion first\nDATA lv_kunnr TYPE kunnr.\nCALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'\n  EXPORTING input = p_kunnr\n  IMPORTING output = lv_kunnr.\nSELECT * FROM kna1 WHERE kunnr = @lv_kunnr.  \" Works correctly"
       }
     ]
   }
