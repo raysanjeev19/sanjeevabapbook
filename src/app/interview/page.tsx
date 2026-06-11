@@ -1,16 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, BookOpen, Brain, ChevronRight, Mic } from "lucide-react";
+import { BookOpen, Brain, Mic } from "lucide-react";
 import { chapters } from "@/lib/content";
 import { ink, percent } from "@/lib/utils";
 import { useStudyStore } from "@/store/use-study-store";
 import { Badge, difficultyVariant } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { iconMap } from "@/components/book/icon-map";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { BrandLogo } from "@/components/layout/brand-logo";
+import { SiteNav } from "@/components/layout/site-nav";
+import { SiteFooter } from "@/components/layout/site-footer";
 
 export default function InterviewPickerPage() {
   const completed = useStudyStore((s) => s.completed);
@@ -18,24 +17,7 @@ export default function InterviewPickerPage() {
   return (
     <main className="min-h-screen bg-background">
       {/* Nav */}
-      <nav className="sticky top-0 z-40 mx-auto w-full max-w-3xl px-4 pt-3 sm:px-6 lg:px-8">
-        <div className="glass flex items-center justify-between rounded-xl px-4 py-2.5 shadow-card">
-          <div className="flex items-center gap-2">
-            <Link href="/" className="flex items-center gap-2">
-              <BrandLogo size={28} />
-              <span className="font-serif text-sm font-semibold text-foreground">CodeGurukul</span>
-            </Link>
-            <ChevronRight size={12} className="text-faint" />
-            <span className="text-sm font-semibold text-accent">AI Interview</span>
-          </div>
-          <div className="flex gap-1.5">
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/"><ArrowLeft size={14} /> Back</Link>
-            </Button>
-            <ThemeToggle />
-          </div>
-        </div>
-      </nav>
+      <SiteNav breadcrumb="AI Interview" maxWidth="max-w-3xl" />
 
       <div className="ambient-top">
         <div className="mx-auto max-w-3xl px-4 pt-6 sm:px-6 lg:px-8">
@@ -90,6 +72,8 @@ export default function InterviewPickerPage() {
           })}
         </div>
       </div>
+
+      <SiteFooter />
     </main>
   );
 }

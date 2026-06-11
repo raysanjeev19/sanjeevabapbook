@@ -1,16 +1,18 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Lora } from "next/font/google";
+import { DM_Sans, Outfit } from "next/font/google";
 import { Providers } from "@/components/layout/providers";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+/* Body face — geometric, friendly, highly readable */
+const dmSans = DM_Sans({
+  variable: "--font-body",
   subsets: ["latin"],
   display: "swap",
 });
 
-const lora = Lora({
-  variable: "--font-lora",
+/* Display face for headings — bold, modern, confident */
+const outfit = Outfit({
+  variable: "--font-display",
   subsets: ["latin"],
   display: "swap",
 });
@@ -28,8 +30,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F8FAFC" },
-    { media: "(prefers-color-scheme: dark)", color: "#0F172A" },
+    { media: "(prefers-color-scheme: light)", color: "#F6F6FB" },
+    { media: "(prefers-color-scheme: dark)", color: "#0B0A1C" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -47,12 +49,13 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${lora.variable} h-full antialiased`}
+      className={`${dmSans.variable} ${outfit.variable} h-full antialiased`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInit }} />
       </head>
       <body className="min-h-full flex flex-col font-sans bg-background text-foreground">
+        <div className="top-ribbon" aria-hidden="true" />
         <Providers>{children}</Providers>
       </body>
     </html>

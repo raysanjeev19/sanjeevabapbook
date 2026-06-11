@@ -8,7 +8,6 @@ import {
   BookOpen,
   Brain,
   ChevronRight,
-  Compass,
   Flame,
   GraduationCap,
   Layers,
@@ -24,9 +23,8 @@ import { Badge, difficultyVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { iconMap } from "@/components/book/icon-map";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { BrandLogo } from "@/components/layout/brand-logo";
-import { CommandPaletteButton } from "@/components/layout/command-palette";
+import { SiteNav } from "@/components/layout/site-nav";
+import { SiteFooter } from "@/components/layout/site-footer";
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -53,37 +51,15 @@ export function HomeExperience() {
   return (
     <main className="min-h-screen bg-background">
       {/* === NAV === */}
-      <nav className="sticky top-0 z-40 mx-auto w-full max-w-6xl px-4 pt-3 sm:px-6 lg:px-8">
-        <div className="glass flex items-center justify-between rounded-xl px-4 py-2.5 shadow-card">
-          <Link href="/" className="flex items-center gap-2.5">
-            <BrandLogo size={30} />
-            <div className="flex flex-col">
-              <span className="font-serif text-base font-semibold tracking-tight text-foreground">CodeGurukul</span>
-              <span className="text-[9px] font-medium uppercase tracking-[0.18em] text-faint">Learn · Practice · Prepare</span>
-            </div>
-          </Link>
-          <div className="flex items-center gap-1.5">
-            <CommandPaletteButton className="hidden sm:inline-flex" />
-            <Button asChild size="sm" variant="ghost">
-              <Link href="/questions"><Compass size={15} /> <span className="hidden sm:inline">Explore</span></Link>
-            </Button>
-            <Button asChild size="sm" variant="ghost">
-              <Link href="/library"><BookMarked size={15} /> <span className="hidden sm:inline">Saved</span></Link>
-            </Button>
-            <Button asChild size="sm" variant="secondary">
-              <Link href="/interview"><Mic size={15} /> <span className="hidden sm:inline">Interview</span></Link>
-            </Button>
-            <ThemeToggle />
-          </div>
-        </div>
-      </nav>
+      <SiteNav tagline />
 
       {/* === HERO === */}
       <section className="relative overflow-hidden">
         <div className="ambient-top absolute inset-0" />
         <div className="bg-grid absolute inset-0" />
-        <div className="orb left-[-6rem] top-[-4rem] h-72 w-72" style={{ background: "var(--accent-soft)" }} />
-        <div className="orb orb-2 right-[-4rem] top-24 h-80 w-80" style={{ background: "var(--accent-2-soft)" }} />
+        <div className="orb left-[-6rem] top-[-4rem] h-72 w-72" style={{ background: "color-mix(in srgb, var(--accent) 30%, transparent)" }} />
+        <div className="orb orb-2 right-[-4rem] top-24 h-80 w-80" style={{ background: "color-mix(in srgb, var(--accent-2) 26%, transparent)" }} />
+        <div className="orb orb-2 bottom-[-5rem] left-1/3 h-64 w-64" style={{ background: "color-mix(in srgb, var(--accent-3) 22%, transparent)", animationDelay: "-10s" }} />
 
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="grid items-center gap-10 py-14 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16 lg:py-20">
@@ -157,17 +133,18 @@ export function HomeExperience() {
               </div>
 
               <div className="mt-6 grid grid-cols-4 gap-2">
-                <StatPill icon={<Target size={15} />} value={`${platformStats.questions}+`} label="Qs" />
-                <StatPill icon={<Flame size={15} />} value={`${streak}d`} label="Streak" />
-                <StatPill icon={<Star size={15} />} value={`${bookmarks.length}`} label="Saved" />
-                <StatPill icon={<GraduationCap size={15} />} value="4" label="Modes" />
+                <StatPill icon={<Target size={15} />} value={`${platformStats.questions}+`} label="Qs" color="var(--accent)" soft="var(--accent-soft)" />
+                <StatPill icon={<Flame size={15} />} value={`${streak}d`} label="Streak" color="var(--warning)" soft="var(--warning-soft)" />
+                <StatPill icon={<Star size={15} />} value={`${bookmarks.length}`} label="Saved" color="var(--accent-2)" soft="var(--accent-2-soft)" />
+                <StatPill icon={<GraduationCap size={15} />} value="4" label="Modes" color="var(--success)" soft="var(--success-soft)" />
               </div>
 
               <Link
                 href="/interview"
-                className="hover-lift group mt-6 flex cursor-pointer items-center gap-3 rounded-xl border border-border bg-surface-2 p-3.5"
+                className="hover-lift hover-glow group mt-6 flex cursor-pointer items-center gap-3 rounded-xl bg-accent-2-soft p-3.5"
+                style={{ "--glow-color": "var(--accent-2-soft)" } as React.CSSProperties}
               >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-2-soft text-accent-2">
+                <span className="bg-gradient-accent flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-white">
                   <Brain size={16} />
                 </span>
                 <div className="flex-1">
@@ -182,7 +159,7 @@ export function HomeExperience() {
       </section>
 
       {/* === CHAPTERS === */}
-      <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      <section id="chapters" className="mx-auto max-w-6xl scroll-mt-20 px-4 sm:px-6 lg:px-8">
         <div className="mb-7 flex items-end justify-between border-t border-border pt-12">
           <div>
             <h2 className="font-serif text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Chapters</h2>
@@ -201,8 +178,14 @@ export function HomeExperience() {
 
             return (
               <Link key={chapter.slug} href={`/chapters/${chapter.slug}`}>
-                <Card className={`hover-lift animate-fade-up d-${(i % 3) + 1} group relative h-full cursor-pointer overflow-hidden p-4`}>
-                  <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-surface-2">
+                <Card
+                  className={`tint-card hover-lift hover-glow animate-fade-up d-${(i % 3) + 1} group relative h-full cursor-pointer overflow-hidden border-transparent p-4`}
+                  style={{
+                    backgroundImage: `linear-gradient(135deg, ${chapter.color}1a, transparent 55%)`,
+                    "--glow-color": `${chapter.color}38`,
+                  } as React.CSSProperties}
+                >
+                  <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-surface-2/60">
                     <div className="h-full transition-[width] duration-500" style={{ width: `${prog}%`, backgroundColor: chapter.color }} />
                   </div>
 
@@ -264,33 +247,31 @@ export function HomeExperience() {
       </section>
 
       {/* === FOOTER === */}
-      <footer className="mx-auto mt-14 max-w-6xl px-4 pb-10 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-center justify-between gap-4 border-t border-border pt-8 sm:flex-row">
-          <div className="flex items-center gap-2.5">
-            <BrandLogo size={26} />
-            <div>
-              <div className="font-serif text-sm font-semibold text-foreground">CodeGurukul</div>
-              <div className="text-[10px] text-faint">Learn · Practice · Prepare · Get Hired</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-5 text-xs font-medium text-muted">
-            <Link href="/questions" className="transition-colors hover:text-foreground">Questions</Link>
-            <Link href="/library" className="transition-colors hover:text-foreground">Library</Link>
-            <Link href="/interview" className="transition-colors hover:text-foreground">AI Interview</Link>
-          </div>
-          <p className="text-[11px] text-faint">Made for ABAP folks · {platformStats.questions}+ questions</p>
-        </div>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }
 
-function StatPill({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) {
+function StatPill({
+  icon,
+  value,
+  label,
+  color = "var(--accent)",
+  soft = "var(--accent-soft)",
+}: {
+  icon: React.ReactNode;
+  value: string;
+  label: string;
+  color?: string;
+  soft?: string;
+}) {
   return (
-    <div className="hover-lift rounded-xl border border-border bg-surface-2 p-2.5 text-center">
-      <div className="mx-auto mb-1.5 flex h-5 w-5 items-center justify-center text-accent">{icon}</div>
+    <div className="rounded-xl p-2.5 text-center" style={{ backgroundColor: soft }}>
+      <div className="mx-auto mb-1.5 flex h-6 w-6 items-center justify-center" style={{ color }}>
+        {icon}
+      </div>
       <div className="text-sm font-bold text-foreground">{value}</div>
-      <div className="text-[9px] font-medium uppercase tracking-wider text-faint">{label}</div>
+      <div className="text-[9px] font-medium uppercase tracking-wider text-muted">{label}</div>
     </div>
   );
 }

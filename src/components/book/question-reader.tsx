@@ -165,7 +165,7 @@ export function QuestionReader({ question }: { question: Question }) {
     { key: "easy"         as const, label: "Seedha Samjho",        sublabel: "Simple Hindi mein samjho",  Icon: Lightbulb,     color: "#F59E0B" },
     { key: "deepDive"     as const, label: "Deep Dive",             sublabel: "Technical understanding",   Icon: BookOpen,      color: chapterColor },
     { key: "interviewHi"  as const, label: "Interview (Hinglish)",  sublabel: "Speakable script",          Icon: MessageSquare, color: "#22C55E" },
-    { key: "interviewEn"  as const, label: "Interview (English)",   sublabel: "Corporate script",          Icon: Languages,     color: "#2563EB" },
+    { key: "interviewEn"  as const, label: "Interview (English)",   sublabel: "Corporate script",          Icon: Languages,     color: "#4F46E5" },
     { key: "code"         as const, label: "Code Example",          sublabel: "ABAP + comments",           Icon: Code2,         color: "#6366F1" },
     { key: "wordByWord"   as const, label: "Word-by-Word",          sublabel: "Each keyword explained",    Icon: Type,          color: "#A855F7" },
     { key: "mistakes"     as const, label: "Common Mistakes",       sublabel: "Galat vs sahi",             Icon: AlertTriangle, color: "#EF4444" },
@@ -214,7 +214,7 @@ export function QuestionReader({ question }: { question: Question }) {
 
       <div className="mx-auto max-w-5xl">
         {/* Breadcrumb + actions */}
-        <div className="mb-6 flex items-center justify-between gap-2 rounded-xl border border-border bg-surface px-4 py-2.5">
+        <div className="glass mb-6 flex items-center justify-between gap-2 rounded-xl px-4 py-2.5 shadow-card">
           <div className="flex items-center gap-1.5 text-sm">
             <Link href="/" className="flex items-center gap-2">
               <BrandLogo size={26} />
@@ -274,8 +274,15 @@ export function QuestionReader({ question }: { question: Question }) {
         </div>
 
         {/* Question header */}
-        <header className="relative overflow-hidden rounded-xl border border-border bg-surface p-6 sm:p-9">
-          <div className="absolute left-0 top-0 h-full w-1" style={{ backgroundColor: chapterColor }} />
+        <header
+          className="relative overflow-hidden rounded-2xl bg-surface p-6 shadow-card sm:p-9"
+          style={{ backgroundImage: `linear-gradient(160deg, ${chapterColor}1a, transparent 45%)` }}
+        >
+          <div className="absolute left-0 top-0 h-full w-1.5 rounded-r" style={{ backgroundColor: chapterColor }} />
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{ background: `radial-gradient(36rem 16rem at 88% -20%, ${chapterColor}20, transparent 70%)` }}
+          />
 
           <div className="flex flex-wrap gap-2">
             <Badge variant={difficultyVariant(question.difficulty)}>{question.difficulty}</Badge>
@@ -746,7 +753,7 @@ function TabContent({
 
     case "interviewEn":
       return (
-        <div className={cn("rounded-xl border-l-[3px] bg-surface-2/40 p-5", measureClass)} style={{ borderLeftColor: "#2563EB" }}>
+        <div className={cn("rounded-xl border-l-[3px] bg-surface-2/40 p-5", measureClass)} style={{ borderLeftColor: "#4F46E5" }}>
           <AnswerText text={interviewEnglish} className="reading" style={readingStyle} />
         </div>
       );

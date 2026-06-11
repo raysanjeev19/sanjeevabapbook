@@ -2,16 +2,14 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
-import { ArrowLeft, BookmarkX, Check, ChevronRight, Clock, History, Star } from "lucide-react";
+import { BookmarkX, Check, ChevronRight, Clock, History, Star } from "lucide-react";
 import { allQuestions, chapters } from "@/lib/content";
 import { Badge, difficultyVariant } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ink } from "@/lib/utils";
 import { useStudyStore } from "@/store/use-study-store";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { BrandLogo } from "@/components/layout/brand-logo";
-import { CommandPaletteButton } from "@/components/layout/command-palette";
+import { SiteNav } from "@/components/layout/site-nav";
+import { SiteFooter } from "@/components/layout/site-footer";
 import type { Question } from "@/lib/types";
 
 const questionById = new Map(allQuestions.map((q) => [q.id, q]));
@@ -34,25 +32,7 @@ export default function LibraryPage() {
   return (
     <main className="min-h-screen bg-background">
       {/* Nav */}
-      <nav className="sticky top-0 z-40 mx-auto w-full max-w-4xl px-4 pt-3 sm:px-6 lg:px-8">
-        <div className="glass flex items-center justify-between rounded-xl px-4 py-2.5 shadow-card">
-          <div className="flex items-center gap-2">
-            <Link href="/" className="flex items-center gap-2">
-              <BrandLogo size={28} />
-              <span className="font-serif text-sm font-semibold text-foreground">CodeGurukul</span>
-            </Link>
-            <ChevronRight size={12} className="text-faint" />
-            <span className="text-sm font-semibold text-accent">Library</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <CommandPaletteButton />
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/"><ArrowLeft size={14} /> Back</Link>
-            </Button>
-            <ThemeToggle />
-          </div>
-        </div>
-      </nav>
+      <SiteNav breadcrumb="Library" maxWidth="max-w-4xl" />
 
       <div className="ambient-top">
         <div className="mx-auto max-w-4xl px-4 pt-6 sm:px-6 lg:px-8">
@@ -110,6 +90,8 @@ export default function LibraryPage() {
           )}
         </section>
       </div>
+
+      <SiteFooter />
     </main>
   );
 }

@@ -6,6 +6,6 @@ describe("Home", () => {
     render(<Home />);
     expect(screen.getByRole("heading", { name: /read like a book/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /^Chapters$/i })).toBeInTheDocument();
-    expect(screen.getByText(/Internal Tables/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Internal Tables/i).length).toBeGreaterThan(0);
   });
 });

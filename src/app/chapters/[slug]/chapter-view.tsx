@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
-  Brain,
   Check,
   CheckCircle2,
   ChevronRight,
@@ -18,8 +17,8 @@ import { Card } from "@/components/ui/card";
 import type { Chapter } from "@/lib/types";
 import { ink, percent } from "@/lib/utils";
 import { useStudyStore } from "@/store/use-study-store";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { BrandLogo } from "@/components/layout/brand-logo";
+import { SiteNav } from "@/components/layout/site-nav";
+import { SiteFooter } from "@/components/layout/site-footer";
 
 export function ChapterView({ chapter }: { chapter: Chapter }) {
   const completed = useStudyStore((s) => s.completed);
@@ -47,36 +46,21 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
   }, []);
 
   return (
-    <main className="min-h-screen bg-background px-4 py-3 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-4xl">
-        {/* Nav */}
-        <nav className="glass sticky top-3 z-40 mb-6 flex items-center justify-between rounded-xl px-4 py-2.5 shadow-card">
-          <div className="flex items-center gap-1.5 text-sm">
-            <Link href="/" className="flex items-center gap-2">
-              <BrandLogo size={28} />
-              <span className="hidden font-serif font-semibold text-foreground sm:inline">CodeGurukul</span>
-            </Link>
-            <ChevronRight size={11} className="text-faint" />
-            <span className="max-w-[180px] truncate font-semibold text-foreground">{chapter.title}</span>
-          </div>
-          <div className="flex gap-1.5">
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/"><ArrowLeft size={14} /> <span className="hidden sm:inline">Home</span></Link>
-            </Button>
-            <Button asChild size="sm">
-              <Link href={`/interview/${chapter.slug}`}><Brain size={14} /> <span className="hidden sm:inline">Interview</span></Link>
-            </Button>
-            <ThemeToggle />
-          </div>
-        </nav>
+    <main className="min-h-screen bg-background">
+      {/* Nav */}
+      <SiteNav breadcrumb={chapter.title} maxWidth="max-w-4xl" />
 
+      <div className="mx-auto mt-6 max-w-4xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <section className="animate-fade-up relative overflow-hidden rounded-2xl border border-border bg-surface p-6 shadow-card sm:p-8">
-          <div className="absolute left-0 top-0 h-full w-1" style={{ backgroundColor: chapter.color }} />
+        <section
+          className="animate-fade-up relative overflow-hidden rounded-2xl bg-surface p-6 shadow-card sm:p-8"
+          style={{ backgroundImage: `linear-gradient(160deg, ${chapter.color}1c, transparent 45%)` }}
+        >
+          <div className="absolute left-0 top-0 h-full w-1.5 rounded-r" style={{ backgroundColor: chapter.color }} />
           {/* Chapter-tinted ambient wash */}
           <div
             className="pointer-events-none absolute inset-0"
-            style={{ background: `radial-gradient(36rem 16rem at 85% -20%, ${chapter.color}14, transparent 70%)` }}
+            style={{ background: `radial-gradient(36rem 16rem at 85% -20%, ${chapter.color}22, transparent 70%)` }}
           />
 
           <div className="relative">
@@ -183,6 +167,8 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
           </div>
         </section>
       </div>
+
+      <SiteFooter />
 
       {showScrollTop && (
         <button

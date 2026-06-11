@@ -7,7 +7,7 @@ const variantClasses: Record<BadgeVariant, string> = {
   beginner:
     "border-emerald-600/25 bg-emerald-600/10 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300",
   intermediate:
-    "border-blue-600/25 bg-blue-600/10 text-blue-700 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-300",
+    "border-indigo-600/25 bg-indigo-600/10 text-indigo-700 dark:border-indigo-400/20 dark:bg-indigo-400/10 dark:text-indigo-300",
   advanced:
     "border-purple-600/25 bg-purple-600/10 text-purple-700 dark:border-purple-400/20 dark:bg-purple-400/10 dark:text-purple-300",
   expert:
