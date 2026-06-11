@@ -2,72 +2,138 @@
   "basic-abap-030": {
     "easyUnderstanding": "Ye question interviewer poochta hai project experience jaanchne ke liye — aap sirf theory padhe ho ya actually kaam kiya hai. 'Fresher hoon' ya 'sirf training kiya hai' — ye weak answers hain. Ek strong answer mein specific project work mention karo. Real ABAP developer project mein kya karta hai? Mostly ALV reports banata hai VBAK/VBAP jaise tables se, BAdI enhancement karta hai save ke waqt validation add karne ke liye, RFC ya BAPI se external system se data exchange karta hai, ST05 se SELECT-inside-LOOP ka performance issue dhundh ke FOR ALL ENTRIES se fix karta hai, BDC ya BAPI se legacy data upload karta hai, SmartForm se invoice ya PO print karta hai, aur ST22 dump fix karke support tickets solve karta hai. Interview mein ye 3-part formula use karo: 'Mujhe ek [task] mila. Maine [approach/tool] use kiya. Result [outcome] tha.' Specific table names aur transaction codes mention karna technical credibility dikhata hai — interviewer immediately samajh jaata hai ki aapne actually kaam kiya hai.",
     "hinglishMasterExplanation": "ABAP project work ka interview answer weak nahi banana hai. Har ek area ka ek concrete example tayaar rakho. ALV report ke liye bolo: 'Maine sales analysis report banaya — VBAK se header data, VBAP se item data, JOIN ya FOR ALL ENTRIES se combine kiya, REUSE_ALV_GRID_DISPLAY se display kiya.' Enhancement ke liye: 'BAdI ES_BADI_SD_SALES_ORDER implement kiya — method SAVE_DOCUMENT_PREPARE mein custom validation add ki jo sales order save hone se pehle fire hoti hai.' Performance fix ke liye: 'ST05 se trace liya, dekha ki ek SELECT LOOP ke andar tha jo 5000 baar chal raha tha. FOR ALL ENTRIES use kiya, DB calls 5000 se 1 ho gayi, runtime 45 second se 3 second ho gayi.' Interface ke liye: 'RFC function module banaya jo external system se material data receive karta tha — input BAPI_MATERIAL_GET_DETAIL call karta tha aur response XML format mein return karta tha.' Data upload ke liye: 'Legacy Excel data BDC se MM01 transaction ke through upload kiya — 2000 materials.' Support ke liye: 'ST22 mein SAPSQL_ARRAY_INSERT_DUPREC dump dekha — duplicate key issue tha MODIFY statement mein, fix kiya DELETE ADJACENT DUPLICATES se pehle.' Fresher bhi training project ke examples de sakta hai — key hai structured aur specific bolna.",
-    "interviewMeKyaBolnaHai": "In my project, I worked on multiple ABAP developments. I built ALV sales reports reading data from VBAK and VBAP tables. I implemented a BAdI enhancement to add custom validation during sales order save. I optimized a slow report where I identified a SELECT inside LOOP using ST05 transaction and replaced it with FOR ALL ENTRIES — this reduced DB calls from thousands to one and cut runtime by over 90 percent. I also handled support tickets including resolving ST22 runtime dumps and incorrect output investigations.\n\nHinglish tip: Interview mein ye 3-part formula use karo: 'Mujhe ek [type of work] ka task mila. Maine [approach/tool] use kiya. Result: [outcome/learning].' Specific tables — VBAK, VBAP, MARA — aur transactions — ST05, ST22 — mention karna zaroori hai. Ye technical credibility dikhata hai ki aapne sirf padhा nahi, actually kiya hai. Har ek work type ka ek 2-line example tayaar rakho.",
+    "interviewMeKyaBolnaHai": "In my project, I worked on multiple ABAP developments. I built ALV sales reports reading data from VBAK and VBAP tables. I implemented a BAdI enhancement to add custom validation during sales order save. I optimized a slow report where I identified a SELECT inside LOOP using ST05 transaction and replaced it with FOR ALL ENTRIES — this reduced DB calls from thousands to one and cut runtime by over 90 percent. I also handled support tickets including resolving ST22 runtime dumps and incorrect output investigations.\n\nHinglish tip: Interview mein ye 3-part formula use karo: 'Mujhe ek [type of work] ka task mila. Maine [approach/tool] use kiya. Result: [outcome/learning].' Specific tables — VBAK, VBAP, MARA — aur transactions — ST05, ST22 — mention karna zaroori hai. Ye technical credibility dikhata hai ki aapne sirf padha nahi, actually kiya hai. Har ek work type ka ek 2-line example tayaar rakho.",
     "codeExamples": "REPORT zalv_sales_report.\n\nTYPES: BEGIN OF ty_sales,\n         vbeln TYPE vbak-vbeln,\n         erdat TYPE vbak-erdat,\n         netwr TYPE vbak-netwr,\n         posnr TYPE vbap-posnr,\n         matnr TYPE vbap-matnr,\n         kwmeng TYPE vbap-kwmeng,\n       END OF ty_sales.\n\nDATA: lt_header TYPE TABLE OF vbak,\n      lt_items  TYPE TABLE OF vbap,\n      lt_output TYPE TABLE OF ty_sales.\n\nSELECT vbeln, erdat, netwr\n  FROM vbak\n  WHERE erdat >= @p_from AND erdat <= @p_to\n  INTO TABLE @lt_header.\n\nIF lt_header IS NOT INITIAL.\n  SELECT vbeln, posnr, matnr, kwmeng\n    FROM vbap\n    FOR ALL ENTRIES IN @lt_header\n    WHERE vbeln = @lt_header-vbeln\n    INTO TABLE @lt_items.\nENDIF.\n\nCALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'\n  EXPORTING\n    i_structure_name = 'TY_SALES'\n  TABLES\n    t_outtab         = lt_output.",
+    "interviewScriptHinglish": "mere project mein maine multiple ABAP developments pe kaam kiya. Maine ALV sales reports banaye VBAK aur VBAP se padhke, ek BAdI implement kiya sales order save ke dauran custom validation add karne ke liye, aur ek slow report optimise kiya ST05 use karke SELECT inside LOOP identify karke aur usse FOR ALL ENTRIES se replace karke — database calls thousands se one tak cut kar diye aur runtime 90 percent se zyada kam ho gaya. Maine support tickets bhi handle kiye jo ST22 dumps, wrong output, aur performance issues cover karte the, aur RCA documents author kiye. Yeh primarily real delivery aur support exposure show karne ke liye use hota hai.",
+    "interviewScriptEnglish": "In my project I worked on multiple ABAP developments. I built ALV sales reports reading from VBAK and VBAP, implemented a BAdI to add custom validation during sales order save, and optimised a slow report by identifying a SELECT inside LOOP using ST05 and replacing it with FOR ALL ENTRIES — cutting database calls from thousands to one and runtime by over 90 percent. I also handled support tickets covering ST22 dumps, wrong output, and performance issues, and authored RCA documents. It is primarily used to show real delivery and support exposure.",
+    "wordByWordSamjho": [
+      {
+        "keyword": "REPORT",
+        "meaning": "Declares the executable ABAP report."
+      },
+      {
+        "keyword": "TYPES BEGIN OF ... END OF",
+        "meaning": "Defines a structured type composed of named fields."
+      },
+      {
+        "keyword": "DATA",
+        "meaning": "Declares a variable or internal table."
+      },
+      {
+        "keyword": "TYPE TABLE OF vbak",
+        "meaning": "Internal table typed like rows of the VBAK sales header."
+      },
+      {
+        "keyword": "TYPE TABLE OF vbap",
+        "meaning": "Internal table typed like rows of the VBAP sales item."
+      },
+      {
+        "keyword": "SELECT ... INTO TABLE @lt_header",
+        "meaning": "Fetches header rows into the internal table."
+      },
+      {
+        "keyword": "FOR ALL ENTRIES IN",
+        "meaning": "Bulk SELECT driven by an internal table; replaces SELECT inside LOOP."
+      },
+      {
+        "keyword": "IS NOT INITIAL",
+        "meaning": "Guard condition checking that the driver internal table has rows."
+      },
+      {
+        "keyword": "REUSE_ALV_GRID_DISPLAY",
+        "meaning": "Classical SAP function module to display an ALV grid."
+      }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Saying 'I am a fresher with only training experience'",
+        "whyWrong": "It removes you from consideration for project roles even if your training projects taught real ABAP; framing matters as much as facts.",
+        "correctApproach": "Describe the training project as a real deliverable — name the tables, the technique, the validation tool, and the lesson learned."
+      },
+      {
+        "mistake": "Talking only about reports and ignoring enhancements and support",
+        "whyWrong": "Reports alone do not show the full role; interviewers want to see exposure to BAdIs, BAPIs, debugging, and production support.",
+        "correctApproach": "Cover at least one ALV report, one enhancement, and one support ticket with the tools you used (ST22, ST05, SAT)."
+      },
+      {
+        "mistake": "Not quantifying the improvement you delivered",
+        "whyWrong": "Generic phrases like 'improved performance' do not stick; interviewers remember percentage improvements and runtime numbers.",
+        "correctApproach": "Always quantify — runtime cut from 30 minutes to 2 minutes, DB calls reduced from 5000 to 1, support tickets dropped by 60 percent."
+      }
+    ],
+    "quickRevisionNotes": "What: A project-experience answer that covers reports, enhancements, performance fixes, and support to demonstrate end-to-end ABAP capability.\n\nUsed for:\n- Resume-driven interview questions\n- Behavioural and technical screening\n- Promotion or role-change discussions\n\nKey syntax / tables / Tcodes:\n- VBAK, VBAP for sales analytics\n- BAdI, BAPI for enhancements\n- ST22, ST05, SAT, SE38, SE37 in daily flow\n- FOR ALL ENTRIES, OO ALV, CDS in modern code\n\nInterview keyword: ALV + enhancement + performance + support, with numbers.",
     "followupAnswerBank": [
       {
         "question": "What is the first thing you do when you get a new ABAP development task?",
-        "hinglishExplanation": "Pehle Functional Specification (FS) padho aur samjho — business requirement kya hai, input/output kya hai, edge cases kya hain. Phir Technical Specification (TS) banao — which program type, which tables, which approach. Unclear cheezein functional consultant se poocho before coding. This avoids rework.",
+        "hinglishExplanation": "Pehle main functional specification carefully padhta hoon, input parameters, output format, business logic, aur edge cases note karta hoon. Phir main ek technical specification create karta hoon right program type select karte huye — report, function module, ya class — relevant SAP tables identify karta hoon, aur ek single line of code likhne se pehle functional consultant ke saath koi bhi ambiguities clarify karta hoon.",
         "interviewAnswer": "First I read the functional specification carefully, note the input parameters, output format, business logic, and edge cases. Then I create a technical specification selecting the right program type — report, function module, or class — identify the relevant SAP tables, and clarify any ambiguities with the functional consultant before writing a single line of code.",
         "realtimeExplanation": "FS without TS = rework guarantee. TS banane mein ek ghanta lagta hai, rework mein do din lagte hain. Always TS first.",
         "mistakes": "Directly code likhna shuru karna bina TS ke. Ambiguous requirements pe assumption lena aur baad mein user reject karna.",
-        "codeExample": "\" TS defines structure upfront\n\" Tables: VBAK (header), VBAP (items)\n\" Output: ALV with VBELN, ERDAT, NETWR, KWMENG\n\" Performance: FOR ALL ENTRIES (not SELECT in LOOP)\n\" Error handling: SY-SUBRC check after every SELECT"
+        "codeExample": "\" TS defines structure upfront\n\" Tables: VBAK (header), VBAP (items)\n\" Output: ALV with VBELN, ERDAT, NETWR, KWMENG\n\" Performance: FOR ALL ENTRIES (not SELECT in LOOP)\n\" Error handling: SY-SUBRC check after every SELECT",
+        "tier": "easy"
       },
       {
         "question": "How do you develop an ALV report from scratch?",
-        "hinglishExplanation": "ALV report steps: selection screen banao (parameters/select-options), START-OF-SELECTION mein data fetch karo (SELECT with proper WHERE), data process karo (LOOP, calculate fields), field catalog banao ya structure define karo, REUSE_ALV_GRID_DISPLAY ya OO ALV CL_GUI_ALV_GRID call karo. Output screen pe aata hai with standard features — sort, filter, export.",
+        "hinglishExplanation": "Main selection screen define karta hoon, START-OF-SELECTION mein optimized SELECT statements use karke data fetch karta hoon, internal table process karta hoon, phir display ke liye REUSE_ALV_GRID_DISPLAY ya CL_GUI_ALV_GRID call karta hoon. Main SLIS_T_FIELDCAT_ALV use karta hoon ya automatic field catalog generation ke liye structure name pass karta hoon, aur requirements ke according totals, hotspot, aur color coding ke liye layout configure karta hoon.",
         "interviewAnswer": "I define the selection screen, fetch data using optimized SELECT statements in START-OF-SELECTION, process the internal table, then call REUSE_ALV_GRID_DISPLAY or CL_GUI_ALV_GRID for display. I use SLIS_T_FIELDCAT_ALV or pass the structure name for automatic field catalog generation, and configure layout for totals, hotspot, and color coding as per requirements.",
         "realtimeExplanation": "80% of ABAP project work is ALV reports. Ek clean ALV report banane mein selection screen, data fetch, field catalog, aur display — four steps hain.",
         "mistakes": "SELECT * karna, field catalog manually har baar banana jab structure se auto-generate ho sakta ho, SY-SUBRC check na karna.",
-        "codeExample": "SELECT vbeln, erdat, netwr\n  FROM vbak\n  WHERE vkorg = @p_vkorg\n    AND erdat IN @s_date\n  INTO TABLE @DATA(lt_hdr).\n\nIF sy-subrc <> 0.\n  MESSAGE 'No records found' TYPE 'I'.\n  RETURN.\nENDIF."
+        "codeExample": "SELECT vbeln, erdat, netwr\n  FROM vbak\n  WHERE vkorg = @p_vkorg\n    AND erdat IN @s_date\n  INTO TABLE @DATA(lt_hdr).\n\nIF sy-subrc <> 0.\n  MESSAGE 'No records found' TYPE 'I'.\n  RETURN.\nENDIF.",
+        "tier": "medium"
       },
       {
         "question": "What is a BAdI and when do you use it in a project?",
-        "hinglishExplanation": "BAdI — Business Add-In — SAP standard program ko bina modify kiye customize karne ka standard SAP way hai. Jab business requirement hoti hai ki standard process mein kuch extra karna hai — like save ke waqt validation, output format change, field add karna — toh BAdI implement karte hain. SE18 se BAdI definition dekho, SE19 se implementation banao, method mein apna code likho.",
+        "hinglishExplanation": "Ek BAdI SAP ka standard enhancement framework hai jo source modify kiye bina standard SAP programs mein custom logic inject karne deta hai. Main BAdIs tab use karta hoon jab business requirements ko save par custom validation, additional field population, ya output modification chahiye. For example, maine BAdI ES_BADI_SD_SALES_ORDER implement kiya sales order save ke dauran ek custom field validate karne ke liye — method database commit se pehle fire hota hai.",
         "interviewAnswer": "A BAdI is SAP's standard enhancement framework that lets you inject custom logic into standard SAP programs without modifying the source. I use BAdIs when business requirements need custom validation at save, additional field population, or output modification. For example, I implemented BAdI ES_BADI_SD_SALES_ORDER to validate a custom field during sales order save — method fires before the database commit.",
         "realtimeExplanation": "Project mein BAdI use karo jab standard modification forbidden ho — jo usually hoti hai. BAdI = clean, upgrade-safe enhancement.",
         "mistakes": "Standard SAP code directly modify karna (Z-copy ya core change) instead of BAdI. This breaks during SAP upgrades.",
-        "codeExample": "\" SE19: Create BAdI implementation\nMETHOD if_ex_badi_sd_sales_order~save_document_prepare.\n  READ TABLE it_xvbak INTO DATA(ls_hdr) INDEX 1.\n  IF ls_hdr-zzcust_field IS INITIAL.\n    MESSAGE 'Custom field is required' TYPE 'E'.\n  ENDIF.\nENDMETHOD."
+        "codeExample": "\" SE19: Create BAdI implementation\nMETHOD if_ex_badi_sd_sales_order~save_document_prepare.\n  READ TABLE it_xvbak INTO DATA(ls_hdr) INDEX 1.\n  IF ls_hdr-zzcust_field IS INITIAL.\n    MESSAGE 'Custom field is required' TYPE 'E'.\n  ENDIF.\nENDMETHOD.",
+        "tier": "easy"
       },
       {
         "question": "What is a transport and how does it work in a project?",
-        "hinglishExplanation": "Transport system SAP mein changes ko DEV → QA → PROD le jaane ka process hai. Jab bhi code ya config change karo, ek transport request mein objects add hote hain. DEV mein save karo, request release karo SE10 se, phir STMS se QA import, test karo, phir PROD import. Sequence galat hua toh objects missing ho sakte hain.",
+        "hinglishExplanation": "Har ABAP development DEV system mein ek transport request mein capture hota hai. Unit testing ke baad, main request ko SE10 use karke release karta hoon, Basis team ise QA mein integration testing ke liye import karti hai, aur UAT sign-off ke baad, yeh STMS ke through production tak jaata hai. Main ensure karta hoon ki saare dependent objects — programs, includes, dictionary objects, aur message classes — same ya prerequisite transport mein hon taaki missing object errors avoid ho.",
         "interviewAnswer": "Every ABAP development is captured in a transport request in the DEV system. After unit testing, I release the request using SE10, the Basis team imports it to QA for integration testing, and post-UAT sign-off, it goes to production via STMS. I ensure all dependent objects — programs, includes, dictionary objects, and message classes — are in the same or prerequisite transport to avoid missing object errors.",
         "realtimeExplanation": "Transport sequence matters. Agar table PROD pe nahi gayi aur program gayi toh runtime dump aayega. Always check dependencies.",
         "mistakes": "Sirf program transport karna aur data dictionary objects bhoolna. Ya transport PROD pe galat sequence mein import karna.",
-        "codeExample": "\" SE10: Check transport contents before release\n\" Objects typically in one transport:\n\" - R3TR PROG  ZMYPROGRAM\n\" - R3TR TABL  ZMYTABLE\n\" - R3TR MSAG  ZMESSAGECLASS\n\" Always verify with SE01 before STMS import"
+        "codeExample": "\" SE10: Check transport contents before release\n\" Objects typically in one transport:\n\" - R3TR PROG  ZMYPROGRAM\n\" - R3TR TABL  ZMYTABLE\n\" - R3TR MSAG  ZMESSAGECLASS\n\" Always verify with SE01 before STMS import",
+        "tier": "advanced"
       },
       {
         "question": "How do you develop a SmartForm in a project?",
-        "hinglishExplanation": "SmartForm development ke do parts hain: form design (SFP/SMARTFORMS transaction se layout banao — header, items, totals) aur driver program (ABAP program jo data fetch karta hai aur FM generate hota hai form ka jo call karte hain). Driver program mein correct FM name get karo SSF_FUNCTION_MODULE_NAME se, phir call karo with your data.",
+        "hinglishExplanation": "SmartForm development ke do parts hain: SMARTFORMS transaction mein form design — jahan main windows, text, tables, aur conditions define karta hoon — aur ABAP driver program jo data fetch karta hai aur generated function module call karta hai. Main SSF_FUNCTION_MODULE_NAME use karke function module name dynamically retrieve karta hoon, form interface ke saath matching data structures pass karta hoon, aur print preview versus direct print ke liye output control parameters handle karta hoon.",
         "interviewAnswer": "SmartForm development has two parts: the form design in SMARTFORMS transaction — where I define windows, text, tables, and conditions — and the ABAP driver program that fetches data and calls the generated function module. I retrieve the function module name dynamically using SSF_FUNCTION_MODULE_NAME, pass the data structures matching the form interface, and handle the output control parameters for print preview versus direct print.",
         "realtimeExplanation": "Common use case: purchase order print, invoice, delivery note. SmartForm khud ABAP code nahi hai — ek designer tool hai. Driver program ABAP hai.",
         "mistakes": "Hardcoding the generated FM name instead of using SSF_FUNCTION_MODULE_NAME. Also: form interface mein galat structure pass karna causing dump.",
-        "codeExample": "DATA: lv_fm_name TYPE rs38l_fnam.\nCALL FUNCTION 'SSF_FUNCTION_MODULE_NAME'\n  EXPORTING  formname = 'ZSMARTFORM_PO'\n  IMPORTING  fm_name  = lv_fm_name.\n\nCALL FUNCTION lv_fm_name\n  EXPORTING\n    control_parameters = ls_ctrl\n    output_options     = ls_output\n    is_header          = ls_header\n  TABLES\n    it_items           = lt_items."
+        "codeExample": "DATA: lv_fm_name TYPE rs38l_fnam.\nCALL FUNCTION 'SSF_FUNCTION_MODULE_NAME'\n  EXPORTING  formname = 'ZSMARTFORM_PO'\n  IMPORTING  fm_name  = lv_fm_name.\n\nCALL FUNCTION lv_fm_name\n  EXPORTING\n    control_parameters = ls_ctrl\n    output_options     = ls_output\n    is_header          = ls_header\n  TABLES\n    it_items           = lt_items.",
+        "tier": "easy"
       },
       {
         "question": "What is RFC and how do you use it in an interface project?",
-        "hinglishExplanation": "RFC — Remote Function Call — ek function module hai jo remotely call ho sakta hai. Agar SAP se external system ko ya ek SAP se doosre SAP ko data bhejni ho, RFC use karte hain. SE37 mein function module banao, Remote-enabled module select karo, import/export parameters define karo. Calling side pe SM59 mein destination configure karte hain.",
+        "hinglishExplanation": "RFC — Remote Function Call — ek function module hai jo remote execution ke liye enabled hai. Interface projects mein, main SE37 mein RFC-enabled function modules create karta hoon jahan processing type Remote-enabled module pe set hota hai. External system is FM ko SM59 mein configured RFC destination ke through call karta hai. Main proper IMPORTING, EXPORTING, aur EXCEPTION parameters define karta hoon, aur SYSTEM_FAILURE aur COMMUNICATION_FAILURE exceptions use karke communication errors hamesha handle karta hoon.",
         "interviewAnswer": "RFC — Remote Function Call — is a function module enabled for remote execution. In interface projects, I create RFC-enabled function modules in SE37 where the processing type is set to Remote-enabled module. The external system calls this FM via RFC destination configured in SM59. I define proper IMPORTING, EXPORTING, and EXCEPTION parameters, and always handle communication errors using SYSTEM_FAILURE and COMMUNICATION_FAILURE exceptions.",
         "realtimeExplanation": "RFC interface project mein: SE37 se FM banao (remote-enabled), SM59 se destination configure karo, CALL FUNCTION 'ZFM_NAME' DESTINATION 'DEST_NAME' use karo calling side pe.",
         "mistakes": "SYSTEM_FAILURE aur COMMUNICATION_FAILURE exceptions handle na karna. RFC call fail hone pe program dump kar deta hai agar exception handling missing hai.",
-        "codeExample": "CALL FUNCTION 'ZRFC_GET_MATERIAL'\n  DESTINATION 'RFC_DEST_EXT'\n  EXPORTING\n    iv_matnr    = lv_matnr\n  IMPORTING\n    es_material = ls_material\n  EXCEPTIONS\n    system_failure        = 1\n    communication_failure = 2\n    OTHERS                = 3.\nIF sy-subrc <> 0.\n  MESSAGE 'RFC call failed' TYPE 'E'.\nENDIF."
+        "codeExample": "CALL FUNCTION 'ZRFC_GET_MATERIAL'\n  DESTINATION 'RFC_DEST_EXT'\n  EXPORTING\n    iv_matnr    = lv_matnr\n  IMPORTING\n    es_material = ls_material\n  EXCEPTIONS\n    system_failure        = 1\n    communication_failure = 2\n    OTHERS                = 3.\nIF sy-subrc <> 0.\n  MESSAGE 'RFC call failed' TYPE 'E'.\nENDIF.",
+        "tier": "medium"
       },
       {
         "question": "What is BDC and when do you use it for data upload?",
-        "hinglishExplanation": "BDC — Batch Data Communication — ek technique hai jisme ABAP program screen fields populate karta hai jaise user type kar raha ho, aur transaction automatically run hoti hai. Legacy data upload ke liye use hota hai jab BAPI available nahi ho ya complex screen flow ho. Call transaction method aur session method dono hote hain.",
+        "hinglishExplanation": "BDC mass data uploads ke liye SAP transactions programmatically drive karne ke liye screen-by-screen user input simulate karta hai. Main error visibility ke saath immediate processing ke liye Call Transaction method use karta hoon, ya large volumes ke liye Session method jahan errors SM35 mein logged hote hain. Main BAPI ko BDC se prefer karta hoon jab available ho kyunki BDC screen-dependent hai aur agar patch mein screen sequence change ho jaaye toh break ho jaata hai.",
         "interviewAnswer": "BDC simulates screen-by-screen user input to drive SAP transactions programmatically for mass data uploads. I use Call Transaction method for immediate processing with error visibility, or Session method for large volumes where errors are logged in SM35. I prefer BAPI over BDC when available because BDC is screen-dependent and breaks if screen sequence changes in a patch.",
         "realtimeExplanation": "BDC project use case: migrate 10,000 vendor masters from legacy system to SAP using XK01 transaction. Record the screen flow first using SHDB, then generate BDC program.",
         "mistakes": "BDC banate waqt screen recording se start na karna. Aur error handling — every BDCMSGCOLL entry check karo, sirf sy-subrc nahi.",
-        "codeExample": "PERFORM bdc_dynpro USING 'SAPMF02K' '0100'.\nPERFORM bdc_field  USING 'RF02K-LIFNR' lv_lifnr.\nPERFORM bdc_field  USING 'RF02K-BUKRS' '1000'.\n\nCALL TRANSACTION 'XK01'\n  USING lt_bdcdata\n  MODE  'N'\n  UPDATE 'S'\n  MESSAGES INTO lt_messages."
+        "codeExample": "PERFORM bdc_dynpro USING 'SAPMF02K' '0100'.\nPERFORM bdc_field  USING 'RF02K-LIFNR' lv_lifnr.\nPERFORM bdc_field  USING 'RF02K-BUKRS' '1000'.\n\nCALL TRANSACTION 'XK01'\n  USING lt_bdcdata\n  MODE  'N'\n  UPDATE 'S'\n  MESSAGES INTO lt_messages.",
+        "tier": "medium"
       },
       {
         "question": "How do you prove your performance fix worked in an ABAP project?",
-        "hinglishExplanation": "Performance fix prove karna ek important skill hai — interviewer always poochega 'how did you measure improvement?' Steps: pehle ST05 se before trace liya (note total DB calls aur time), fix implement kiya (FOR ALL ENTRIES ya JOIN), phir ST05 se after trace liya. Before vs after compare karo — DB calls kitne kame, runtime kitna gira. Numbers bolna credibility banata hai.",
+        "hinglishExplanation": "Kisi bhi performance fix se pehle, main baseline capture karne ke liye ek ST05 SQL trace run karta hoon — DB calls ka number, total execution time, aur kaunse statements heaviest hain. Fix implement karne ke baad — typically SELECT inside LOOP ko FOR ALL ENTRIES ya JOIN se replace karke — main improvement measure karne ke liye same input ke saath ek aur ST05 trace run karta hoon. Main dono traces document karta hoon. Agar runtime analysis chahiye, SAT transaction ABAP-level hotspot analysis deta hai.",
         "interviewAnswer": "Before any performance fix, I run an ST05 SQL trace to capture the baseline — number of DB calls, total execution time, and which statements are heaviest. After implementing the fix — typically replacing SELECT inside LOOP with FOR ALL ENTRIES or a JOIN — I run another ST05 trace with the same input to measure the improvement. I document both traces. If runtime analysis is needed, SAT transaction gives ABAP-level hotspot analysis.",
         "realtimeExplanation": "Numbers matter: 'Performance improved' is weak. '5000 DB calls to 1, runtime from 45s to 3s' is strong. Always measure before and after.",
         "mistakes": "Claiming performance improvement without ST05 evidence. Interviewer will ask 'how do you know it improved?' — be ready with before/after numbers.",
-        "codeExample": "\" ST05: Activate trace → run program → deactivate → analyze\n\" Before fix: 5000 rows in VBAP SELECT, each row = 1 DB call\n\" After fix with FOR ALL ENTRIES:\nIF lt_orders IS NOT INITIAL.\n  SELECT vbeln, posnr, matnr\n    FROM vbap\n    FOR ALL ENTRIES IN @lt_orders\n    WHERE vbeln = @lt_orders-vbeln\n    INTO TABLE @DATA(lt_items).\nENDIF.\n\" Result: 5000 calls → 1 call"
+        "codeExample": "\" ST05: Activate trace → run program → deactivate → analyze\n\" Before fix: 5000 rows in VBAP SELECT, each row = 1 DB call\n\" After fix with FOR ALL ENTRIES:\nIF lt_orders IS NOT INITIAL.\n  SELECT vbeln, posnr, matnr\n    FROM vbap\n    FOR ALL ENTRIES IN @lt_orders\n    WHERE vbeln = @lt_orders-vbeln\n    INTO TABLE @DATA(lt_items).\nENDIF.\n\" Result: 5000 calls → 1 call",
+        "tier": "advanced"
       }
     ]
   },
@@ -76,70 +142,141 @@
     "hinglishMasterExplanation": "Production incident handling ka systematic approach interview mein bahut important hai. Step 1 — Business impact samjho: ek user affected hai ya poori company? Critical process hai ya minor report? Ye urgency level decide karta hai. Step 2 — Reproduce karo: user se exact input lo — which transaction, which date range, which company code. Dev ya QA mein same input se reproduce karo. Bina reproduce kiye fix mat karo — guess karna dangerous hai production mein. Step 3 — Diagnose karo sahi tool se: runtime dump ke liye ST22 (program name, line number, exception class milega), background job failure ke liye SM37 (job log mein exact error), authorization error ke liye SU53 (missing authorization object dikhega), wrong data ke liye SE16N (database mein actual data check karo), performance issue ke liye ST05 (SQL trace). Step 4 — Targeted fix karo: sirf galat cheez fix karo — unrelated code mat chhedna. Step 5 — Regression test karo: fix test karo plus ensure karo ki aas paas ki functionality break nahi hui. Step 6 — Emergency transport: manager aur functional lead ka approval lo, Basis ko bolo express transport ke liye, STMS se move karo. Step 7 — Production validate karo: affected user se confirm karo ki issue resolve ho gayi. Step 8 — RCA document likho 24 ghante mein: root cause, fix, preventive action.",
     "interviewMeKyaBolnaHai": "For production incidents, I follow a structured eight-step approach. First I assess business impact — whether one user or an entire process is affected. Then I reproduce the issue in a lower system using the exact user inputs. I use ST22 for runtime dumps, SM37 for background job failures, and SU53 for authorization errors to diagnose quickly. After applying a targeted fix and regression testing, I arrange an emergency transport with proper manager and functional lead approval, validate the fix in production with the affected user, and provide an RCA document within 24 hours covering root cause, fix applied, and preventive actions.\n\nHinglish tip: Interview mein RCA aur communication mention karna important hai — 'Sirf fix karna nahi, users ko update karna aur RCA document karna bhi scope mein hota hai.' Ye developer maturity dikhata hai. Aur ek strong point: 'Emergency transport ke liye approval process follow karna mandatory hai — bina approval ke direct production change nahi karte.' Ye process discipline dikhata hai jo senior developers aur managers ko impress karta hai.",
     "codeExamples": "\" Production incident fix pattern — targeted and documented\nREPORT zinc_fix_20240315.  \" Incident number in report name\n\n\" BEFORE FIX — original buggy code:\n\" SELECT * FROM vbak WHERE vkorg = p_vkorg.  \" Missing date filter!\n\n\" AFTER FIX — targeted correction with comment:\nSELECT vbeln, erdat, netwr\n  FROM vbak\n  WHERE vkorg  = @p_vkorg\n    AND erdat >= @p_from    \" INC-2024-0315: Added date filter\n    AND erdat <= @p_to      \" to prevent full table scan\n  INTO TABLE @DATA(lt_orders).\n\nIF sy-subrc <> 0.\n  MESSAGE 'No records for selected criteria' TYPE 'I'.\n  RETURN.                   \" INC-2024-0315: Added explicit return\nENDIF.\n\n\" Transport: DEV → QA (regression tested) → PROD (approved)\n\" RCA filed: missing WHERE clause caused performance issue",
+    "interviewScriptHinglish": "production incidents ke liye main ek structured eight-step approach follow karta hoon. Pehle main business impact assess karta hoon — whether ek user ya entire process affected hai. Phir main lower system mein exact user inputs use karke issue reproduce karta hoon. Main ST22 runtime dumps ke liye, SM37 background job failures ke liye, aur SU53 authorization errors ke liye use karta hoon jaldi diagnose karne ke liye. Targeted fix apply karke aur regression testing ke baad, main manager aur functional lead approval ke saath emergency transport arrange karta hoon, fix production mein validate karta hoon, aur stakeholders ko closure communicate karta hoon. Yeh primarily incidents ko controlled rakhne ke liye use hota hai frequent updates aur written RCA ke saath.",
+    "interviewScriptEnglish": "For production incidents I follow a structured eight-step approach. First I assess business impact — whether one user or an entire process is affected. Then I reproduce the issue in a lower system using the exact user inputs. I use ST22 for runtime dumps, SM37 for background job failures, and SU53 for authorization errors to diagnose quickly. After applying a targeted fix and regression testing, I arrange an emergency transport with manager and functional lead approval, validate the fix in production, and communicate closure to stakeholders. It is primarily used to keep incidents controlled with frequent updates and a written RCA.",
+    "wordByWordSamjho": [
+      {
+        "keyword": "REPORT",
+        "meaning": "Declares the executable ABAP report carrying the incident-fix changes."
+      },
+      {
+        "keyword": "SELECT",
+        "meaning": "Open SQL read statement against a database table."
+      },
+      {
+        "keyword": "FROM vbak",
+        "meaning": "Reads from the sales document header table."
+      },
+      {
+        "keyword": "WHERE vkorg = @p_vkorg",
+        "meaning": "Restricts to the supplied sales organization."
+      },
+      {
+        "keyword": "AND erdat >= @p_from",
+        "meaning": "Adds a date filter; missing it caused the original full-scan defect."
+      },
+      {
+        "keyword": "INTO TABLE @DATA(lt_orders)",
+        "meaning": "Inline-declares the result internal table."
+      },
+      {
+        "keyword": "sy-subrc",
+        "meaning": "Return code; explicitly checked to handle no-data gracefully."
+      },
+      {
+        "keyword": "RETURN",
+        "meaning": "Exits the current event/method cleanly after issuing the message."
+      },
+      {
+        "keyword": "INC-2024-0315",
+        "meaning": "Incident ticket reference traced in code comments and transport request."
+      }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Skipping reproduction and applying the first guessed fix",
+        "whyWrong": "The fix may target the wrong code path; production remains broken or a new defect appears, undermining trust and prolonging the incident.",
+        "correctApproach": "Always reproduce in DEV/QA with the exact inputs from the ticket; only then propose a fix backed by debugger evidence and ST05/SAT traces."
+      },
+      {
+        "mistake": "Bypassing change control for an 'urgent' production fix",
+        "whyWrong": "Audit failures, missing rollback path, and surprise side effects in production; the CAB will flag it post-incident and recall the change.",
+        "correctApproach": "Use the emergency change procedure — manager and functional approvals, rollback plan, quick QA validation, then STMS import with logs."
+      },
+      {
+        "mistake": "Not adding the incident reference in the code comments and TR",
+        "whyWrong": "Future developers cannot trace why the code changed, RCA is harder, and recurring patterns are missed during root-cause review.",
+        "correctApproach": "Add the incident number (INC-...) in code comments and the transport description, and link the fix in the TS update."
+      },
+      {
+        "mistake": "Closing the ticket without a written RCA",
+        "whyWrong": "Similar incidents recur because the underlying cause was never documented; ATC / SCI rules and monitoring stay unimproved.",
+        "correctApproach": "Publish a short RCA covering trigger, impact, root cause, fix, and preventive actions (new ATC check, monitoring, training)."
+      }
+    ],
+    "quickRevisionNotes": "What: A disciplined eight-step production incident workflow that produces a targeted fix and a written RCA.\n\nUsed for:\n- P1 / P2 incident management\n- Emergency changes and CAB approvals\n- Long-term defect prevention\n\nKey syntax / tables / Tcodes:\n- ST22, SM37, SU53, ST05, SAT, SM21\n- STMS for emergency transports with logs\n- Incident reference (INC-) in code, TR, RCA\n- Application log (SLG1/BAL) for background errors\n\nInterview keyword: Impact, reproduce, ST22/SM37, targeted fix, validated transport, RCA.",
     "followupAnswerBank": [
       {
         "question": "What is ST22 and how do you use it for production incidents?",
-        "hinglishExplanation": "ST22 SAP mein runtime dump analyzer hai. Jab bhi program crash hota hai — exception unhandled, database error, wrong data type — ek dump ST22 mein save hota hai. ST22 open karo, today's dumps dekho, program name aur exception class se identify karo, double-click karo for detail — exact line number aur variable values dump ke waqt milte hain. Ye sab se important incident diagnosis tool hai.",
+        "hinglishExplanation": "ST22 ABAP Runtime Error Analysis transaction hai. Jab ek program ek unhandled exception throw karta hai, dump ST22 mein program name, include, line number, exception class, aur crash ke time variable values ke saath store hota hai. Main ST22 open karta hoon, date aur user ya program se filter karta hoon, short text aur what happened section padhta hoon, source mein line number tak directly jaata hoon, aur shown variable values se root cause identify karta hoon.",
         "interviewAnswer": "ST22 is the ABAP Runtime Error Analysis transaction. When a program throws an unhandled exception, the dump is stored in ST22 with the program name, include, line number, exception class, and variable values at the time of crash. I open ST22, filter by date and user or program, read the short text and what happened section, go directly to the line number in the source, and identify root cause from the variable values shown.",
         "realtimeExplanation": "ST22 first — always. Short text batata hai kya crash hua, source section batata hai kahan crash hua, variables section batata hai kyon crash hua.",
         "mistakes": "ST22 mein sirf short text padh ke guess karna. Pura dump padho — active calls stack aur source section mein actual root cause hoti hai.",
-        "codeExample": "\" Common ST22 exceptions and their causes:\n\" SAPSQL_ARRAY_INSERT_DUPREC → duplicate key in INSERT\n\" DYNREAD_ILLEGAL_COMPONENTNAME → field name typo in ASSIGN\n\" TSV_TNEW_PAGE_ALLOC_FAILED  → memory exceeded\n\" RAISE_EXCEPTION              → custom exception not caught\n\" Fix: wrap in TRY-CATCH or add SY-SUBRC check"
+        "codeExample": "\" Common ST22 exceptions and their causes:\n\" SAPSQL_ARRAY_INSERT_DUPREC → duplicate key in INSERT\n\" DYNREAD_ILLEGAL_COMPONENTNAME → field name typo in ASSIGN\n\" TSV_TNEW_PAGE_ALLOC_FAILED  → memory exceeded\n\" RAISE_EXCEPTION              → custom exception not caught\n\" Fix: wrap in TRY-CATCH or add SY-SUBRC check",
+        "tier": "easy"
       },
       {
         "question": "How do you handle a background job failure in production?",
-        "hinglishExplanation": "Background job fail hua — SM37 kholo. Job name aur date se filter karo, failed job select karo, job log dekho — error message wahan hoga. Agar ABAP dump hai toh ST22 pe link milega. Agar authorization issue hai toh SU53 check karo us user ke liye jiske under job run hota hai. Job restart karna ho toh SM37 se repeat karo — lekin pehle root cause fix karo.",
+        "hinglishExplanation": "Background job failures ke liye, main SM37 jaata hoon, job name aur failure status se filter karta hoon, aur exact error message ya dump reference ke liye job log padhta hoon. Agar ek ABAP dump hai, SM37 detailed analysis ke liye ST22 se link karta hai. Background jobs mein authorization errors ke liye, main batch user ID ke liye SU53 check karta hoon. Root cause fix karne ke baad — chahe data issue ho, code bug ho, ya missing authorization ho — main appropriate approval lene ke baad SM37 se job restart karta hoon.",
         "interviewAnswer": "For background job failures, I go to SM37, filter by job name and failure status, and read the job log for the exact error message or dump reference. If there is an ABAP dump, SM37 links to ST22 for the detailed analysis. For authorization errors in background jobs, I check SU53 for the batch user ID. After fixing the root cause — whether it is a data issue, code bug, or missing authorization — I restart the job from SM37 after getting the appropriate approval.",
         "realtimeExplanation": "Month-end batch fail hua production mein — ye high priority incident hai. SM37 → job log → ST22 → fix → restart. Communication to business stakeholders mandatory hai.",
         "mistakes": "Job restart karna bina root cause fix kiye — same failure dobara aayegi. Ya fix kiye bina business ko inform na karna.",
-        "codeExample": "\" SM37 job log typical error patterns:\n\" JOB_CANCELLED → manual cancel ya system restart\n\" Dump in ST22 → ABAP runtime error during job\n\" No spool created → check variant and output device\n\n\" In code: handle exceptions in background-safe way\nIF sy-batch = 'X'.  \" Running in background\n  MESSAGE lv_msg TYPE 'E' INTO lv_dummy.  \" Log, don't popup\nENDIF."
+        "codeExample": "\" SM37 job log typical error patterns:\n\" JOB_CANCELLED → manual cancel ya system restart\n\" Dump in ST22 → ABAP runtime error during job\n\" No spool created → check variant and output device\n\n\" In code: handle exceptions in background-safe way\nIF sy-batch = 'X'.  \" Running in background\n  MESSAGE lv_msg TYPE 'E' INTO lv_dummy.  \" Log, don't popup\nENDIF.",
+        "tier": "medium"
       },
       {
         "question": "What is the difference between emergency transport and normal transport?",
-        "hinglishExplanation": "Normal transport: DEV mein develop karo, QA mein test karo, weekly ya bi-weekly release mein PROD jaata hai — 1 se 2 week lag sakte hain. Emergency transport: production mein critical issue hai, business ruka hua hai — us case mein fast-track hota hai. Additional approvals chahiye (manager + functional lead + change board), QA testing accelerated hoti hai, STMS mein express import hota hai. Risk zyada hota hai isliye approvals mandatory hain.",
+        "hinglishExplanation": "Normal transports standard change management cycle follow karte hain — DEV mein develop, QA mein test, scheduled production window mein release, jo ek se do weeks le sakta hai. Emergency transports tab use hote hain jab production down hai ya critically impacted hai. Inhe escalated approvals chahiye — typically project manager, functional lead, aur kabhi kabhi change advisory board se — accelerated QA validation, aur STMS ke through immediate production import. Higher risk ko stricter governance chahiye, less nahi.",
         "interviewAnswer": "Normal transports follow the standard change management cycle — develop in DEV, test in QA, release in the scheduled production window, which can take one to two weeks. Emergency transports are used when production is down or critically impacted. They require escalated approvals — typically from the project manager, functional lead, and sometimes the change advisory board — accelerated QA validation, and immediate production import via STMS. The higher risk requires stricter governance, not less.",
         "realtimeExplanation": "Emergency transport ka matlab shortcut nahi — matlab faster but with more oversight. Approval matrix follow karna mandatory hai har jagah.",
         "mistakes": "Ye assume karna ki emergency mein approval skip kar sakte hain. Emergency mein approvals aur bhi strict hoti hain. Bina approval ke direct PROD change = disciplinary action.",
-        "codeExample": "\" STMS emergency transport checklist:\n\" 1. SE10: Release transport request in DEV\n\" 2. Get written approval (email/ticket) from manager\n\" 3. Basis imports to QA — run smoke test (15-30 min)\n\" 4. Basis imports to PROD with change record number\n\" 5. Validate with affected user in PROD\n\" 6. Update incident ticket with resolution details"
+        "codeExample": "\" STMS emergency transport checklist:\n\" 1. SE10: Release transport request in DEV\n\" 2. Get written approval (email/ticket) from manager\n\" 3. Basis imports to QA — run smoke test (15-30 min)\n\" 4. Basis imports to PROD with change record number\n\" 5. Validate with affected user in PROD\n\" 6. Update incident ticket with resolution details",
+        "tier": "easy"
       },
       {
         "question": "How do you write an RCA (Root Cause Analysis) document for a production incident?",
-        "hinglishExplanation": "RCA document standard format mein hota hai: (1) Incident summary — kya hua, kab hua, kitna impact hua, (2) Timeline — pehle kaun sa step liya, diagnosis mein kitna time laga, fix kab hua, (3) Root cause — exact technical reason, (4) Fix applied — kya change kiya aur kyon, (5) Preventive actions — future mein ye dobara na ho uske liye kya karenge — code review checklist, unit test case add karna, monitoring alert set karna.",
+        "hinglishExplanation": "Ek RCA document paanch sections cover karta hai: business impact aur affected users ke saath incident summary, detection se resolution tak ki ek timeline, ST22 ya ST05 jaise diagnostic tools ke through identified exact root cause, approach ke justification ke saath applied fix, aur recurrence avoid karne ke liye preventive actions — jaise code review checklist mein missed SY-SUBRC check add karna, ek regression test case add karna, ya similar dumps ke liye ek alert setup karna.",
         "interviewAnswer": "An RCA document covers five sections: incident summary with business impact and affected users, a timeline from detection to resolution, the exact root cause identified through diagnostic tools like ST22 or ST05, the fix applied with justification for the approach, and preventive actions to avoid recurrence — such as adding the missed SY-SUBRC check to the code review checklist, adding a regression test case, or setting up an alert for similar dumps.",
         "realtimeExplanation": "RCA likhna sirf formality nahi hai — ye proof hai ki aapne samjha kya hua aur future mein prevent karna jaante ho. Ye senior developer quality hai.",
         "mistakes": "Sirf 'WHERE clause galat tha, fix kiya' likhna — ye RCA nahi hai. Root cause kyun hua (missing code review step?), prevention kya hai — yahi RCA ka value hai.",
-        "codeExample": "\" RCA document structure (as code comment for reference):\n\" INCIDENT: INC-2024-0315\n\" IMPACT: Sales report showing 2x quantities (all users, 4 hours)\n\" ROOT CAUSE: WHERE clause missing date filter — full table returned\n\" FIX: Added erdat range filter in SELECT WHERE clause\n\" PREVENTED BY: Date filters were in FS but missed in TS review\n\" PREVENTION: Add 'date filter mandatory' to TS review checklist"
+        "codeExample": "\" RCA document structure (as code comment for reference):\n\" INCIDENT: INC-2024-0315\n\" IMPACT: Sales report showing 2x quantities (all users, 4 hours)\n\" ROOT CAUSE: WHERE clause missing date filter — full table returned\n\" FIX: Added erdat range filter in SELECT WHERE clause\n\" PREVENTED BY: Date filters were in FS but missed in TS review\n\" PREVENTION: Add 'date filter mandatory' to TS review checklist",
+        "tier": "advanced"
       },
       {
         "question": "How do you handle an authorization error reported by a user in production?",
-        "hinglishExplanation": "User bole ki 'mujhe access nahi mil raha' ya 'authorization error aa raha hai' — first tool hai SU53. SU53 us user ke system mein run karo (ya user ko run karwao aur screenshot lo) — ye exact missing authorization object dikhata hai, including field values. Phir ye info Basis/security team ko do, woh role mein add karenge. ABAP developer ka kaam diagnosis tak hai — role change Basis karta hai.",
+        "hinglishExplanation": "Authorization errors ke liye, main pehle user ko bolta hoon error mil ne ke turant baad SU53 run kare — SU53 last failed authorization check capture karta hai aur exact missing authorization object aur field values dikhata hai. Main yeh information document karta hoon aur Basis ya security team ko ek request raise karta hoon user ke role mein missing authorization add karne ke liye. Agar error custom code mein hai, main yeh bhi check karta hoon ki program mein AUTHORITY-CHECK statement correctly coded hai ya nahi.",
         "interviewAnswer": "For authorization errors, I first ask the user to run SU53 immediately after they get the error — SU53 captures the last failed authorization check and shows the exact missing authorization object and field values. I document this information and raise a request to the Basis or security team to add the missing authorization to the user's role. If the error is in custom code, I also check whether the AUTHORITY-CHECK statement in the program is correctly coded.",
         "realtimeExplanation": "SU53 output screenshot lo immediately after error — agar user system se log out hua toh data clear ho jaata hai. Speed important hai.",
         "mistakes": "Bina SU53 check kiye guess karna ki kaunsa authorization object chahiye. Ya ABAP developer khud role change karne ki koshish karna — ye Basis ka kaam hai.",
-        "codeExample": "\" AUTHORITY-CHECK in ABAP code\nAUTHORITY-CHECK OBJECT 'S_TCODE'\n  ID 'TCD' FIELD 'ZMY_TCODE'.\n\nIF sy-subrc <> 0.\n  MESSAGE 'You are not authorized for this transaction'\n    TYPE 'E'.\nENDIF.\n\" SU53 will show S_TCODE with TCD = ZMY_TCODE as missing"
+        "codeExample": "\" AUTHORITY-CHECK in ABAP code\nAUTHORITY-CHECK OBJECT 'S_TCODE'\n  ID 'TCD' FIELD 'ZMY_TCODE'.\n\nIF sy-subrc <> 0.\n  MESSAGE 'You are not authorized for this transaction'\n    TYPE 'E'.\nENDIF.\n\" SU53 will show S_TCODE with TCD = ZMY_TCODE as missing",
+        "tier": "easy"
       },
       {
         "question": "What is your approach when you cannot reproduce a production issue?",
-        "hinglishExplanation": "Reproduce nahi hua — ye frustrating situation hai lekin common hai. Steps: (1) User se aur information lo — exact date/time, exact input values, exactly kya message aaya, screenshot lia kya? (2) SE16N se data check karo — production ka data dev mein nahi hota. (3) ST22 mein exact time pe dump search karo. (4) SM37 mein background jobs check karo same time pe. (5) Agar possible ho toh STMS transport history check karo — koi recent change hua kya us time ke aas paas.",
+        "hinglishExplanation": "Jab main ek issue reproduce nahi kar sakta, main user se more information gather karta hoon — exact timestamp, screenshots, used transaction, aur precise input values. Main incident ke exact time ST22 check karta hoon, background jobs ke liye SM37, aur SE16N verify karne ke liye agar us time database state error explain karta hai. Main recent transport history STMS mein bhi check karta hoon dekhne ke liye ki kya us time ke aas paas koi new code production tak gaya. Agar abhi bhi unclear hai, main program mein temporary logging add karta hoon next occurrence pe state capture karne ke liye.",
         "interviewAnswer": "When I cannot reproduce an issue, I gather more information from the user — exact timestamp, screenshots, transaction used, and precise input values. I check ST22 at the exact time of incident, SM37 for background jobs, and SE16N to verify if the database state at that time explains the error. I also check recent transport history in STMS to see if any new code went to production around that time. If still unclear, I add temporary logging in the program to capture state on next occurrence.",
         "realtimeExplanation": "Non-reproducible issue ke liye evidence collection mode mein jaao. ST22 timestamps are exact — yahi sabse reliable source hai.",
         "mistakes": "Bina enough information ke 'cannot reproduce, issue not confirmed' mark karna aur ticket close karna. Production issue real hai — evidence dhundho.",
-        "codeExample": "\" Temporary logging for non-reproducible issues\nIF sy-datum = '20240315' AND sy-uname = 'JSMITH'.\n  \" Capture state for investigation\n  DATA(lv_log) = |User: { sy-uname } Date: { sy-datum }|\n               && | Table rows: { lines( lt_data ) }|.\n  CALL FUNCTION 'RSTS_SHOW_FILE'  \" Or write to custom log table\nENDIF."
+        "codeExample": "\" Temporary logging for non-reproducible issues\nIF sy-datum = '20240315' AND sy-uname = 'JSMITH'.\n  \" Capture state for investigation\n  DATA(lv_log) = |User: { sy-uname } Date: { sy-datum }|\n               && | Table rows: { lines( lt_data ) }|.\n  CALL FUNCTION 'RSTS_SHOW_FILE'  \" Or write to custom log table\nENDIF.",
+        "tier": "medium"
       },
       {
         "question": "How do you communicate during a production incident?",
-        "hinglishExplanation": "Production incident mein technical fix utna hi important hai jitna communication. Stakeholders jaanna chahte hain: kya hua, kitne users affect hain, kab fix hoga. Communication structure: pehle acknowledge karo — 'Issue identified, investigation started.' Phir status update dete raho every 30 minutes. Phir resolution — 'Fix applied, please validate.' Phir RCA — '24 ghante mein root cause analysis share karenge.'",
+        "hinglishExplanation": "Production incident ke dauran, main ek structured communication pattern follow karta hoon. Pehle, main turant ticket acknowledge karta hoon aur confirm karta hoon ki main investigate kar raha hoon. Main har 30 minutes incident bridge ya ticket pe status updates bhejta hoon — main ne ab tak kya find kiya hai aur resolution ke liye ETA. Production mein fix validated hone ke baad, main user ko verify karne ke request ke saath ek resolution confirmation bhejta hoon. 24 hours ke andar, main RCA document share karta hoon. Clear, frequent communication escalation pressure reduce karta hai aur trust maintain karta hai.",
         "interviewAnswer": "During a production incident, I follow a structured communication pattern. First, I acknowledge the ticket immediately and confirm I am investigating. I send status updates every 30 minutes to the incident bridge or ticket — what I have found so far and ETA for resolution. After the fix is validated in production, I send a resolution confirmation requesting the user to verify. Within 24 hours, I share the RCA document. Clear, frequent communication reduces escalation pressure and maintains trust.",
         "realtimeExplanation": "Technical silence during incident = management panic. Even if you have nothing new — say 'still investigating, will update in 30 minutes.' This is professional maturity.",
         "mistakes": "Incident ke dauran koi update na dena aur phir suddenly bolo 'fix done.' Stakeholders frustrated ho jaate hain. Regular updates mandatory hain.",
-        "codeExample": "\" Communication template (not code but structured format):\n\" STATUS UPDATE 1 (T+30min):\n\" Investigating dump in ST22 - program ZSALES_REPORT line 245\n\" Cause appears to be missing SY-SUBRC check\n\" ETA: Fix in 2 hours pending QA test\n\n\" RESOLUTION:\n\" Fix applied via emergency transport TR20240315\n\" Please validate with transaction ZSR01 using your test case"
+        "codeExample": "\" Communication template (not code but structured format):\n\" STATUS UPDATE 1 (T+30min):\n\" Investigating dump in ST22 - program ZSALES_REPORT line 245\n\" Cause appears to be missing SY-SUBRC check\n\" ETA: Fix in 2 hours pending QA test\n\n\" RESOLUTION:\n\" Fix applied via emergency transport TR20240315\n\" Please validate with transaction ZSR01 using your test case",
+        "tier": "medium"
       },
       {
         "question": "What is the risk of making a quick fix directly in production?",
-        "hinglishExplanation": "Direct production fix — matlab bina transport ke, system-level patch — ye extremely dangerous hai. Reasons: (1) Next transport automatically overwrite kar dega — fix lost. (2) Untested code new bugs create kar sakta hai. (3) Audit trail nahi hota — compliance issue. (4) SAP standard process violate hota hai — SAP support refuse kar sakta hai agar aapne direct changes kiye. Isliye even emergency mein transport process follow karna mandatory hai.",
+        "hinglishExplanation": "SAP environments mein bina transport ke direct production changes strictly forbidden hain. Risks yeh hain: fix next transport import se overwritten ho jaata hai, untested code new production bugs introduce karta hai, compliance aur SOX requirements ke liye koi audit trail nahi hota, aur SAP unauthorized direct changes wale systems ke liye support refuse karta hai. Emergencies mein bhi, correct path proper approvals ke saath ek accelerated transport hai — process bypass karna nahi.",
         "interviewAnswer": "Direct production changes without transport are strictly forbidden in SAP environments. The risks are: the fix gets overwritten by the next transport import, untested code introduces new production bugs, there is no audit trail for compliance and SOX requirements, and SAP refuses support for systems with unauthorized direct changes. Even in emergencies, the correct path is an accelerated transport with proper approvals — not bypassing the process.",
         "realtimeExplanation": "Koi bhi responsible SAP project direct production changes allow nahi karta. Agar manager bole 'directly karo' — politely refusal karo aur emergency transport process suggest karo.",
         "mistakes": "Pressure mein aa ke direct PROD change karna. Short term problem solve hogi, long term audit, compliance, aur overwrite risks create honge.",
-        "codeExample": "\" SAP transport system enforces this:\n\" Objects developed in DEV can only reach PROD via STMS transport\n\" Direct table changes: SE16N in PROD is restricted (display only)\n\" Direct code changes: SE38 in PROD is locked — no save allowed\n\" Emergency = fast transport with approvals, NOT direct change\n\" Transport log in STMS provides complete audit trail"
+        "codeExample": "\" SAP transport system enforces this:\n\" Objects developed in DEV can only reach PROD via STMS transport\n\" Direct table changes: SE16N in PROD is restricted (display only)\n\" Direct code changes: SE38 in PROD is locked — no save allowed\n\" Emergency = fast transport with approvals, NOT direct change\n\" Transport log in STMS provides complete audit trail",
+        "tier": "advanced"
       }
     ]
   },
@@ -148,70 +285,137 @@
     "hinglishMasterExplanation": "Ticket scenarios mein 4-part structure follow karo — Problem, Diagnosis, Root Cause, Fix aur Result. Ticket 1 — Wrong data: User bola ki sales report mein quantity double aa rahi hai. Pehle SE16N se database check kiya — data correct tha. Phir debug kiya — WHERE clause mein OR use hua tha AND ki jagah, jo ek additional condition ke saath bhi records return kar raha tha. WHERE clause correct kiya with AND. DEV mein unit test, QA mein regression test, transport through STMS. User ne confirm kiya quantities correct hain. Ticket 2 — Performance: User bola report bahut slow hai — 5 minute se zyada lag raha hai. ST05 SQL trace chalaya — SELECT statement LOOP ke andar 5000 baar execute ho rahi thi VBAP ke liye. FOR ALL ENTRIES implement kiya — 5000 DB calls se 1 DB call ho gayi. Runtime 5 minute se 15 second ho gayi. ST05 before/after trace screenshot ke saath document kiya. Ticket 3 — Authorization: User bola error aa raha hai transaction execute karte waqt. SU53 check kiya — S_TCODE authorization object missing tha. Info Basis team ko di, unhone role update kiya. User ko 30 minute mein access mil gayi. Har ticket pe communication important hai — acknowledge karo, status updates do, resolution confirm karo.",
     "interviewMeKyaBolnaHai": "One specific ticket I handled: a user reported the sales report was showing incorrect total quantities — numbers were higher than expected. I first verified the data in SE16N and confirmed the database records were correct. Then I debugged the ABAP program and found the WHERE clause was using OR instead of AND for the date filter condition, causing additional records to be included in the output. I corrected the WHERE clause, tested with the user's exact input parameters, transported after QA validation, and the user confirmed quantities were correct in production.\n\nHinglish tip: Interview mein ticket ke 4 parts clearly bolo: (1) Problem: kya report kiya user ne, (2) Diagnosis: kaise dhundha — kaun sa tool use kiya, (3) Root cause: exact technical reason, (4) Fix aur result: kya kiya aur outcome kya tha. Is format mein bolna professional aur clear lagta hai. ST22, ST05, SU53, SE16N jaise tools mention karna technical credibility milti hai — ye prove karta hai ki aap tickets practically handle karte hain.",
     "codeExamples": "\" TICKET: Wrong data in sales report\n\" ROOT CAUSE: OR instead of AND in WHERE clause\n\n\" BEFORE FIX — buggy WHERE clause:\nSELECT vbeln, vkorg, erdat, netwr\n  FROM vbak\n  WHERE vkorg = @p_vkorg\n     OR erdat  >= @p_from     \" BUG: OR fetches extra records\n  INTO TABLE @DATA(lt_orders_bad).\n\n\" AFTER FIX — corrected WHERE clause:\nSELECT vbeln, vkorg, erdat, netwr\n  FROM vbak\n  WHERE vkorg = @p_vkorg\n    AND erdat >= @p_from      \" FIX: AND ensures both conditions\n    AND erdat <= @p_to\n  INTO TABLE @DATA(lt_orders_good).\n\n\" PERFORMANCE TICKET FIX:\n\" Before: SELECT inside LOOP (5000 DB calls)\nLOOP AT lt_orders ASSIGNING FIELD-SYMBOL(<o>).\n  SELECT SINGLE kwmeng FROM vbap WHERE vbeln = @<o>-vbeln\n    AND posnr = '000010' INTO @<o>-kwmeng.  \" N calls!\nENDLOOP.\n\n\" After: FOR ALL ENTRIES (1 DB call)\nIF lt_orders IS NOT INITIAL.\n  SELECT vbeln, posnr, kwmeng\n    FROM vbap\n    FOR ALL ENTRIES IN @lt_orders\n    WHERE vbeln = @lt_orders-vbeln\n    INTO TABLE @DATA(lt_items).\nENDIF.",
+    "interviewScriptHinglish": "ek specific ticket jo maine handle kiya: ek user ne report kiya ki sales report incorrect total quantities dikha raha tha — numbers expected se zyada the. Pehle maine SE16N mein data verify kiya aur confirm kiya ki database records correct hain. Phir maine ABAP program debug kiya aur paya ki WHERE clause date filter ke liye AND ki jagah OR use kar raha tha, jiski wajah se additional records output mein include ho rahe the. Maine WHERE clause correct kiya, user ke exact inputs se test kiya, QA validation ke baad transport kiya, aur user se confirm kiya. Yeh primarily real ticket-handling aur structured root-cause-fix-validation discipline demonstrate karne ke liye use hota hai.",
+    "interviewScriptEnglish": "One specific ticket I handled: a user reported the sales report showed incorrect total quantities — numbers were higher than expected. I first verified the data in SE16N and confirmed the database records were correct. Then I debugged the ABAP program and found the WHERE clause was using OR instead of AND for the date filter, causing additional records to be included in the output. I corrected the WHERE clause, tested with the user's exact inputs, transported after QA validation, and confirmed with the user. It is primarily used to demonstrate real ticket-handling and structured root-cause-fix-validation discipline.",
+    "wordByWordSamjho": [
+      {
+        "keyword": "SELECT",
+        "meaning": "Open SQL statement reading rows from a database table."
+      },
+      {
+        "keyword": "FROM vbak",
+        "meaning": "Reads from the sales document header table."
+      },
+      {
+        "keyword": "WHERE vkorg = @p_vkorg",
+        "meaning": "Restricts the result to the supplied sales organisation."
+      },
+      {
+        "keyword": "OR",
+        "meaning": "Open SQL operator combining conditions where either may be true — the source of the defect."
+      },
+      {
+        "keyword": "AND",
+        "meaning": "Open SQL operator requiring both conditions to be true — the corrected logic."
+      },
+      {
+        "keyword": "INTO TABLE @DATA(lt_orders_good)",
+        "meaning": "Inline-declares the corrected result internal table."
+      },
+      {
+        "keyword": "LOOP AT ... ASSIGNING FIELD-SYMBOL(<o>)",
+        "meaning": "Iterates over the orders table with a field symbol for direct access."
+      },
+      {
+        "keyword": "SELECT SINGLE",
+        "meaning": "Reads one row; used inside the buggy LOOP and replaced by FOR ALL ENTRIES in the fix."
+      }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Misusing OR instead of AND in WHERE clauses",
+        "whyWrong": "OR widens the result set, returning unintended rows; totals appear inflated and the bug is easy to miss until business spots it.",
+        "correctApproach": "Use AND for filter combinations that must all be true; isolate disjunctions in parentheses and add a test case for each combination."
+      },
+      {
+        "mistake": "Trusting the program output without verifying the underlying data",
+        "whyWrong": "When the bug is in code, comparing wrong report numbers to wrong assumptions wastes hours; data verification grounds the analysis.",
+        "correctApproach": "Always verify the source data in SE16N or a controlled SELECT in SE38 before deciding the issue lies in code, customising, or data."
+      },
+      {
+        "mistake": "Fixing the symptom without an RCA write-up",
+        "whyWrong": "Similar bugs recur because the underlying pattern (missing test for OR/AND, weak code review) is never addressed at the team level.",
+        "correctApproach": "Publish a short RCA, add a unit test for the corrected WHERE, and update the code-review checklist to catch the pattern next time."
+      },
+      {
+        "mistake": "Transporting the fix without retesting in QA with the user's inputs",
+        "whyWrong": "Even small WHERE-clause changes can break other reports or batch jobs; missing QA leads to a recurring incident in production.",
+        "correctApproach": "Run the same inputs in QA, compare outputs against expected values, get functional sign-off, and import to production with documented evidence."
+      }
+    ],
+    "quickRevisionNotes": "What: A real ticket-handling story showing how a wrong-data defect was diagnosed, fixed, validated, and closed.\n\nUsed for:\n- Behavioural interview questions about support work\n- Coaching juniors on structured ticket handling\n- Building an RCA template for the team\n\nKey syntax / tables / Tcodes:\n- SE16N for data verification\n- SE38 / debugger for code analysis\n- ST22, ST05 for runtime issues\n- STMS for staged transports with sign-off\n\nInterview keyword: Verify data, debug code, AND vs OR, QA validate, transport, confirm closure.",
     "followupAnswerBank": [
       {
         "question": "How do you identify a wrong data issue in an ABAP report?",
-        "hinglishExplanation": "Wrong data issue ke liye systematic approach: pehle SE16N se confirm karo ki database mein data correct hai ya nahi. Agar database correct hai toh program logic mein issue hai — debug karo. Agar database wrong hai toh data entry ya interface issue ho sakta hai. Debug mein key checkpoints pe internal table contents dekho — SELECT ke baad, LOOP ke baad, calculation ke baad. Kahan data galat hua wahan focus karo.",
+        "hinglishExplanation": "Wrong data issues ke liye, main pehle SE16N use karke source data verify karta hoon confirm karne ke liye ki database mein actually kya hai. Agar database data correct hai, bug program logic mein hai — main output se pehle ek breakpoint set karta hoon aur SELECT, LOOP, aur calculation steps ke through step karta hoon har stage pe internal table contents watch karte huye. Main exactly isolate karta hoon ki kahan correct data wrong hota hai aur sirf us logic ko fix karta hoon.",
         "interviewAnswer": "For wrong data issues, I first verify the source data using SE16N to confirm what is actually in the database. If database data is correct, the bug is in the program logic — I set a breakpoint before the output and step through SELECT, LOOP, and calculation steps watching internal table contents at each stage. I isolate exactly where the correct data becomes wrong and fix only that logic.",
         "realtimeExplanation": "Wrong data issues mein 80% cases mein ya toh WHERE clause galat hai ya LOOP mein calculation logic galat hai. Debug se 15 minute mein spot ho jaata hai.",
         "mistakes": "Bina SE16N check kiye assume karna ki database wrong hai. Ya bina debug kiye guess karna ki kahan bug hai.",
-        "codeExample": "\" Debug checkpoint approach\nSELECT * FROM vbak WHERE vkorg = @p_vkorg INTO TABLE @DATA(lt_hdr).\nBREAK-POINT.  \" Check: lt_hdr rows correct?\n\nLOOP AT lt_hdr ASSIGNING FIELD-SYMBOL(<h>).\n  \" Calculate total\n  <h>-total = <h>-netwr * <h>-factor.\n  BREAK-POINT.  \" Check: is <h>-total correct here?\nENDLOOP."
+        "codeExample": "\" Debug checkpoint approach\nSELECT * FROM vbak WHERE vkorg = @p_vkorg INTO TABLE @DATA(lt_hdr).\nBREAK-POINT.  \" Check: lt_hdr rows correct?\n\nLOOP AT lt_hdr ASSIGNING FIELD-SYMBOL(<h>).\n  \" Calculate total\n  <h>-total = <h>-netwr * <h>-factor.\n  BREAK-POINT.  \" Check: is <h>-total correct here?\nENDLOOP.",
+        "tier": "easy"
       },
       {
         "question": "What is ST05 and how do you use it to diagnose performance issues?",
-        "hinglishExplanation": "ST05 SQL trace analyzer hai — ye record karta hai ki program ne database pe kaun se queries chalaye, kitni baar chalaye, aur kitna time laga. Use: ST05 open karo, Activate Trace karo, apna program run karo, Deactivate Trace karo, phir Display Trace karo. List mein heaviest queries dikhti hain — rows fetched, time, aur how many times called. SELECT inside LOOP easily visible hota hai — same table ke bahut saare identical queries se.",
+        "hinglishExplanation": "ST05 SAP ka SQL Trace transaction hai. Main trace activate karta hoon, same input ke saath problematic program run karta hoon jo slowness cause karta hai, deactivate karta hoon, phir trace analyze karta hoon. Main highest total time aur row count wale statements dhundta hoon, aur specifically same table jo hundreds ya thousands of times select ho rahi hai — jo SELECT inside LOOP ka signature hai. Yeh mujhe fix karne ke liye exact problematic SELECT statement aur line number deta hai.",
         "interviewAnswer": "ST05 is SAP's SQL Trace transaction. I activate the trace, run the problematic program with the same input that causes slowness, deactivate, then analyze the trace. I look for the statements with highest total time and row count, and specifically for the same table being selected hundreds or thousands of times — which is the signature of SELECT inside LOOP. This gives me the exact problematic SELECT statement and line number to fix.",
         "realtimeExplanation": "ST05 evidence bolta hai 'yahan 5000 calls hain' — ye developer ki credibility prove karta hai. 'I felt it was slow' vs 'ST05 showed 5000 DB calls' — big difference.",
         "mistakes": "ST05 trace bahut bade scope pe chalana — whole system ka trace lena. Sirf apna program run karo trace ke dauran — trace polluted nahi hogi.",
-        "codeExample": "\" ST05 analysis findings example:\n\" Statement: SELECT * FROM VBAP WHERE VBELN = ?\n\" Executions: 5247\n\" Total time: 44.3 seconds\n\" Rows per call: avg 3\n\" Diagnosis: SELECT inside LOOP identified\n\" Fix: Replace with FOR ALL ENTRIES\n\" After fix executions: 1, Total time: 0.8 seconds"
+        "codeExample": "\" ST05 analysis findings example:\n\" Statement: SELECT * FROM VBAP WHERE VBELN = ?\n\" Executions: 5247\n\" Total time: 44.3 seconds\n\" Rows per call: avg 3\n\" Diagnosis: SELECT inside LOOP identified\n\" Fix: Replace with FOR ALL ENTRIES\n\" After fix executions: 1, Total time: 0.8 seconds",
+        "tier": "medium"
       },
       {
         "question": "How do you handle a ticket where a user says 'the report is very slow'?",
-        "hinglishExplanation": "Slow report ticket: pehle reproduce karo — same input se dev mein run karo, runtime note karo. Phir ST05 SQL trace lo — heaviest queries identify karo. SELECT inside LOOP hai toh FOR ALL ENTRIES se fix karo. SELECT * hai toh sirf needed fields select karo. WHERE clause mein indexed field use ho raha hai ya nahi check karo SE11 se table indexing dekho. Fix ke baad ST05 se fir trace lo — improvement measure karo.",
+        "hinglishExplanation": "Slow report tickets ke liye main same input ke saath reproduce karta hoon aur baseline runtime measure karta hoon. Main heaviest queries identify karne ke liye ST05 SQL trace run karta hoon — most commonly SELECT inside LOOP. Main SELECT inside LOOP ko ek single FOR ALL ENTRIES query se replace karta hoon verify karne ke baad ki driver table kabhi empty nahi hoti. Main SELECT star bhi check karta hoon aur specific fields se replace karta hoon. Fixing ke baad, main improvement quantify karne ke liye ek aur ST05 trace run karta hoon aur before aur after dono metrics document karta hoon.",
         "interviewAnswer": "For slow report tickets I reproduce with the same input and measure baseline runtime. I run ST05 SQL trace to identify the heaviest queries — most commonly SELECT inside LOOP. I replace the SELECT inside LOOP with a single FOR ALL ENTRIES query after verifying the driver table is never empty. I also check for SELECT star and replace with specific fields. After fixing, I run another ST05 trace to quantify improvement and document both before and after metrics.",
         "realtimeExplanation": "Slow report fix commit karne se pehle numbers prove karo — ST05 before 5000 calls, after 1 call. Ye developer maturity hai.",
         "mistakes": "Fix karna bina measuring kiye. Ya FOR ALL ENTRIES use karna bina empty table check ke — empty driver table selects ALL records.",
-        "codeExample": "\" Performance fix pattern\n\" Step 1: Check driver table not empty\nIF lt_orders IS INITIAL.\n  RETURN.  \" No data to process\nENDIF.\n\n\" Step 2: Single SELECT with FOR ALL ENTRIES\nSELECT vbeln, posnr, matnr, kwmeng\n  FROM vbap\n  FOR ALL ENTRIES IN @lt_orders\n  WHERE vbeln = @lt_orders-vbeln\n  INTO TABLE @DATA(lt_items).\n\" ST05 before: 3000 calls / after: 1 call"
+        "codeExample": "\" Performance fix pattern\n\" Step 1: Check driver table not empty\nIF lt_orders IS INITIAL.\n  RETURN.  \" No data to process\nENDIF.\n\n\" Step 2: Single SELECT with FOR ALL ENTRIES\nSELECT vbeln, posnr, matnr, kwmeng\n  FROM vbap\n  FOR ALL ENTRIES IN @lt_orders\n  WHERE vbeln = @lt_orders-vbeln\n  INTO TABLE @DATA(lt_items).\n\" ST05 before: 3000 calls / after: 1 call",
+        "tier": "easy"
       },
       {
         "question": "What is the typical SLA for a production incident ticket?",
-        "hinglishExplanation": "SLA — Service Level Agreement — matlab kitne time mein resolve karna hai. Typically: Priority 1 (P1) — system down, all users affected — 4 ghante resolution, hamesha escalate. Priority 2 (P2) — critical function affected, workaround nahi hai — 8 ghante. Priority 3 (P3) — partial impact, workaround available — 2 business days. Priority 4 (P4) — minor issue, no business impact — 5 business days. Interview mein SLA awareness dikhana professional maturity hai.",
+        "hinglishExplanation": "Production incidents priority se classified hote hain aur har ek ki ek SLA hai. P1 — system completely down jo saare users ko affect karta hai — project manager ko immediate escalation ke saath 4 hours ke andar resolution chahiye. P2 — critical business function impacted bina koi workaround — 8 hours. P3 — workaround available ke saath partial impact — 2 business days. P4 — cosmetic ya minor issues — 5 business days. Main accordingly prioritize karta hoon aur priority classification ke based pe ETA clearly communicate karta hoon.",
         "interviewAnswer": "Production incidents are classified by priority and each has an SLA. P1 — system completely down affecting all users — requires resolution within 4 hours with immediate escalation to the project manager. P2 — critical business function impacted with no workaround — 8 hours. P3 — partial impact with a workaround available — 2 business days. P4 — cosmetic or minor issues — 5 business days. I prioritize accordingly and communicate ETA clearly based on the priority classification.",
         "realtimeExplanation": "SLA miss karna = client escalation. Always acknowledge within 30 minutes even if investigation is ongoing. This resets escalation clock.",
         "mistakes": "Har ticket same priority treat karna. P1 incident pe agar aap casual response dete ho toh client ka trust immediately khatam hota hai.",
-        "codeExample": "\" Priority classification indicators in ABAP context:\n\" P1: ST22 dump on critical transaction for all users\n\"     → Immediate: reproduce → fix → emergency transport\n\" P2: Background job failure on month-end close\n\"     → Same day: SM37 → diagnose → fix → restart\n\" P3: Report showing extra rows for specific date\n\"     → SE16N → debug → WHERE clause fix → standard transport\n\" P4: Label alignment off in SmartForm printout\n\"     → SMARTFORMS → adjust → transport in next release"
+        "codeExample": "\" Priority classification indicators in ABAP context:\n\" P1: ST22 dump on critical transaction for all users\n\"     → Immediate: reproduce → fix → emergency transport\n\" P2: Background job failure on month-end close\n\"     → Same day: SM37 → diagnose → fix → restart\n\" P3: Report showing extra rows for specific date\n\"     → SE16N → debug → WHERE clause fix → standard transport\n\" P4: Label alignment off in SmartForm printout\n\"     → SMARTFORMS → adjust → transport in next release",
+        "tier": "advanced"
       },
       {
         "question": "How do you avoid making the same mistake twice after a production ticket?",
-        "hinglishExplanation": "Same mistake dobara nahi hona chahiye — ye professional growth hai. Steps: RCA likhte waqt preventive action clearly define karo. Code review checklist update karo — 'SY-SUBRC check mandatory hai har SELECT ke baad' ya 'FOR ALL ENTRIES se pehle empty check mandatory hai.' Unit test case add karo specifically us scenario ke liye. Team ke saath lesson learned share karo — ek 15-minute knowledge sharing meeting se poori team benefit karti hai.",
+        "hinglishExplanation": "Ek production ticket resolve karne ke baad, main root cause document karta hoon aur code review checklist mein ek specific preventive action add karta hoon — for example, har SELECT ke baad SY-SUBRC check add karna, ya FOR ALL ENTRIES empty table check. Main us specific scenario ke liye ek regression test case add karta hoon. Main team ke next standup ya knowledge sharing session mein lesson bhi share karta hoon taaki entire team benefit kare, sirf main nahi.",
         "interviewAnswer": "After resolving a production ticket, I document the root cause and add a specific preventive action to the code review checklist — for example, adding SY-SUBRC check after every SELECT, or FOR ALL ENTRIES empty table check. I add a regression test case for that specific scenario. I also share the lesson in the team's next standup or knowledge sharing session so the entire team benefits, not just me.",
         "realtimeExplanation": "Same bug baar baar aana = process failure. Checklist update + team sharing = real prevention. One RCA can prevent ten future incidents.",
         "mistakes": "RCA likhna aur preventive action blank chodna — 'N/A' ya 'developer will be careful' — ye acceptable nahi hai. Specific, actionable prevention likhna zaroori hai.",
-        "codeExample": "\" Preventive action: add to code review checklist\n\" RULE 1: Every SELECT must have SY-SUBRC check after it\nSELECT * FROM mara WHERE matnr = @lv_mat INTO TABLE @DATA(lt).\nIF sy-subrc <> 0.  \" MANDATORY — do not skip\n  RETURN.\nENDIF.\n\n\" RULE 2: FOR ALL ENTRIES must have empty check before it\nIF lt_driver IS NOT INITIAL.  \" MANDATORY — empty = SELECT ALL\n  SELECT ... FOR ALL ENTRIES IN @lt_driver ...\nENDIF."
+        "codeExample": "\" Preventive action: add to code review checklist\n\" RULE 1: Every SELECT must have SY-SUBRC check after it\nSELECT * FROM mara WHERE matnr = @lv_mat INTO TABLE @DATA(lt).\nIF sy-subrc <> 0.  \" MANDATORY — do not skip\n  RETURN.\nENDIF.\n\n\" RULE 2: FOR ALL ENTRIES must have empty check before it\nIF lt_driver IS NOT INITIAL.  \" MANDATORY — empty = SELECT ALL\n  SELECT ... FOR ALL ENTRIES IN @lt_driver ...\nENDIF.",
+        "tier": "easy"
       },
       {
         "question": "What is a workaround and when do you offer one in production support?",
-        "hinglishExplanation": "Workaround matlab temporary solution — asli fix mein time lagega lekin user ka kaam abhi ruka nahi rehna chahiye. Example: report crash ho rahi hai ek specific date range ke liye — workaround: user do alag date ranges mein run karo aur manually combine karo. Ya ek authorization error hai — workaround: senior user ka login use karo temporarily. Workaround offer karna professional hai — user ka kaam chalte rehna important hai even while real fix is in progress.",
+        "hinglishExplanation": "Ek workaround ek temporary solution hai jo business ko running rakhta hai jabki permanent fix develop aur tested ho raha hota hai. Main hamesha assess karta hoon ki ek workaround possible hai ya nahi long fix cycle start karne se pehle. Example, agar ek report large date ranges pe crash karta hai, main suggest kar sakta hoon smaller date ranges mein splitting as a workaround jabki memory issue fix kar raha hoon. Main clearly communicate karta hoon ki workaround temporary hai aur permanent fix ke liye ETA provide karta hoon.",
         "interviewAnswer": "A workaround is a temporary solution that keeps business running while the permanent fix is being developed and tested. I always assess if a workaround is possible before starting a long fix cycle. For example, if a report crashes on large date ranges, I might suggest splitting into smaller date ranges as a workaround while fixing the memory issue. I clearly communicate that the workaround is temporary and provide the ETA for the permanent fix.",
         "realtimeExplanation": "Workaround offer karna = user ka trust badhana. 'Asli fix do din mein hoga, meanwhile ye karo' — ye professional support hai.",
         "mistakes": "Workaround suggest karna aur phir permanent fix bhool jaana. Workaround ticket mein document karo aur permanent fix ka task create karo — link them.",
-        "codeExample": "\" Workaround documentation in ticket:\n\" INCIDENT: INC-2024-0315 - Report crashes for full year range\n\" WORKAROUND: Run report in 3-month intervals\n\"   - Jan-Mar: run once, export to Excel\n\"   - Apr-Jun: run once, export to Excel\n\"   - Combine in Excel\n\" PERMANENT FIX ETA: 2 business days (memory optimization)\n\" PERMANENT FIX: Reduce SELECT * to specific fields + pagination"
+        "codeExample": "\" Workaround documentation in ticket:\n\" INCIDENT: INC-2024-0315 - Report crashes for full year range\n\" WORKAROUND: Run report in 3-month intervals\n\"   - Jan-Mar: run once, export to Excel\n\"   - Apr-Jun: run once, export to Excel\n\"   - Combine in Excel\n\" PERMANENT FIX ETA: 2 business days (memory optimization)\n\" PERMANENT FIX: Reduce SELECT * to specific fields + pagination",
+        "tier": "medium"
       },
       {
         "question": "How do you document a ticket resolution properly?",
-        "hinglishExplanation": "Proper ticket documentation mein kya hona chahiye: (1) Problem statement — user ne exactly kya report kiya, (2) Steps to reproduce — exact input values, (3) Root cause — technical reason with specifics, (4) Fix applied — kya code change kiya, (5) Testing done — unit test aur regression test results, (6) Transport number — change traceability ke liye, (7) User acceptance — user ne confirm kiya ki fix correct hai. Good documentation agla developer ko bhi help karta hai agar similar issue aaye.",
+        "hinglishExplanation": "Proper ticket resolution documentation include karta hai: user details aur business impact ke saath exact problem statement, input values ke saath reproduction steps, specific technical finding ke saath root cause analysis, transport number ke reference ke saath applied fix, before aur after behavior dikhane wala test evidence, aur user acceptance confirmation. Yeh audit trail compliance ensure karta hai aur agle developer ko help karta hai jo similar issue encounter karta hai.",
         "interviewAnswer": "Proper ticket resolution documentation includes: the exact problem statement with user details and business impact, reproduction steps with input values, root cause analysis with the specific technical finding, the fix applied with a reference to the transport number, test evidence showing before and after behavior, and user acceptance confirmation. This ensures audit trail compliance and helps the next developer who encounters a similar issue.",
         "realtimeExplanation": "6 mahine baad jab audit hoga ya similar ticket aayega — acha documentation 2 ghante ka kaam 15 minute mein karta hai. Invest in documentation.",
         "mistakes": "Ticket mein sirf 'Fixed' likhna. Ya transport number na daalna. Auditors aur future developers ko details chahiye hoti hain.",
-        "codeExample": "\" Ticket resolution template:\n\" TICKET: INC-2024-0315\n\" REPORTED BY: John Smith (Sales team)\n\" PROBLEM: Sales report shows incorrect quantities (doubled)\n\" REPRODUCED: Yes — input VKORG=1000, date 01.01.2024-31.12.2024\n\" ROOT CAUSE: OR in WHERE clause (line 45, ZSALES_RPT)\n\" FIX: Changed OR to AND in date condition\n\" TRANSPORT: TR20240315001 (DEV→QA→PROD)\n\" USER ACCEPTANCE: John Smith confirmed 15.03.2024 14:30"
+        "codeExample": "\" Ticket resolution template:\n\" TICKET: INC-2024-0315\n\" REPORTED BY: John Smith (Sales team)\n\" PROBLEM: Sales report shows incorrect quantities (doubled)\n\" REPRODUCED: Yes — input VKORG=1000, date 01.01.2024-31.12.2024\n\" ROOT CAUSE: OR in WHERE clause (line 45, ZSALES_RPT)\n\" FIX: Changed OR to AND in date condition\n\" TRANSPORT: TR20240315001 (DEV→QA→PROD)\n\" USER ACCEPTANCE: John Smith confirmed 15.03.2024 14:30",
+        "tier": "medium"
       },
       {
         "question": "What is the difference between a bug fix and an enhancement in ABAP project context?",
-        "hinglishExplanation": "Bug fix: program galat kaam kar raha tha — jo expected behavior tha woh nahi ho raha tha. Fix karo wahi behavior jo FS mein defined tha. Enhancement: program sahi kaam kar raha hai lekin user chahta hai extra functionality add karo — jo originally scope mein nahi tha. Bug fix: existing transport mein ja sakta hai ya emergency transport. Enhancement: new requirement, new FS chahiye, proper change request process follow karo, additional testing, separate transport. Dono ko mix mat karo — scope creep hota hai.",
+        "hinglishExplanation": "Ek bug fix behavior ko us se restore karta hai jo originally functional spec mein specified tha — program broken hai aur corrected hona chahiye. Ek enhancement original scope se beyond new functionality add karta hai — program correctly kaam karta hai lekin business additional capability chahti hai. Bug fixes accelerated transport ke through ja sakte hain agar critical hain. Enhancements ko ek new change request, updated functional spec, design, development, aur full testing cycle chahiye. Inhe ek transport mein mix karna scope confusion aur audit issues create karta hai.",
         "interviewAnswer": "A bug fix restores behavior to what was originally specified in the functional spec — the program is broken and needs to be corrected. An enhancement adds new functionality beyond the original scope — the program works correctly but business wants additional capability. Bug fixes can go through accelerated transport if critical. Enhancements require a new change request, updated functional spec, design, development, and full testing cycle. Mixing them in one transport creates scope confusion and audit issues.",
         "realtimeExplanation": "User bole 'while you are fixing this bug, please also add this new column' — ye enhancement hai, bug fix nahi. Separate karo. Alag transport mein rakho.",
         "mistakes": "Bug fix ticket mein enhancement code mix karna. Agar bug fix emergency transport pe gaya aur enhancement bhi usi transport mein tha — untested enhancement PROD mein chali gayi.",
-        "codeExample": "\" Bug fix transport: only the broken logic corrected\n\" TR20240315001 contents:\n\" - ZSALES_REPORT (fix: OR → AND in WHERE clause)\n\n\" Enhancement — separate transport, separate ticket:\n\" TR20240316001 contents:\n\" - ZSALES_REPORT (new: add customer group column)\n\" - ZENHANCEMENT_FS v1.2 reviewed and approved\n\" - Tested in QA for 2 business days before PROD"
+        "codeExample": "\" Bug fix transport: only the broken logic corrected\n\" TR20240315001 contents:\n\" - ZSALES_REPORT (fix: OR → AND in WHERE clause)\n\n\" Enhancement — separate transport, separate ticket:\n\" TR20240316001 contents:\n\" - ZSALES_REPORT (new: add customer group column)\n\" - ZENHANCEMENT_FS v1.2 reviewed and approved\n\" - Tested in QA for 2 business days before PROD",
+        "tier": "advanced"
       }
     ]
   }

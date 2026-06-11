@@ -1,0 +1,148 @@
+{
+  "cds-views-004": {
+    "interviewScriptHinglish": "Sir, CDS association ek navigational relationship hai jo do entities ke beech path define karta hai — phonebook entry ki tarah. JOIN ke comparison mein associations lazy hote hain — relationship sirf tab evaluate hoti hai jab consumer actually navigate kare. Syntax mein association [cardinality] to TargetEntity as _Alias on $projection.field = _Alias.field. Cardinality jaise [0..1], [1..1], [0..*] data relationship indicate karte hain. Practically, mere project mein sales order CDS view mein customer aur material ke liye associations the. Fiori list view mein customer access nahi hua — JOIN trigger nahi hua, fast response. Detail view mein expand kiya — wahan JOIN execute hua. Iska benefit yeh hai ki performance optimal rehti hai aur OData $expand seamlessly kaam karti hai.",
+    "interviewScriptEnglish": "A CDS association is a navigational relationship between two entities defined declaratively in the view DDL. Unlike a JOIN, it is lazy — the database join is executed only when the consumer actually navigates the path. The syntax is association [cardinality] to TargetEntity as _Alias on $projection.field = _Alias.field, with cardinality such as [0..1], [1..1], [0..*], [1..*]. OData $expand triggers the join only for the relationships requested. In our project a sales order view had associations to customer and material; list views avoided the join while detail views expanded it on demand. The business value is optimal performance and seamless Fiori and OData integration without rewriting the underlying view for each consumer.",
+    "wordByWordSamjho": [
+      { "keyword": "association [0..1]", "meaning": "Lazy navigation returning at most one related entity" },
+      { "keyword": "association [0..*]", "meaning": "Lazy navigation returning zero or more related entities" },
+      { "keyword": "$projection", "meaning": "Reference to the current view's columns in association ON conditions" },
+      { "keyword": "_Alias", "meaning": "Association alias used to reference related fields and expose navigation" },
+      { "keyword": "ON condition", "meaning": "Predicate matching current view columns to the target entity columns" },
+      { "keyword": "$expand", "meaning": "OData query option that triggers the association as an inline join" },
+      { "keyword": "Composition", "meaning": "Stronger relationship implying child entity lifecycle dependence" },
+      { "keyword": "Cardinality", "meaning": "Min and max counts describing the relationship between the entities" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Forgetting $projection in the association ON condition",
+        "whyWrong": "CDS cannot resolve the field reference and activation fails",
+        "correctApproach": "Always reference the current view as $projection.field on the left side of the ON condition"
+      },
+      {
+        "mistake": "Defining wrong cardinality such as [0..1] for a [0..*] relationship",
+        "whyWrong": "Misleads consumers and breaks data fetched through OData $expand",
+        "correctApproach": "Choose the cardinality that reflects the real relationship; review with the data model owner"
+      },
+      {
+        "mistake": "Using association where a JOIN is needed in WHERE clause",
+        "whyWrong": "WHERE on an association field forces eager evaluation and confuses readers",
+        "correctApproach": "Use JOIN when filtering or selecting from related data; reserve associations for navigation"
+      },
+      {
+        "mistake": "Treating composition and association as identical",
+        "whyWrong": "Composition implies lifecycle ownership; misuse leads to RAP behaviour errors",
+        "correctApproach": "Use composition only for parent-child entities where the child cannot exist independently"
+      }
+    ],
+    "quickRevisionNotes": "What: Lazy navigational relationship between CDS entities, alternative to eager JOINs.\n\nUsed for:\n- OData $expand to fetch related data on demand\n- Reusable navigation paths in interface views\n- Modelling parent-child via composition for RAP\n\nKey syntax / tables / Tcodes:\n- association [0..1 | 1..1 | 0..* | 1..*] to Entity as _Alias on $projection.field = _Alias.field\n- $expand=_Alias in OData URLs\n- composition [0..*] of Child for RAP parent-child\n\nInterview keyword: lazy navigation with cardinality and $projection",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "cds-views-005": {
+    "interviewScriptHinglish": "Sir, CDS mein association aur JOIN dono available hain, lekin purpose alag hai. JOIN eager hota hai — hamesha execute hota hai aur both tables se columns project karta hai. Association lazy hai — sirf tab join karta hai jab consumer navigate kare. JOIN tab use karo jab related fields hamesha chahiye aur filtering bhi karni hai. Association tab use karo jab navigation optional ho aur OData $expand chahiye. Practically, mere project mein sales-customer ka JOIN tha kyunki customer name hamesha chahiye tha list mein. Lekin product-image relationship association se kiya — sab cases mein image chahiye nahi tha, demand pe load karte the. Iska benefit yeh hai ki right tool from right job choose karne se performance aur reusability optimal rehti hai.",
+    "interviewScriptEnglish": "CDS supports both JOIN and association, and the right choice depends on access patterns. JOIN is eager and always executes, projecting columns from both sides, which is ideal when related fields are always needed or used in WHERE clauses. Association is lazy and defers the join until a consumer navigates it via OData $expand or ABAP path expressions, which is ideal for optional navigation. We mix both in the same view: JOIN where fields are required for listing or filtering, and association where related data is fetched on demand. The business value is balanced performance and clean modelling that scales across Fiori, OData, and ABAP consumers.",
+    "wordByWordSamjho": [
+      { "keyword": "INNER JOIN", "meaning": "Eager join returning only matching rows from both sides" },
+      { "keyword": "LEFT OUTER JOIN", "meaning": "Eager join keeping all left rows and matching right rows" },
+      { "keyword": "association [0..1]", "meaning": "Lazy single-target navigation" },
+      { "keyword": "association [0..*]", "meaning": "Lazy many-target navigation" },
+      { "keyword": "Path expression", "meaning": "ABAP CDS syntax to navigate association fields like _Customer.Name" },
+      { "keyword": "$expand", "meaning": "OData query option triggering an association as a join" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Always using JOIN even when navigation is optional",
+        "whyWrong": "Forces eager data fetch and misses OData $expand benefits",
+        "correctApproach": "Use association for optional or large related sets; JOIN only when fields are mandatory"
+      },
+      {
+        "mistake": "Filtering on association fields without exposing them",
+        "whyWrong": "Forces association resolution and can fail activation depending on context",
+        "correctApproach": "Expose association in projection or convert to JOIN when filtering is required"
+      },
+      {
+        "mistake": "Using association ON condition without $projection",
+        "whyWrong": "Field cannot be resolved; activation error",
+        "correctApproach": "Reference current view fields as $projection.field on the left side"
+      },
+      {
+        "mistake": "Modelling many-to-many relationships directly with a single association",
+        "whyWrong": "CDS lacks native many-to-many; consumers see incomplete relationships",
+        "correctApproach": "Introduce a junction CDS entity and chain two associations through it"
+      }
+    ],
+    "quickRevisionNotes": "What: Choice between eager JOIN and lazy association in CDS views.\n\nUsed for:\n- Balancing performance and modelling clarity\n- Enabling OData $expand on optional navigation\n- Mandatory data fetch vs on-demand fetch\n\nKey syntax / tables / Tcodes:\n- INNER / LEFT OUTER JOIN ... ON in CDS DDL\n- association [..] to Entity as _Alias on $projection.field = _Alias.field\n- $expand in OData URLs to trigger associations\n- Path expressions in ABAP Open SQL on CDS\n\nInterview keyword: eager JOIN versus lazy association",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "cds-views-006": {
+    "interviewScriptHinglish": "Sir, CDS view parameters runtime values pass karne ka mechanism hai — jaise current month, company code, region. WITH PARAMETERS clause se define karte hain, ABAP Open SQL mein SELECT FROM view_name(p_year = '2024') syntax se pass karte hain. Session variables jaise $session.client, $session.system_language pre-defined values dete hain. Practically, mere project mein 'current month sales' report ke liye parameterized CDS view banayi — p_company aur p_period pass karte the. Same view multiple months ke liye reuse hui. Fiori app mein parameters passing dialog box se hota hai. Iska benefit yeh hai ki ek hi view multiple scenarios mein reusable hai aur data filtering database layer pe efficiently hoti hai.",
+    "interviewScriptEnglish": "CDS view parameters provide a way to pass runtime values into the view, enabling dynamic filtering at the database level. Parameters are declared with WITH PARAMETERS p_name : type and used inside the view body. ABAP Open SQL calls them as SELECT FROM view_name(p_name = value). Session variables like $session.client, $session.system_language, $session.user, and $session.system_date supply environment information. Fiori applications prompt users for parameter values automatically. We use parameters for period selection, company code, plant, and currency. The business value is highly reusable views that adapt to different scenarios without duplication, with filters applied efficiently on HANA.",
+    "wordByWordSamjho": [
+      { "keyword": "WITH PARAMETERS", "meaning": "CDS clause introducing input parameters for the view" },
+      { "keyword": "p_name : abap.type", "meaning": "Parameter declaration with name and data type" },
+      { "keyword": "$session.client", "meaning": "Session variable returning the current logged-in client" },
+      { "keyword": "$session.system_language", "meaning": "Session variable returning the current logon language" },
+      { "keyword": "$parameters.p_name", "meaning": "Reference to declared parameter inside the view body" },
+      { "keyword": "SELECT FROM view(p_name = value)", "meaning": "ABAP Open SQL syntax to pass parameters at runtime" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Calling parameterized CDS view without supplying all parameters",
+        "whyWrong": "Runtime error because mandatory parameter is missing",
+        "correctApproach": "Provide every WITH PARAMETERS entry at the call site"
+      },
+      {
+        "mistake": "Confusing CDS parameters with session variables",
+        "whyWrong": "Parameters are explicit inputs; session variables are implicit context",
+        "correctApproach": "Use $session.* for implicit environment values; declare parameters for explicit inputs"
+      },
+      {
+        "mistake": "Using parameters where a simple WHERE clause would suffice",
+        "whyWrong": "Adds calling complexity for no benefit",
+        "correctApproach": "Use parameters only when the value must change per call and influences join or aggregation"
+      },
+      {
+        "mistake": "Using parameterized view directly in JOIN inside another CDS",
+        "whyWrong": "Complex syntax and limited support depending on entity type",
+        "correctApproach": "Prefer table functions or non-parameterized intermediate views when joining"
+      }
+    ],
+    "quickRevisionNotes": "What: Mechanism for passing runtime values into a CDS view for dynamic filtering.\n\nUsed for:\n- Period, company code, plant, or region filtering at DB level\n- Reusable views adapting to caller context\n- Fiori applications with parameter input dialogs\n\nKey syntax / tables / Tcodes:\n- define view ... WITH PARAMETERS p_name : type\n- Reference inside body as $parameters.p_name\n- Session variables: $session.client, $session.system_language, $session.user\n- ABAP call: SELECT FROM view( p_name = value )\n\nInterview keyword: declared parameters plus session variables",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "cds-views-007": {
+    "interviewScriptHinglish": "Sir, CDS access control aur DCL — Data Control Language — CDS view ka security guard hai. @AccessControl.authorizationCheck: #CHECK annotation se DCL role automatically apply hota hai. DCL file mein DEFINE ROLE syntax mein conditions likhte hain — usually pfcg_auth aspect se PFCG authorization objects ke saath link karte hain. ABAP Open SQL, OData, Fiori — sab consumers DCL conditions automatically experience karte hain. Practically, mere project mein sales CDS view ke liye DCL banayi — VKORG sales organization pe restriction lagayi via V_VBAK_VKO authority object. Har user sirf apne assigned sales orgs ka data dekhta tha. Iska benefit yeh hai ki row-level security ek jagah define hoti hai aur sab consumers automatically protect hote hain.",
+    "interviewScriptEnglish": "CDS access control via DCL provides row-level security on CDS views, transparent to all consumers. The view is annotated with @AccessControl.authorizationCheck: #CHECK, and a DCL source file declares DEFINE ROLE rules. The pfcg_auth aspect maps DCL conditions to PFCG authorization objects so user-specific filters are added to every SELECT — whether from ABAP Open SQL, OData, or Fiori. Inheritance allows DCL rules to propagate through dependent CDS views. SE16N bypasses DCL because it reads tables directly. In our project a DCL on sales organization automatically restricted data per user across all consumers. The business value is centralised, consistent security that is impossible to bypass through normal SAP consumption.",
+    "wordByWordSamjho": [
+      { "keyword": "@AccessControl.authorizationCheck", "meaning": "Annotation enabling DCL enforcement on the CDS view" },
+      { "keyword": "DEFINE ROLE", "meaning": "DCL keyword introducing an access role for a CDS entity" },
+      { "keyword": "pfcg_auth", "meaning": "DCL aspect that links access rules to PFCG authorization objects" },
+      { "keyword": "GRANT SELECT ON", "meaning": "DCL clause specifying read access policy on the target view" },
+      { "keyword": "Inherited access control", "meaning": "DCL rules propagate through dependent CDS views automatically" },
+      { "keyword": "SE16N", "meaning": "Table browser that bypasses DCL because it queries the table directly" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Setting @AccessControl.authorizationCheck: #NOT_REQUIRED without justification",
+        "whyWrong": "Opens the view to every user, creating an audit-grade security gap",
+        "correctApproach": "Keep #CHECK by default; only use #NOT_REQUIRED with documented business reason"
+      },
+      {
+        "mistake": "Forgetting to transport the DCL file with the CDS view",
+        "whyWrong": "Target system enforces no rules and exposes data",
+        "correctApproach": "Include both DDLS and DCLS objects in the same transport request"
+      },
+      {
+        "mistake": "Relying on SE16N to test DCL behaviour",
+        "whyWrong": "SE16N bypasses DCL entirely; tests look pass even with broken rules",
+        "correctApproach": "Test via ADT data preview, OData service, or ABAP SELECT to confirm DCL filtering"
+      },
+      {
+        "mistake": "Defining overlapping rules that allow more than intended",
+        "whyWrong": "DCL conditions are OR-ed, so loose rules grant unwanted access",
+        "correctApproach": "Review each rule, prefer specific conditions, and test with multiple user profiles"
+      }
+    ],
+    "quickRevisionNotes": "What: Row-level security model on CDS views using DCL access roles.\n\nUsed for:\n- Centralised authorization for Fiori, OData, and ABAP consumers\n- PFCG-based row filtering through pfcg_auth aspect\n- Audit-grade data protection in S/4HANA reporting\n\nKey syntax / tables / Tcodes:\n- @AccessControl.authorizationCheck: #CHECK\n- DEFINE ROLE name_role { GRANT SELECT ON ... WHERE ... ; }\n- pfcg_auth(AUTH_OBJ, FIELD, ACTVT='03')\n- Transport both DDLS (view) and DCLS (DCL) together\n\nInterview keyword: centralized row-level security via DCL",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  }
+}

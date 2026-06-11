@@ -16,20 +16,20 @@ const lora = Lora({
 });
 
 export const metadata: Metadata = {
-  title: { default: "CodeGurukul — SAP ABAP Interview Mastery", template: "%s | CodeGurukul" },
+  title: { default: "ABAPPrep — Learn • Practice • Prepare • Get Hired", template: "%s | ABAPPrep" },
   description:
-    "A calm, reading-first SAP ABAP and S/4HANA interview prep. 573+ curated questions, mentor-style Hinglish answers, AI mock interviews, and chapter-wise study paths.",
+    "ABAPPrep — the SAP ABAP interview prep platform. 573+ curated questions, Hinglish + English interview scripts, code walkthroughs, mock interviews, and chapter-wise study paths.",
   openGraph: {
-    title: "CodeGurukul — SAP ABAP Interview Mastery",
-    description: "573+ curated SAP ABAP questions with Hinglish answers, interview scripts, and code examples.",
+    title: "ABAPPrep — SAP ABAP Interview Mastery",
+    description: "573+ curated SAP ABAP questions with Hinglish + English interview scripts, code examples, and AI mock interviews.",
     type: "website",
   },
 };
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#faf6ef" },
-    { media: "(prefers-color-scheme: dark)", color: "#181512" },
+    { media: "(prefers-color-scheme: light)", color: "#F8FAFC" },
+    { media: "(prefers-color-scheme: dark)", color: "#0F172A" },
   ],
   width: "device-width",
   initialScale: 1,

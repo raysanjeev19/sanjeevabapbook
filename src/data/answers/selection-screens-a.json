@@ -2,12 +2,88 @@
   "selection-screens-001": {
     "easyUnderstanding": "Selection screen sochna jaise ek form bharna — jaise bank ka form jisme naam, account number, date daala. ABAP mein ye form tum khud design karte ho aur user is form mein values dalke report chalata hai. Do main cheezein hain: PARAMETERS ek single value ke liye — jaise ek plant code ya ek date. SELECT-OPTIONS ek range ke liye — jaise material number 100 se 999 tak, ya specific values include ya exclude karo. Agar fields ko logically group karna ho — jaise 'Date Settings' alag box mein, 'Company Settings' alag box mein — toh SELECTION-SCREEN BEGIN OF BLOCK use karte hain WITH FRAME TITLE. Mandatory fields ke liye OBLIGATORY keyword lagate hain — system khud red star dikhata hai aur empty submit nahi hone deta. DEFAULT keyword se pehle se ek value bhar sakte ho — user ko manually fill nahi karna padta. Validation ke liye AT SELECTION-SCREEN event hota hai — yahan tum check karte ho ki user ne sahi values di hain ya nahi, galat hone pe MESSAGE TYPE 'E' se error dikhate ho. AT SELECTION-SCREEN OUTPUT event se fields dynamically show ya hide kar sakte ho. Aur ek important cheez — Variant: user apni selection values save kar sakta hai aur dobara ek click mein load kar sakta hai. Background jobs ke liye variants mandatory hote hain.",
     "hinglishMasterExplanation": "Selection screen interview ka bahut important topic hai. Sirf 'PARAMETERS use karte hain' bolna kafi nahi — pura picture dikhao. PARAMETERS vs SELECT-OPTIONS: PARAMETERS single value leta hai — p_bukrs TYPE bukrs. SELECT-OPTIONS range leta hai — s_matnr FOR mara-matnr. SELECT-OPTIONS ke andar 4 fields hoti hain: SIGN (I=Include, E=Exclude), OPTION (EQ, BT, CP etc), LOW (from value), HIGH (to value). WHERE clause mein IN operator use hota hai — WHERE matnr IN s_matnr. Blocks aur Layout: SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001 se fields ek box mein group hoti hain — screen clean aur professional dikhti hai. Mandatory aur Defaults: OBLIGATORY field khali nahi chhodne deta. DEFAULT value se user ko pre-filled screen milti hai — kaam fast hota hai. Events — teen important hain: INITIALIZATION (ek baar, default values set karo), AT SELECTION-SCREEN OUTPUT (har refresh pe, dynamic layout change karo), AT SELECTION-SCREEN (Execute dabane pe, validation karo). Do's: Hamesha OBLIGATORY lagao mandatory fields pe jaise company code. SELECT-OPTIONS prefer karo jab user ko range deni ho. Validation AT SELECTION-SCREEN mein rakho, START-OF-SELECTION mein nahi — early feedback milta hai. Don'ts: Zyada fields mat rakho selection screen pe — confusing hoti hai. Heavy DB queries AT SELECTION-SCREEN OUTPUT mein mat rakho — yeh event frequent fire hota hai. Variant ka concept: user values save karta hai 'Goto > Variants > Save as Variant' se. Background job SM36 mein variant mandatory hai. SUBMIT program USING SELECTION-SET 'variant_name' AND RETURN se doosra program variant ke saath call kar sakte ho.",
-    "interviewMeKyaBolnaHai": "Selection screens in ABAP are created using PARAMETERS for single-value inputs and SELECT-OPTIONS for range inputs. Fields can be grouped in blocks using SELECTION-SCREEN BEGIN OF BLOCK with frame and title for a clean, professional layout. Mandatory fields use the OBLIGATORY addition — SAP automatically validates and shows a red asterisk. Validation is done in the AT SELECTION-SCREEN event using MESSAGE TYPE 'E' statements, which keeps the selection screen open on error. Variants allow saving and reusing selection values, which is especially important for background job scheduling in SM36 — a variant is mandatory for any background job. In my projects I always structure the screen with logical blocks, mark critical fields as OBLIGATORY, and validate business rules like date ranges in AT SELECTION-SCREEN rather than START-OF-SELECTION for early user feedback.\n\nHinglish tip: Interview mein ye bolna important hai: 'PARAMETERS for single value, SELECT-OPTIONS for ranges, AT SELECTION-SCREEN for validation.' Aur background job scheduling ke liye variant ka mention strong answer banata hai — bahut log ye point miss karte hain.",
+    "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'Selection screens in ABAP are created using PARAMETERS for single-value inputs and SELECT-OPTIONS for range inputs. Fields can be grouped in blocks using SELECTION-SCREEN BEGIN OF BLOCK with FRAME TITLE for a clean, professional layout. Mandatory fields use the OBLIGATORY addition, which SAP validates automatically with a red asterisk. Business validation is done in AT SELECTION-SCREEN using MESSAGE TYPE E, which keeps the selection screen open on error. Variants — created via Goto then Variants then Save as Variant in SE38 — allow saving and reusing selection values, and are mandatory for background job scheduling in SM36. In my projects I structure screens with logical blocks, mark critical fields as OBLIGATORY, validate date ranges in AT SELECTION-SCREEN for early user feedback, and always provide at least one default variant for background runs.'",
     "codeExamples": "REPORT zselection_screen_demo.\n\n\" Block 1: Company Settings — fields group kiye frame mein\nSELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.\n  PARAMETERS:     p_bukrs TYPE bukrs OBLIGATORY.   \" Mandatory field\n  SELECT-OPTIONS: s_gjahr FOR bkpf-gjahr.          \" Range input\nSELECTION-SCREEN END OF BLOCK b1.\n\n\" Block 2: Material Range\nSELECTION-SCREEN BEGIN OF BLOCK b2 WITH FRAME TITLE TEXT-002.\n  SELECT-OPTIONS: s_matnr FOR mara-matnr.          \" Multiple ranges\n  PARAMETERS:     p_mtart TYPE mtart DEFAULT 'FERT'. \" Pre-filled default\nSELECTION-SCREEN END OF BLOCK b2.\n\n\" Custom validation event — Execute dabane pe fire hota hai\nAT SELECTION-SCREEN.\n  IF p_bukrs IS INITIAL.\n    MESSAGE 'Company code is mandatory' TYPE 'E'. \" User screen pe wapas\n  ENDIF.\n\n\" Main data selection — validated hone ke baad chalti hai\nSTART-OF-SELECTION.\n  SELECT matnr, mtart, matkl\n    FROM mara\n    WHERE matnr IN @s_matnr\n      AND mtart = @p_mtart\n    INTO TABLE @DATA(lt_mara).\n  WRITE: / 'Records found:', sy-dbcnt.",
+    "interviewScriptHinglish": "ABAP mein selection screens reports ke liye input interface dete hain, jisme users execution se pehle filter criteria specify kar sakte hain. PARAMETERS single-value fields declare karta hai, jabki SELECT-OPTIONS range tables banata hai jo multiple values, ranges, aur exclusions support karte hain. Fields ko SELECTION-SCREEN BEGIN OF BLOCK aur frame titles ke through group karte hain clarity ke liye. OBLIGATORY addition mandatory fields enforce karta hai, aur AT SELECTION-SCREEN business validation handle karta hai MESSAGE TYPE E ke saath jo error pe screen open rakhta hai. Production projects mein main screens ko logical blocks mein structure karta hoon, date ranges early validate karta hoon, aur SM36 mein background scheduling ke liye variants banata hoon. Isse clean user experience milti hai, data quality enforce hoti hai, aur automated batch processing support hoti hai.",
+    "interviewScriptEnglish": "Selection screens in ABAP provide the input interface for reports, allowing users to specify filter criteria before execution. PARAMETERS declares single-value fields while SELECT-OPTIONS creates range tables supporting multiple values, ranges, and exclusions. Fields are grouped using SELECTION-SCREEN BEGIN OF BLOCK with frame titles for clarity. The OBLIGATORY addition enforces mandatory fields, while AT SELECTION-SCREEN handles business validation using MESSAGE TYPE E which keeps the screen open on error. In production projects I structure screens with logical blocks, validate date ranges early, and create variants for background scheduling in SM36. This delivers a clean user experience, enforces data quality, and supports automated batch processing.",
+    "wordByWordSamjho": [
+      {
+        "keyword": "REPORT",
+        "meaning": "Declares an executable ABAP report program with the given name"
+      },
+      {
+        "keyword": "SELECTION-SCREEN BEGIN OF BLOCK",
+        "meaning": "Starts a visual frame grouping related selection screen fields"
+      },
+      {
+        "keyword": "WITH FRAME TITLE",
+        "meaning": "Draws a labeled border around the block using a text element"
+      },
+      {
+        "keyword": "PARAMETERS",
+        "meaning": "Declares a single-value input field on the selection screen"
+      },
+      {
+        "keyword": "OBLIGATORY",
+        "meaning": "Marks a parameter as mandatory — system enforces non-empty value"
+      },
+      {
+        "keyword": "SELECT-OPTIONS",
+        "meaning": "Declares a range table input supporting SIGN, OPTION, LOW, HIGH"
+      },
+      {
+        "keyword": "FOR",
+        "meaning": "Links SELECT-OPTIONS to a reference table-field for type and search help"
+      },
+      {
+        "keyword": "DEFAULT",
+        "meaning": "Sets a pre-filled value on the selection screen for the field"
+      },
+      {
+        "keyword": "AT SELECTION-SCREEN",
+        "meaning": "Event that fires when user presses Execute, for full validation"
+      },
+      {
+        "keyword": "MESSAGE ... TYPE 'E'",
+        "meaning": "Issues an error message that keeps the screen open for correction"
+      },
+      {
+        "keyword": "START-OF-SELECTION",
+        "meaning": "Main processing event after selection screen validation passes"
+      },
+      {
+        "keyword": "WHERE ... IN",
+        "meaning": "WHERE clause operator that evaluates a SELECT-OPTIONS range table"
+      }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Using = operator instead of IN with SELECT-OPTIONS in WHERE clause",
+        "whyWrong": "SELECT-OPTIONS is a range table, not a single value — = causes a syntax error",
+        "correctApproach": "Always use WHERE field IN s_field for SELECT-OPTIONS and WHERE field = p_field for PARAMETERS"
+      },
+      {
+        "mistake": "Putting OBLIGATORY directly on SELECT-OPTIONS expecting empty check",
+        "whyWrong": "OBLIGATORY does not enforce non-empty on range tables — empty range is a valid state",
+        "correctApproach": "In AT SELECTION-SCREEN add IF s_field IS INITIAL with MESSAGE TYPE E for mandatory ranges"
+      },
+      {
+        "mistake": "Scheduling a background job in SM36 without creating a variant",
+        "whyWrong": "Background jobs have no interactive user to fill mandatory fields so the job fails",
+        "correctApproach": "Save a variant via Goto > Variants > Save as Variant and assign it in the SM36 job step"
+      },
+      {
+        "mistake": "Hardcoding default values like DEFAULT '2024' for fiscal year",
+        "whyWrong": "Breaks after year rollover or when transported to a different client",
+        "correctApproach": "Compute dynamic defaults in INITIALIZATION using sy-datum and related system fields"
+      }
+    ],
+    "quickRevisionNotes": "What: Selection screen is the parameterized input interface displayed before an ABAP report executes\n\nUsed for:\n- Capturing single values via PARAMETERS and ranges via SELECT-OPTIONS\n- Validating user input via AT SELECTION-SCREEN with MESSAGE TYPE E\n- Driving background jobs through saved variants in SM36\n\nKey syntax / tables / Tcodes:\n- PARAMETERS p_field TYPE type OBLIGATORY / SELECT-OPTIONS s_field FOR ref\n- AT SELECTION-SCREEN / AT SELECTION-SCREEN OUTPUT / INITIALIZATION events\n- SE38 design, SE93 transaction code, SM36 background schedule, SM37 job monitor\n\nInterview keyword: Parameterized input interface with PARAMETERS, SELECT-OPTIONS, OBLIGATORY, and variants",
     "followupAnswerBank": [
       {
         "question": "What is the difference between PARAMETERS and SELECT-OPTIONS?",
-        "hinglishExplanation": "PARAMETERS ek single value leta hai — jaise ek plant code ya ek date. SELECT-OPTIONS ek internal table generate karta hai jisme user multiple ranges de sakta hai — include/exclude, single values, wildcard sab ek saath. Agar user ko '100 se 200 tak materials lekin 150 nahi chahiye' — yeh SELECT-OPTIONS se hoga, PARAMETERS se nahi. WHERE clause mein PARAMETERS = se compare hota hai, SELECT-OPTIONS IN se.",
+        "tier": "easy",
+        "hinglishExplanation": "PARAMETERS single value accept karta hai aur ek simple variable ko map hota hai. SELECT-OPTIONS ek range table generate karta hai sign, option, low aur high fields ke saath — complex inputs allow karta hai including multiple ranges, excludes aur wildcards. WHERE clause mein PARAMETERS equality operator use karta hai jabki SELECT-OPTIONS IN operator use karta hai: WHERE matnr IN s_matnr. SELECT-OPTIONS preferred hai jab users ko ranges ya multiple values se filter karna ho.",
         "interviewAnswer": "PARAMETERS accepts a single value and maps to a simple variable. SELECT-OPTIONS generates a range table with sign, option, low, and high fields — allowing complex inputs including multiple ranges, excludes, and wildcards. In the WHERE clause, PARAMETERS uses the equality operator while SELECT-OPTIONS uses the IN operator: WHERE matnr IN s_matnr. SELECT-OPTIONS is preferred when users need to filter by ranges or multiple values.",
         "realtimeExplanation": "Sales report mein ek specific sales organization ke liye PARAMETERS p_vkorg. Multiple organizations ke liye SELECT-OPTIONS s_vkorg FOR vbak-vkorg. WHERE clause mein: WHERE vkorg IN @s_vkorg. Range table mein user ne 1000-3000 include aur 2000 exclude rakhi — exact business requirement fulfill hua.",
         "mistakes": "SELECT-OPTIONS ko WHERE clause mein = se compare karna galat hai — hamesha IN operator use karo. PARAMETERS ko IN operator se use karna compile error deta hai.",
@@ -15,7 +91,8 @@
       },
       {
         "question": "How do you use OBLIGATORY in selection screen?",
-        "hinglishExplanation": "OBLIGATORY addition lagane se field mandatory ho jaati hai — screen pe red asterisk (*) dikhta hai. Agar user field empty chhodta hai aur Execute dabata hai toh system automatically error deta hai — tumhe AT SELECTION-SCREEN mein koi code nahi likhna padta. Lekin OBLIGATORY sirf 'field filled hai ya nahi' check karta hai — content correct hai ya nahi, yeh nahi check karta. Business logic ke liye AT SELECTION-SCREEN mein alag se code likhna padta hai.",
+        "tier": "easy",
+        "hinglishExplanation": "OBLIGATORY addition PARAMETERS field ko mandatory bana deta hai. System red asterisk display karta hai aur automatically execution prevent karta hai agar field empty hai — is basic check ke liye koi custom coding nahi chahiye. Lekin OBLIGATORY sirf presence validate karta hai, content correctness nahi. Business rules ke liye jaise valid company code existence ya date range validity, AT SELECTION-SCREEN mein custom code still zaroori hai.",
         "interviewAnswer": "OBLIGATORY addition makes a PARAMETERS field mandatory. The system displays a red asterisk and automatically prevents execution if the field is empty — no custom coding required for this basic check. However, OBLIGATORY only validates presence, not content correctness. For business rules like valid company code existence or date range validity, custom code in AT SELECTION-SCREEN is still needed.",
         "realtimeExplanation": "Company code aur plant fields pe OBLIGATORY lagaya. System khud handle karta tha empty check. AT SELECTION-SCREEN mein sirf business rules rakhe — company code T001 se exist karta hai ya nahi. Division of responsibility clear tha.",
         "mistakes": "OBLIGATORY SELECT-OPTIONS pe directly nahi lagta — sirf PARAMETERS pe lagta hai. SELECT-OPTIONS empty check ke liye AT SELECTION-SCREEN mein s_field[] IS INITIAL check karna padta hai.",
@@ -23,7 +100,8 @@
       },
       {
         "question": "How do variants work in selection screens?",
-        "hinglishExplanation": "Variant ek saved set of values hai selection screen ka. User 'Goto > Variants > Save as Variant' se apni values save karta hai aur baad mein same values ek click mein load karta hai. Background jobs ke liye variants zaroori hain — SM36 mein job schedule karte waqt variant mandatory hai kyunki background mein koi user nahi hota values enter karne ke liye. ABAP code mein SUBMIT program USING SELECTION-SET 'variant_name' AND RETURN se doosra program variant ke saath call kar sakte ho.",
+        "tier": "medium",
+        "hinglishExplanation": "Variants saved selection screen values ko reuse ke liye store karte hain. Users 'Goto > Variants > Save as Variant' se meaningful name ke saath save karte hain. SM36 mein background scheduling ke liye variant mandatory hai kyunki koi user nahi hota values interactively enter karne ke liye. Developers ek default variant set kar sakte hain jo program start hone pe automatically load hota hai. Code mein SUBMIT program USING SELECTION-SET 'VARIANT_NAME' AND RETURN ek specific variant ke saath program execute karta hai.",
         "interviewAnswer": "Variants store saved selection screen values for reuse. Users save them via Goto > Variants > Save as Variant with a meaningful name. For background scheduling in SM36, a variant is mandatory since there is no user to enter values interactively. Developers can set a default variant that loads automatically when the program starts. In code, SUBMIT program USING SELECTION-SET 'VARIANT_NAME' AND RETURN executes a program with a specific variant.",
         "realtimeExplanation": "Month-end reports ke liye DEFAULT_MONTHLY variant banaya — company code 1000, fiscal period pre-filled. SM36 mein job banaya: program + variant attach. Roz raat ko automatically chalta tha bina kisi manual input ke. Finance team ne kaafi time bachaya.",
         "mistakes": "Background job schedule karte waqt variant nahi banaya toh job fail hogi — SM36 mandatory variant maangta hai. Variant ke bina background job runtime pe selection screen se hang ho jaati hai.",
@@ -31,7 +109,8 @@
       },
       {
         "question": "What is SELECTION-SCREEN COMMENT?",
-        "hinglishExplanation": "SELECTION-SCREEN COMMENT se selection screen pe informational text show kar sakte ho — koi input field nahi, sirf label ya instruction. Iska use field ke description ke liye hota hai jaise date format batana '(DD/MM/YYYY)', ya koi section heading dikhana bina frame ke. Position specify karte hain line aur column width se. Dynamic message ke liye variable use karo aur AT SELECTION-SCREEN OUTPUT mein assign karo.",
+        "tier": "easy",
+        "hinglishExplanation": "SELECTION-SCREEN COMMENT selection screen pe static ya dynamic non-input text add karta hai labels, format hints ya instructions ke liye. Yeh position parameters (line, column width) aur ek text element reference ya variable ke saath define hota hai. Runtime pe update hone wali dynamic content ke liye, variable use karo aur uski value INITIALIZATION ya AT SELECTION-SCREEN OUTPUT event mein assign karo. Transportability aur translation support ke liye hamesha text elements (TEXT-xxx) use karo.",
         "interviewAnswer": "SELECTION-SCREEN COMMENT adds static or dynamic non-input text to the selection screen for labels, format hints, or instructions. It is defined with position parameters (line, column width) and a text element reference or variable. For dynamic content updated at runtime, use a variable and assign its value in the INITIALIZATION or AT SELECTION-SCREEN OUTPUT event. Always use text elements (TEXT-xxx) for transportability and translation support.",
         "realtimeExplanation": "Date field ke neeche format hint dikhani thi '(YYYYMMDD)'. SELECTION-SCREEN COMMENT rakha with TEXT-001. AT SELECTION-SCREEN OUTPUT mein dynamically message update kiya when date format changed based on user locale setting.",
         "mistakes": "Hardcoded string literals COMMENT mein likhna — not translatable, not transportable. Hamesha TEXT-xxx element ya variable use karo for maintainability.",
@@ -39,7 +118,8 @@
       },
       {
         "question": "What is the INITIALIZATION event?",
-        "hinglishExplanation": "INITIALIZATION event selection screen display hone se pehle ek baar fire hota hai — program start pe. Iska use hai default values set karna: p_date = sy-datum (aaj ki date automatically fill ho), p_bukrs = '1000' (default company code). AT SELECTION-SCREEN OUTPUT se pehle aur sirf ek baar fire hota hai — isliye defaults yahan rakho, OUTPUT mein nahi. OUTPUT mein rakha toh har user action pe values reset ho jayengi.",
+        "tier": "medium",
+        "hinglishExplanation": "INITIALIZATION exactly ek baar fire hota hai selection screen first display hone se pehle. Iska use PARAMETERS aur SELECT-OPTIONS ke default values set karne ke liye hota hai. Example: aaj ki date ko default set karna, ya user ka time bachane ke liye default company code populate karna. AT SELECTION-SCREEN OUTPUT jo har refresh pe fire hota hai uske unlike, INITIALIZATION sirf ek baar fire hota hai — isliye yeh defaults ke liye correct event hai jo har user action pe reset nahi hone chahiye.",
         "interviewAnswer": "INITIALIZATION fires exactly once before the selection screen is first displayed. It is used to set default values for PARAMETERS and SELECT-OPTIONS. For example, setting today's date as default, or populating a default company code to save user time. Unlike AT SELECTION-SCREEN OUTPUT which fires on every refresh, INITIALIZATION fires only once — making it the correct event for defaults that should not reset on every user action.",
         "realtimeExplanation": "Report mein default date range: last 30 days. INITIALIZATION mein p_date1 = sy-datum - 30, p_date2 = sy-datum rakha. Users ko manually fill nahi karna padta tha — zyada user-friendly tha. Most users sirf Execute dabate the.",
         "mistakes": "Default values AT SELECTION-SCREEN OUTPUT mein rakhna — user jo values change karta hai woh har refresh pe overwrite ho jaayengi. Default values ko hamesha INITIALIZATION mein rakho.",
@@ -47,7 +127,8 @@
       },
       {
         "question": "How do you suppress the selection screen in ABAP?",
-        "hinglishExplanation": "Kabhi kabhi program ko directly execute karna hota hai bina selection screen dikhaye — background jobs mein ya SUBMIT se call karte waqt. SUBMIT program WITH p_param = value AND RETURN se values directly pass kar sakte ho — selection screen bypass hoti hai. Background jobs mein variant hone se selection screen automatically skip hoti hai. AND RETURN likhna important hai — warna calling program mein control wapas nahi aata.",
+        "tier": "medium",
+        "hinglishExplanation": "Program call karte waqt selection screen suppress karne ke liye: SUBMIT zprogram WITH p_bukrs = '1000' WITH p_gjahr = '2024' AND RETURN. Yeh interactive selection screen ko entirely bypass karta hai aur provided values ke saath run karta hai. Background jobs mein, variant provide karne se selection screen automatically suppress ho jaati hai. AND RETURN clause critical hai — iske bina control calling program ko wapas nahi aata.",
         "interviewAnswer": "To suppress the selection screen when calling a program: SUBMIT zprogram WITH p_bukrs = '1000' WITH p_gjahr = '2024' AND RETURN. This bypasses the interactive selection screen entirely and runs with the provided values. In background jobs, providing a variant automatically suppresses the selection screen. The AND RETURN clause is critical — without it, control does not return to the calling program.",
         "realtimeExplanation": "Orchestrator program tha jo 5 sub-reports sequentially chalata tha. SUBMIT ... WITH ... AND RETURN loop mein use kiya — har sub-report ke baad control wapas ata tha. Selection screen bypass hua, values programmatically pass hue. Fully automated pipeline bani.",
         "mistakes": "SUBMIT without AND RETURN karna — control wapas nahi aata calling program pe. Orchestration fail ho jaati hai. Hamesha AND RETURN likhna critical hai jab calling program ko continuation chahiye.",
@@ -55,7 +136,8 @@
       },
       {
         "question": "What is SELECTION-SCREEN BEGIN OF LINE?",
-        "hinglishExplanation": "Normally selection screen mein ek field per line hoti hai. SELECTION-SCREEN BEGIN OF LINE se multiple fields ek hi horizontal line pe side-by-side rakh sakte ho — screen compact aur clean dikhti hai. Example: 'From:' label phir date field, phir 'To:' label phir date field — sab ek line pe. End mein SELECTION-SCREEN END OF LINE likhna zaroori hai. SELECT-OPTIONS inline nahi rakh sakte — sirf PARAMETERS aur COMMENT supported hain.",
+        "tier": "advanced",
+        "hinglishExplanation": "SELECTION-SCREEN BEGIN OF LINE multiple fields ko same horizontal line pe place karne deta hai. Yeh related fields ke liye use hota hai jaise from-date aur to-date side by side, ya ek label immediately followed by an input field. Line ko SELECTION-SCREEN END OF LINE se end karo. Isse screen zyada compact aur logical banti hai. Note: SELECT-OPTIONS BEGIN/END OF LINE ke andar place nahi ho sakti — sirf PARAMETERS aur COMMENT inline kaam karte hain.",
         "interviewAnswer": "SELECTION-SCREEN BEGIN OF LINE allows placing multiple fields on the same horizontal line. This is used for related fields like from-date and to-date side by side, or a label immediately followed by an input field. End the line with SELECTION-SCREEN END OF LINE. This makes the screen more compact and logical. Note: SELECT-OPTIONS cannot be placed inside BEGIN/END OF LINE — only PARAMETERS and COMMENT work inline.",
         "realtimeExplanation": "Date range fields ek line pe chahiye the for clean UI. BEGIN OF LINE ke andar: COMMENT 'From:', p_date1, COMMENT 'To:', p_date2 — sab ek line pe. Screen professional dikhti thi aur space efficient bhi.",
         "mistakes": "BEGIN OF LINE ke andar SELECT-OPTIONS rakhne ki koshish karna — compile error aata hai. Sirf PARAMETERS aur COMMENT inline rakh sakte ho.",
@@ -63,7 +145,8 @@
       },
       {
         "question": "How does AT SELECTION-SCREEN ON FIELD work?",
-        "hinglishExplanation": "AT SELECTION-SCREEN ON p_field event tab fire hota hai jab user sirf usi specific field ko change karke aage jaata hai — field-level validation ke liye. Yeh full Execute press kiye bina immediate feedback deta hai. Example: company code enter karne ke baad turant check karo ki T001 mein exist karta hai ya nahi. Error sirf us specific field pe highlight hoti hai — user clearly samajhta hai kya fix karna hai.",
+        "tier": "advanced",
+        "hinglishExplanation": "AT SELECTION-SCREEN ON p_field tab fire hota hai jab user us specific field ko change karke hatta hai — immediate field-level validation enable karta hai bina full execution ka wait kiye. Yeh faster feedback deta hai. Example: field fill hote hi T001 ke against company code existence validate karo. Error message automatically sirf us field ko highlight karta hai. Sab errors sirf Execute pe catch karne se zyada user-friendly hai.",
         "interviewAnswer": "AT SELECTION-SCREEN ON p_field fires when the user changes that specific field and moves away — enabling immediate field-level validation without waiting for full execution. This gives faster feedback. For example, validate company code existence against T001 right when the field is filled. The error message automatically highlights only that field. More user-friendly than catching all errors only on Execute.",
         "realtimeExplanation": "Plant field pe immediate validation rakhi. AT SELECTION-SCREEN ON p_werks mein T001W se check kiya — agar plant nahi mili toh error sirf plant field pe. User ko turant pata chal jaata tha — baki fields fill karne se pehle hi fix kar lete the.",
         "mistakes": "AT SELECTION-SCREEN ON field mein heavy DB queries mat rakho — yeh har field change pe fire hota hai. Lightweight existence check rakho, heavy logic START-OF-SELECTION ke liye chhodo.",
@@ -74,12 +157,72 @@
   "selection-screens-002": {
     "easyUnderstanding": "OBLIGATORY aur validation — dono alag cheezein hain, bahut log confuse hote hain. OBLIGATORY matlab bank form mein red asterisk wala field — system khud check karta hai, agar empty chhodoge toh system error deta hai, tumhe kuch likhna nahi padta. Selection-screen validation matlab tum khud ek guard baithe ho — jo bhi enter kare, tum manually check karte ho ki sahi hai ya nahi. Example sochte hain: Company code — OBLIGATORY lagao, system handle karega empty case. Date range — 'from date, to date se pehle honi chahiye' yeh business rule hai, system ko kaise pata? Tumhe AT SELECTION-SCREEN mein khud likhna hoga: IF p_date1 > p_date2 THEN MESSAGE 'From date must be before To date' TYPE 'E'. Yeh event tab fire hota hai jab user Execute button dabata hai — agar condition fail ho toh TYPE 'E' message user ko wapis selection screen pe le jaata hai bina program execute hue. Dono milake selection screen bulletproof banti hai — OBLIGATORY basic presence check ke liye, custom validation business logic ke liye. Real project mein: payroll report mein company code aur payroll area OBLIGATORY the, aur date range check AT SELECTION-SCREEN mein tha. Ek bhi field galat hoti toh user ko turant feedback milta. Interview mein dono ka farak clearly batana zaroori hai — bahut log sirf ek ko jaante hain ya dono ko ek hi samajhte hain.",
     "hinglishMasterExplanation": "Yeh topic interview mein common hai aur galti bhi common hai. OBLIGATORY: PARAMETERS declaration pe lagta hai. System automatically red asterisk dikhata hai. Jab user Execute dabata hai aur field empty hai toh system error deta hai — bina ek line code likhe. Lekin OBLIGATORY sirf 'field hai ya nahi' check karta hai — content sahi hai ya nahi, yeh nahi check karta. Custom Validation in AT SELECTION-SCREEN: business logic ke liye. MESSAGE TYPE 'E' — error message dikhata hai aur user ko wapis selection screen pe bhejta hai. TYPE 'W' — warning dikhata hai, user continue kar sakta hai. TYPE 'I' — informational, execution rokta nahi. Kab kya use karo: OBLIGATORY — hamesha mandatory field. Custom check — business rule: date range, cross-field dependency, value existence in DB. Real project example: p_werks OBLIGATORY tha — system se handle. p_date1 aur p_date2 ke liye AT SELECTION-SCREEN mein check: IF p_date1 > p_date2 THEN MESSAGE TYPE E. Aur agar p_date2 filled aur p_date1 empty — alag error message. Yeh business rules hain, system inhe nahi jaanta. Do's: MESSAGE TYPE 'E' use karo for validation errors — user wapis selection screen pe jaata hai values fix karne ke liye. Don'ts: Validation START-OF-SELECTION mein mat karo — TYPE 'E' there behaves like abort, user cannot correct and re-run.",
-    "interviewMeKyaBolnaHai": "OBLIGATORY marks a field as mandatory — SAP handles the validation automatically with a red asterisk and prevents execution if the field is empty, with no custom coding required. Custom validation in AT SELECTION-SCREEN is for business logic: checking date ranges, cross-field dependencies, or value validity against database tables. If validation fails, I use MESSAGE TYPE 'E' which keeps the selection screen open and returns the user for correction. Both work together: OBLIGATORY for basic presence, custom code for business rules. For example, in my project company code was OBLIGATORY, and in AT SELECTION-SCREEN I validated that the from-date is not later than the to-date using IF p_date1 > p_date2 with a descriptive error message using the WITH clause.\n\nHinglish tip: Trap question — 'OBLIGATORY ke baad bhi AT SELECTION-SCREEN mein kuch karna padta hai?' Answer: Haan, OBLIGATORY sirf empty check karta hai — business rule validate karne ke liye apna code likhna padta hai. Ye distinction clearly bolna important hai.",
+    "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'OBLIGATORY marks a PARAMETERS field as mandatory — SAP automatically shows a red asterisk and blocks execution if it is left empty, with zero custom coding. Custom validation in AT SELECTION-SCREEN is for business logic: cross-field dependencies, date range checks, or existence checks against tables like T001 for company code. If validation fails I use MESSAGE TYPE E, which keeps the selection screen open and returns the user for correction. The two work together — OBLIGATORY enforces presence, and AT SELECTION-SCREEN enforces business rules. For example, in a payroll report I made company code OBLIGATORY, and in AT SELECTION-SCREEN I validated that the from-date is not later than the to-date using MESSAGE e001(zmsg) WITH p_date1 p_date2 TYPE E so the user sees the actual conflicting values.'",
     "codeExamples": "REPORT zvalidation_demo.\n\nPARAMETERS: p_bukrs TYPE bukrs OBLIGATORY,  \" System handles empty check\n            p_date1 TYPE d    OBLIGATORY,\n            p_date2 TYPE d    OBLIGATORY,\n            p_matnr TYPE matnr.              \" Optional\n\nAT SELECTION-SCREEN.\n  \" Business rule 1: From date must not exceed To date\n  IF p_date1 > p_date2.\n    MESSAGE e001(zmsg)\n      WITH p_date1 p_date2   \" Actual values in message\n      TYPE 'E'.\n    \" Message text in SE91: 'From date & cannot exceed To date &'\n  ENDIF.\n\n  \" Business rule 2: Range cannot exceed 1 year (performance)\n  IF ( p_date2 - p_date1 ) > 365.\n    MESSAGE 'Date range cannot exceed 365 days' TYPE 'E'.\n  ENDIF.\n\n  \" Business rule 3: Company code must exist in T001\n  SELECT SINGLE bukrs FROM t001\n    WHERE bukrs = @p_bukrs INTO @DATA(lv_b).\n  IF sy-subrc <> 0.\n    MESSAGE 'Company code does not exist in T001' TYPE 'E'.\n  ENDIF.\n\nSTART-OF-SELECTION.\n  WRITE: / 'Processing:', p_bukrs, p_date1, '-', p_date2.",
+    "interviewScriptHinglish": "OBLIGATORY aur custom validation milke selection screens pe data quality enforce karte hain. OBLIGATORY ek declaration-level addition hai jo PARAMETERS field ko mandatory mark karta hai, aur SAP automatically red asterisk dikhata hai aur empty execution block karta hai. Lekin OBLIGATORY sirf presence check karta hai, correctness nahi. Business rules jaise date range validity ya master data existence AT SELECTION-SCREEN mein MESSAGE TYPE E ke saath code karne padte hain, jo error pe screen ko correction ke liye open rakhta hai. Ek payroll project mein maine company code aur personnel number OBLIGATORY mark kiye the aur AT SELECTION-SCREEN mein date range validate kiya tha message class with placeholders ke saath. Yeh early validation invalid execution prevent karti hai, server load reduce karti hai, aur poori report mein data integrity ensure karti hai.",
+    "interviewScriptEnglish": "OBLIGATORY and custom validation work together to enforce data quality on selection screens. OBLIGATORY is a declaration-level addition that marks a PARAMETERS field as mandatory, with SAP automatically displaying a red asterisk and blocking empty execution. However, OBLIGATORY only checks presence, not correctness. Business rules like date range validity or master data existence must be coded in AT SELECTION-SCREEN using MESSAGE TYPE E, which keeps the screen open for correction. In a payroll project I marked company code and personnel number OBLIGATORY and validated the date range in AT SELECTION-SCREEN using a message class with placeholders. This early validation prevents invalid execution, reduces server load, and ensures data integrity throughout the report.",
+    "wordByWordSamjho": [
+      {
+        "keyword": "OBLIGATORY",
+        "meaning": "Addition that makes a PARAMETERS field mandatory with system-enforced empty check"
+      },
+      {
+        "keyword": "AT SELECTION-SCREEN",
+        "meaning": "Event fired on Execute, used for full-screen validation"
+      },
+      {
+        "keyword": "MESSAGE ... TYPE 'E'",
+        "meaning": "Error message that keeps the selection screen open for correction"
+      },
+      {
+        "keyword": "MESSAGE ... WITH",
+        "meaning": "Inserts up to four dynamic values into message text placeholders"
+      },
+      {
+        "keyword": "SELECT SINGLE",
+        "meaning": "Fetches one row to check existence in a master data table"
+      },
+      {
+        "keyword": "IS INITIAL",
+        "meaning": "Checks if a variable or internal table is empty or default-valued"
+      },
+      {
+        "keyword": "e001(zmsg)",
+        "meaning": "References error message 001 from message class ZMSG defined in SE91"
+      },
+      {
+        "keyword": "START-OF-SELECTION",
+        "meaning": "Main processing event after AT SELECTION-SCREEN validation passes"
+      }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Placing MESSAGE TYPE E inside START-OF-SELECTION for validation",
+        "whyWrong": "TYPE E there behaves like an abort — user loses all input and must restart the program",
+        "correctApproach": "Always place validation in AT SELECTION-SCREEN so the selection screen stays open for correction"
+      },
+      {
+        "mistake": "Hardcoding message text inside MESSAGE statement",
+        "whyWrong": "Hardcoded strings are not translatable or transportable across systems",
+        "correctApproach": "Use message classes via SE91 with WITH clause for dynamic placeholder values"
+      },
+      {
+        "mistake": "Using MESSAGE TYPE W or S for hard validation failures",
+        "whyWrong": "Warning and success types allow execution to continue with invalid data",
+        "correctApproach": "Use TYPE E for hard validation errors that must block execution"
+      },
+      {
+        "mistake": "Comparing SELECT-OPTIONS like a single value instead of looping",
+        "whyWrong": "SELECT-OPTIONS is a range table — direct -low access ignores multiple entries",
+        "correctApproach": "LOOP AT s_field for multi-entry validation or use READ TABLE INDEX 1 for primary range"
+      }
+    ],
+    "quickRevisionNotes": "What: OBLIGATORY enforces presence on PARAMETERS while AT SELECTION-SCREEN handles business validations\n\nUsed for:\n- Marking mandatory PARAMETERS fields with automatic system-side empty check\n- Validating date ranges, cross-field dependencies, and master data existence\n- Issuing MESSAGE TYPE E to keep the selection screen open on errors\n\nKey syntax / tables / Tcodes:\n- PARAMETERS p_field TYPE type OBLIGATORY\n- AT SELECTION-SCREEN with IF and MESSAGE e001(zmsg) WITH value1 value2 TYPE E\n- SE91 for message class maintenance, T001 for company code validation\n\nInterview keyword: Presence check via OBLIGATORY, business rules via AT SELECTION-SCREEN TYPE E",
     "followupAnswerBank": [
       {
         "question": "What message types are used in selection screen validation?",
-        "hinglishExplanation": "MESSAGE ke 4 main types hain: TYPE 'E' (Error) — user wapis selection screen pe jaata hai, validation ka standard type. TYPE 'W' (Warning) — warning dikhta hai lekin user Enter dabake continue kar sakta hai — advisory checks ke liye. TYPE 'I' (Information) — dialog box mein message, execution nahi rokta. TYPE 'A' (Abort) — program terminate ho jaata hai completely. Validation ke liye TYPE 'E' hamesha use karo. Soft advisories ke liye TYPE 'W' appropriate hai.",
+        "tier": "easy",
+        "hinglishExplanation": "AT SELECTION-SCREEN mein MESSAGE TYPE 'E' validation ka standard hai — yeh selection screen open rakhta hai aur user ko correction ke liye wapas bhejta hai. TYPE 'W' warning dikhata hai lekin user ko Enter dabake continue karne deta hai, performance advisories jaise large date ranges ke liye useful hai. TYPE 'I' informational dialogs dikhata hai bina execution rok ke. TYPE 'A' program ko completely abort kar deta hai aur correctable validation errors ke liye use nahi hona chahiye.",
         "interviewAnswer": "In AT SELECTION-SCREEN, MESSAGE TYPE 'E' is the standard for validation — it keeps the selection screen open and returns the user for correction. TYPE 'W' shows a warning but allows the user to continue by pressing Enter, useful for performance advisories like large date ranges. TYPE 'I' shows informational dialogs without stopping execution. TYPE 'A' aborts the program completely and should not be used for correctable validation errors.",
         "realtimeExplanation": "Date range check ke liye: TYPE 'E' jab from date after to date (hard rule). TYPE 'W' jab range 180 days se zyada (performance advisory — user continue kar sakta hai). Dono ka alag purpose tha — user experience clean tha.",
         "mistakes": "TYPE 'A' use karna for validation errors — program abort ho jaata hai completely, user dobara se start karna padta hai. Correctable errors ke liye always TYPE 'E'.",
@@ -87,7 +230,8 @@
       },
       {
         "question": "Can you validate SELECT-OPTIONS in AT SELECTION-SCREEN?",
-        "hinglishExplanation": "Haan, SELECT-OPTIONS bhi AT SELECTION-SCREEN mein validate kar sakte ho. s_date[] se internal table access hoti hai — LOOP AT s_date[] karo aur har entry ka LOW, HIGH, OPTION check karo. Multiple ranges ho sakti hain — har ek validate karo. Specific SELECT-OPTIONS field ke liye AT SELECTION-SCREEN ON s_matnr event use karo — sirf us range field ke change pe fire hoga.",
+        "tier": "medium",
+        "hinglishExplanation": "Haan, SELECT-OPTIONS AT SELECTION-SCREEN mein validate ho sakta hai. Range table ko s_field[] ke roop mein access karo. Empty ranges ke liye IF s_date[] IS INITIAL se check karo. Individual LOW/HIGH combinations validate karne ke liye entries loop karo — BT (between) ranges ke liye ensure karo ki HIGH initial nahi hai. Field-specific validation ke liye: AT SELECTION-SCREEN ON s_matnr sirf tab fire hota hai jab woh SELECT-OPTIONS field change hota hai.",
         "interviewAnswer": "Yes, SELECT-OPTIONS can be validated in AT SELECTION-SCREEN. Access the range table as s_field[]. Check for empty ranges using IF s_date[] IS INITIAL. Loop through entries to validate individual LOW/HIGH combinations — for BT (between) ranges ensure HIGH is not initial. For field-specific validation: AT SELECTION-SCREEN ON s_matnr fires only when that SELECT-OPTIONS field changes.",
         "realtimeExplanation": "Date SELECT-OPTIONS mein users kabhi kabhi BT choose karte aur HIGH empty chhodte. LOOP AT s_date[] kiya, BT option wali entries check kiye — HIGH IS INITIAL hone pe clear error diya 'Complete the date range high value'.",
         "mistakes": "SELECT-OPTIONS validate karte waqt s_field ko single value se directly compare karna galat hai — yeh internal table hai. LOOP AT s_field[] karo ya IS INITIAL check karo table pe.",
@@ -95,7 +239,8 @@
       },
       {
         "question": "How is OBLIGATORY different from checking IS INITIAL in AT SELECTION-SCREEN?",
-        "hinglishExplanation": "OBLIGATORY system-level check hai — SAP khud validate karta hai standard error message aur field highlight ke saath — zero custom code. IS INITIAL check custom code mein hai — tumhara apna message aata hai jisme business-specific context de sakte ho. Dono ek saath use karo: OBLIGATORY basic presence ke liye, custom IS INITIAL check specific helpful message ke liye jaise 'Plant is required for inventory reports — contact admin for all-plant access'.",
+        "tier": "easy",
+        "hinglishExplanation": "OBLIGATORY ek system-level mandatory check hai standard SAP error message aur automatic field highlighting ke saath — zero custom code needed. AT SELECTION-SCREEN mein IS INITIAL check karna ek custom, context-aware error message allow karta hai. Dono coexist kar sakte hain: OBLIGATORY guaranteed presence validation ke liye, aur ek custom IS INITIAL check ek meaningful message ke liye jo users ko generic SAP error text se zyada actionable guidance deta hai.",
         "interviewAnswer": "OBLIGATORY is a system-level mandatory check with a standard SAP error message and automatic field highlighting — zero custom code needed. Checking IS INITIAL in AT SELECTION-SCREEN allows a custom, context-aware error message. Both can coexist: OBLIGATORY for guaranteed presence validation, and a custom IS INITIAL check for a meaningful message that gives users actionable guidance beyond the generic SAP error text.",
         "realtimeExplanation": "p_werks OBLIGATORY lagaya for system-level protection. Phir bhi AT SELECTION-SCREEN mein IS INITIAL check rakha with message 'Plant is required — contact your system admin if you need multi-plant access.' More helpful than SAP's generic 'Field must be filled' message.",
         "mistakes": "IS INITIAL check ke saath OBLIGATORY nahi lagana — OBLIGATORY system-level safeguard deta hai jo custom check se zyada reliable hai. Dono complementary hain, competing nahi.",
@@ -103,7 +248,8 @@
       },
       {
         "question": "How do you highlight a specific field on validation error?",
-        "hinglishExplanation": "AT SELECTION-SCREEN ON p_fieldname event use karo usi specific field ke change pe — error message automatically usi field pe highlight hoti hai. Yeh general AT SELECTION-SCREEN event se zyada specific hai. Multiple fields ke cross-validation ke liye general AT SELECTION-SCREEN use karo — wahan error generic screen pe dikhta hai bina specific field highlight ke. Field-specific feedback ke liye ON p_field version sahi hai.",
+        "tier": "medium",
+        "hinglishExplanation": "Error pe specific field highlight karne ke liye, AT SELECTION-SCREEN ON p_fieldname use karo — error message automatically us field ko highlight karta hai jab user use chhodta hai. General AT SELECTION-SCREEN event mein cross-field validation ke liye, error specific field highlighting ke bina screen level pe dikhta hai. Best practice: field-specific existence checks ke liye ON p_field use karo aur cross-field business rules ke liye general event.",
         "interviewAnswer": "To highlight a specific field on error, use AT SELECTION-SCREEN ON p_fieldname — the error message automatically highlights that field when the user leaves it. For cross-field validation in the general AT SELECTION-SCREEN event, the error is shown at the screen level without specific field highlighting. Best practice: use ON p_field for field-specific existence checks and the general event for cross-field business rules.",
         "realtimeExplanation": "p_bukrs ke liye AT SELECTION-SCREEN ON p_bukrs mein T001 check kiya — company code field specifically highlighted hoti thi. Date range cross-validation AT SELECTION-SCREEN mein — screen-level error. Dono alag scenarios ke liye sahi approach tha.",
         "mistakes": "General AT SELECTION-SCREEN mein error aane se koi specific field highlight nahi hoti — user ko guess karna padta hai kya fix karna hai. Field-specific highlight ke liye ON p_field version use karo.",
@@ -111,7 +257,8 @@
       },
       {
         "question": "What happens if you put validation in START-OF-SELECTION instead of AT SELECTION-SCREEN?",
-        "hinglishExplanation": "Yeh ek common mistake hai! Agar validation START-OF-SELECTION mein rakhi toh: MESSAGE TYPE 'E' wahan abort ki tarah behave karta hai — program terminate ho jaata hai. User wapis selection screen pe nahi jaata, dobara se program run karna padta hai — frustrating UX. AT SELECTION-SCREEN mein TYPE 'E' correctly user ko selection screen pe wapas bhejta hai values correct karne ke liye — baaki entries preserve rehti hain.",
+        "tier": "medium",
+        "hinglishExplanation": "START-OF-SELECTION mein validation ek common mistake hai. Tab tak program execution start ho chuka hota hai — wahan ek MESSAGE TYPE 'E' TYPE 'A' ki tarah behave karta hai aur program abort kar deta hai. User apna input correct nahi kar sakta aur scratch se program restart karna padta hai, baaki sab entries lose karke. AT SELECTION-SCREEN correct event hai — wahan TYPE 'E' user ko selection screen pe wapas bhejta hai unki baaki entries preserved ke saath.",
         "interviewAnswer": "Validation in START-OF-SELECTION is a common mistake. By that point, program execution has started — a MESSAGE TYPE 'E' there behaves like TYPE 'A' and aborts the program. The user cannot correct their input and must restart the program from scratch, losing all other entries. AT SELECTION-SCREEN is the correct event — TYPE 'E' there returns the user to the selection screen with their other entries preserved.",
         "realtimeExplanation": "Junior developer ne date validation START-OF-SELECTION mein rakhi. User ne galat date di, program aborted, sab fields empty ho gaye — user ne poori selection screen dobara fill ki. Frustrating. Fix: validation AT SELECTION-SCREEN mein move kiya — user sirf galat date fix karta tha, baki fields wahi rehti thi.",
         "mistakes": "Validation START-OF-SELECTION mein rakhna. Hamesha AT SELECTION-SCREEN use karo for all user input validation — user experience aur correctness dono ke liye.",
@@ -119,7 +266,8 @@
       },
       {
         "question": "How do you validate that at least one of two optional fields is filled?",
-        "hinglishExplanation": "Yeh business rule ka case hai: dono fields individually optional hain lekin kam se kam ek hona chahiye. OBLIGATORY dono pe lagao toh dono mandatory ho jayenge — business rule violation. AT SELECTION-SCREEN mein check karo: IF p_field1 IS INITIAL AND p_field2 IS INITIAL THEN error. Yahi flexibility custom validation deta hai jo OBLIGATORY nahi de sakta. Cross-field dependency logic OBLIGATORY se express nahi hoti — custom code zaroori hai.",
+        "tier": "advanced",
+        "hinglishExplanation": "'Two fields mein se kam se kam ek required' logic ke liye, kisi bhi field pe OBLIGATORY use mat karo — woh dono ko mandatory bana dega. Iski jagah AT SELECTION-SCREEN mein: IF p_field1 IS INITIAL AND p_field2 IS INITIAL, MESSAGE 'At least one of Material or Material Group must be provided' TYPE 'E'. Yeh ek business rule express karta hai jo OBLIGATORY handle nahi kar sakta. Yeh classic example hai kab custom validation OBLIGATORY se zyada zaroori hoti hai.",
         "interviewAnswer": "For 'at least one of two fields required' logic, do not use OBLIGATORY on either field — that would make both mandatory. Instead in AT SELECTION-SCREEN: IF p_field1 IS INITIAL AND p_field2 IS INITIAL, MESSAGE 'At least one of Material or Material Group must be provided' TYPE 'E'. This expresses a business rule that OBLIGATORY cannot handle. It is a classic example of when custom validation is necessary beyond OBLIGATORY.",
         "realtimeExplanation": "Inventory report mein: user material number ya material group mein se ek deta tha — dono optional but ek zaroori. OBLIGATORY nahi lagaya kisi pe. AT SELECTION-SCREEN mein dono IS INITIAL check kiya. Clear error: 'Enter Material or Material Group — at least one required.'",
         "mistakes": "Dono fields pe OBLIGATORY lagana — fir dono mandatory ho jaate hain, koi ek dene se bhi kaam nahi chalta. Business rule violate hoti hai.",
@@ -127,7 +275,8 @@
       },
       {
         "question": "How do you use WITH clause in MESSAGE for better error text?",
-        "hinglishExplanation": "MESSAGE ... WITH clause se dynamic values error message mein insert kar sakte ho. SE91 mein message class mein placeholder & rakho aur WITH se actual values pass karo. Isse user ko exact context milta hai — 'From date 01.01.2025 cannot exceed To date 31.12.2024' — instead of generic 'Invalid date range'. Maximum 4 values WITH ke saath pass ho sakti hain. Hamesha message class use karo — hardcoded strings transportable aur translatable nahi hote.",
+        "tier": "advanced",
+        "hinglishExplanation": "MESSAGE e001(zmsg) WITH val1 val2 TYPE 'E' message text mein dynamic values insert karta hai. Message ko SE91 mein & placeholders ke saath define karo: 'From date & cannot exceed To date &'. Maximum 4 WITH parameters supported hain. Yeh context-specific error messages banata hai — 'Invalid date range' ki jagah, user actual conflicting values dekhta hai, jisse problem identify aur fix karna easy ho jaata hai.",
         "interviewAnswer": "MESSAGE e001(zmsg) WITH val1 val2 TYPE 'E' inserts dynamic values into the message text. Define the message in SE91 with & placeholders: 'From date & cannot exceed To date &'. Up to 4 WITH parameters are supported. This creates context-specific error messages — instead of 'Invalid date range', the user sees the actual conflicting values, making it easy to identify and fix the problem.",
         "realtimeExplanation": "Generic 'Invalid dates' message se users confusion mein the. SE91 mein message update kiya with & placeholders. WITH clause se actual dates pass kiye — 'From 01.01.2025 cannot exceed To 31.12.2024'. Support tickets 60% reduce hue — users khud fix karne lage.",
         "mistakes": "Hardcoded message text mein values concatenate karna with string operators — not translatable, not standard ABAP practice. Hamesha message class with WITH clause use karo.",
@@ -135,7 +284,8 @@
       },
       {
         "question": "What is the difference between AT SELECTION-SCREEN and AT SELECTION-SCREEN ON?",
-        "hinglishExplanation": "AT SELECTION-SCREEN (without ON) tab fire hota hai jab user Execute button dabata hai — full-screen validation ke liye, cross-field rules ke liye. AT SELECTION-SCREEN ON p_field tab fire hota hai jab user sirf usi specific field ko change karke aage jaata hai — immediate field-level feedback ke liye. Dono alag purposes ke liye hain aur dono ek program mein saath use ho sakte hain — field-level for quick feedback, full-screen for cross-field business rules.",
+        "tier": "medium",
+        "hinglishExplanation": "AT SELECTION-SCREEN tab fire hota hai jab user Execute press karta hai — full-screen cross-field validation ke liye jaise date range checks. AT SELECTION-SCREEN ON p_field tab fire hota hai jab ek specific field focus lose karta hai — immediate feedback ke liye jaise check karna ki company code T001 mein exist karta hai ya nahi. Dono same program mein coexist kar sakte hain: lightweight field-level checks ke liye ON p_field aur cross-field rules ke liye general event jo multiple field values need karte hain.",
         "interviewAnswer": "AT SELECTION-SCREEN fires when the user presses Execute — for full-screen cross-field validation like date range checks. AT SELECTION-SCREEN ON p_field fires when a specific field loses focus — for immediate feedback like checking if a company code exists in T001. Both can coexist in the same program: ON p_field for lightweight field-level checks and the general event for cross-field rules that need multiple field values.",
         "realtimeExplanation": "p_bukrs ke liye: AT SELECTION-SCREEN ON p_bukrs mein T001 check — immediate feedback on field exit. p_date1/p_date2 cross-check: AT SELECTION-SCREEN mein — needs both values so fires on Execute. Dono milake UX smooth tha aur validation complete tha.",
         "mistakes": "Sab validation AT SELECTION-SCREEN ON mein karna — cross-field validations tab tak nahi kar sakte jab tak dono fields fill na ho jaayein. Aur heavy DB queries ON p_field mein dalna — performance issue.",
@@ -146,12 +296,76 @@
   "selection-screens-003": {
     "easyUnderstanding": "Dynamic show/hide sochna jaise ek restaurant menu — agar tum 'veg' select karo toh non-veg options chhup jaate hain. ABAP mein radio button select karne par kuch fields dikhao, kuch chhupao — MODIF ID se. Yeh kaise hota hai? Do cheezein zaroori hain: (1) Declaration mein MODIF ID — field ko ek group naam do, jaise PARAMETERS p_date1 TYPE d MODIF ID dat. (2) AT SELECTION-SCREEN OUTPUT event — yahan LOOP AT SCREEN karo, screen-group1 check karo ki woh tumhara MODIF ID hai ya nahi, phir screen-active = 0 (hide) ya 1 (show) set karo, aur phir MODIFY SCREEN call karo. Bina MODIFY SCREEN ke koi bhi change apply nahi hoga — yeh sabse common mistake hai. Yeh event radio button change karne pe dobara fire hota hai — isliye dynamic hiding seamlessly kaam karti hai. Real example: Sales report mein teen modes the — 'All Data', 'Filter by Date', 'Filter by Material'. Har mode pe alag fields dikhte the. rb_all selected ho toh date aur material fields chhupao. rb_date selected ho toh date fields dikhao, material chhupao. rb_mat selected ho toh material fields dikhao, date chhupao. Ek baar MODIF ID assign karo declaration mein — phir AT SELECTION-SCREEN OUTPUT mein ek if-else se sab control. Yeh feature user experience bahut better banata hai — unnecessary fields dekhkar user confuse nahi hota. Aur interviewer ko lagta hai ki tum production-ready code likhte ho.",
     "hinglishMasterExplanation": "Dynamic selection screen ek advanced topic hai jo experienced developer ko alag karta hai. MODIF ID ek 3-character group tag hai jo fields ko declaration time pe assign karte ho. Ek field sirf ek MODIF ID le sakta hai. Ek baar group banane ke baad, AT SELECTION-SCREEN OUTPUT mein un sab fields ko ek saath control kar sakte ho. LOOP AT SCREEN karne pe SCREEN internal structure milti hai — screen-name (field ka program name uppercase mein), screen-group1 (MODIF ID value — automatically uppercase), screen-active (0=hidden, 1=visible), screen-required (0=optional, 1=mandatory — visual asterisk), screen-input (0=display only, 1=editable). MODIFY SCREEN se changes apply hote hain — yeh bhoolna classic bug hai. AT SELECTION-SCREEN OUTPUT kab fire hota hai: pehli display se pehle, aur har user action ke baad (radio button change, field change, F4 close). Isliye LOOP AT SCREEN mein hamesha current radio button state check karo — cached state nahi. Do's: MODIF ID hamesha 3 characters ka rakho. Related fields ek hi MODIF ID do — ek jagah se sab control hote hain. MODIFY SCREEN LOOP ke andar call karo change ke turant baad. Don'ts: LOOP AT SCREEN ke baad MODIFY SCREEN bhoolna — changes apply nahi hote. AT SELECTION-SCREEN OUTPUT mein heavy DB queries mat rakho — yeh event frequent fire karta hai. Default values AT SELECTION-SCREEN OUTPUT mein mat rakho — INITIALIZATION mein rakho warna user values overwrite hoti hain.",
-    "interviewMeKyaBolnaHai": "Dynamic field visibility is achieved using MODIF ID on field declarations and the AT SELECTION-SCREEN OUTPUT event. In the declaration I assign a 3-character MODIF ID to related fields: PARAMETERS p_date1 TYPE d MODIF ID dat. In AT SELECTION-SCREEN OUTPUT I LOOP AT SCREEN, check screen-group1 against the MODIF ID, set screen-active to 0 (hide) or 1 (show) based on the current radio button or checkbox value, and then call MODIFY SCREEN. Without MODIFY SCREEN, no changes are applied. This pattern is typically driven by radio button selection — when the radio button changes, the selection screen refreshes and AT SELECTION-SCREEN OUTPUT fires again, re-evaluating the layout.\n\nHinglish tip: Classic mistake — 'LOOP AT SCREEN ke baad MODIFY SCREEN bhool gaye, fields change nahi hote.' Ye trap interviewer use karta hai — 'tumhara code chalata nahi screen-active change karne ke baad?' Correct answer: 'MODIFY SCREEN statement zaroor likhni padti hai loop ke andar change ke baad.'",
+    "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'Dynamic field visibility is implemented using MODIF ID on the field declaration combined with the AT SELECTION-SCREEN OUTPUT event. I assign a 3-character MODIF ID to related fields — for example PARAMETERS p_date1 TYPE d MODIF ID dat. In AT SELECTION-SCREEN OUTPUT I LOOP AT SCREEN, check screen-group1 against the uppercase MODIF ID, set screen-active to 1 to show or 0 to hide based on the current radio button or checkbox value, and then call MODIFY SCREEN inside the loop. MODIFY SCREEN is mandatory — without it the changes are silently ignored. The selection screen automatically refreshes and fires AT SELECTION-SCREEN OUTPUT again whenever the user changes a radio button, so the layout re-evaluates on every interaction. I also use screen-input = 0 to make fields display-only for authorization-restricted users.'",
     "codeExamples": "REPORT zdynamic_screen_demo.\n\n\" Radio buttons — group grp1 mein sirf ek select ho sakta hai\nPARAMETERS: rb_all  RADIOBUTTON GROUP grp1 DEFAULT 'X',\n            rb_date RADIOBUTTON GROUP grp1.\n\n\" Date fields — MODIF ID 'DAT' group mein\nPARAMETERS: p_date1 TYPE d MODIF ID dat,\n            p_date2 TYPE d MODIF ID dat.\n\n\" Material range — MODIF ID 'MAT' group mein\nSELECT-OPTIONS: s_matnr FOR mara-matnr MODIF ID mat.\n\nAT SELECTION-SCREEN OUTPUT.\n  LOOP AT SCREEN.\n    \" DAT group: rb_all selected ho toh hide, rb_date selected ho toh show\n    IF screen-group1 = 'DAT'.\n      IF rb_all = 'X'.\n        screen-active = 0.   \" Chhupao\n      ELSE.\n        screen-active = 1.   \" Dikhao\n      ENDIF.\n      MODIFY SCREEN.          \" Ye line bhoolna = bug!\n    ENDIF.\n  ENDLOOP.\n\nAT SELECTION-SCREEN.\n  \" Validate: rb_date selected ho toh dates required hain\n  IF rb_date = 'X'.\n    IF p_date1 IS INITIAL OR p_date2 IS INITIAL.\n      MESSAGE 'Date range required for filtered report' TYPE 'E'.\n    ENDIF.\n  ENDIF.",
+    "interviewScriptHinglish": "selection screens pe dynamic field visibility MODIF ID aur AT SELECTION-SCREEN OUTPUT combine karke implement karte hain. Har field ko declaration time pe ek three-character MODIF ID milta hai, jo related fields ko group karta hai. AT SELECTION-SCREEN OUTPUT mein LOOP AT SCREEN saare screen elements iterate karta hai, screen-group1 ko MODIF ID se check karta hai, screen-active one ya zero set karta hai, aur MODIFY SCREEN call karke change apply karta hai. Yeh event har screen refresh pe refire hota hai including radio button changes, isliye visibility automatically update hoti hai. Ek sales report mein maine three radio buttons use kiye the MODIF IDs DAT aur MAT ke saath taaki har mode pe sirf relevant input fields dikhein. screen-input zero set karne se fields restricted users ke liye display-only ban jaati hain. Isse clean, context-aware user experience milti hai jo invalid input combinations prevent karti hai.",
+    "interviewScriptEnglish": "Dynamic field visibility on selection screens is implemented using MODIF ID combined with AT SELECTION-SCREEN OUTPUT. Each field receives a three-character MODIF ID at declaration, grouping related fields together. In AT SELECTION-SCREEN OUTPUT, LOOP AT SCREEN iterates all screen elements, checks screen-group1 against the MODIF ID, sets screen-active to one or zero, and calls MODIFY SCREEN to apply the change. The event refires on every screen refresh, including radio button changes, so visibility automatically updates. In a sales report I used three radio buttons with MODIF IDs DAT and MAT to show only the relevant input fields per mode. screen-input set to zero makes fields display-only for restricted users. This delivers a clean, context-aware user experience that prevents invalid input combinations.",
+    "wordByWordSamjho": [
+      {
+        "keyword": "MODIF ID",
+        "meaning": "Three-character group tag attached to selection screen fields for dynamic control"
+      },
+      {
+        "keyword": "AT SELECTION-SCREEN OUTPUT",
+        "meaning": "Event fired before screen render, used for dynamic layout via LOOP AT SCREEN"
+      },
+      {
+        "keyword": "LOOP AT SCREEN",
+        "meaning": "Iterates all screen elements exposing screen-name, screen-group1, screen-active fields"
+      },
+      {
+        "keyword": "screen-group1",
+        "meaning": "SCREEN field holding the MODIF ID value of the current element"
+      },
+      {
+        "keyword": "screen-active",
+        "meaning": "Visibility flag: 0 hides the field, 1 shows it"
+      },
+      {
+        "keyword": "screen-input",
+        "meaning": "Editability flag: 0 makes display-only, 1 allows input"
+      },
+      {
+        "keyword": "screen-required",
+        "meaning": "Visual mandatory indicator: 1 shows red asterisk, 0 removes it"
+      },
+      {
+        "keyword": "MODIFY SCREEN",
+        "meaning": "Applies the modified SCREEN row back to the actual screen — mandatory call inside loop"
+      },
+      {
+        "keyword": "RADIOBUTTON GROUP",
+        "meaning": "Addition that groups PARAMETERS as mutually exclusive radio options"
+      }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Forgetting MODIFY SCREEN inside LOOP AT SCREEN",
+        "whyWrong": "Changes to screen-active or screen-input only exist in memory and are not applied to the actual screen",
+        "correctApproach": "Always call MODIFY SCREEN as the last statement inside the LOOP AT SCREEN block"
+      },
+      {
+        "mistake": "Setting screen-active to 0 on an OBLIGATORY field without clearing screen-required",
+        "whyWrong": "Creates a deadlock — user cannot fill the hidden field but system blocks execution due to OBLIGATORY",
+        "correctApproach": "Also set screen-required = '0' when hiding an OBLIGATORY field via MODIF ID"
+      },
+      {
+        "mistake": "Placing default value assignments in AT SELECTION-SCREEN OUTPUT instead of INITIALIZATION",
+        "whyWrong": "Output event fires repeatedly, overwriting any user changes on every screen refresh",
+        "correctApproach": "Set defaults once in INITIALIZATION which fires only at program start"
+      },
+      {
+        "mistake": "Performing heavy database queries inside AT SELECTION-SCREEN OUTPUT",
+        "whyWrong": "Event fires frequently — every keystroke, every radio change — causing severe performance lag",
+        "correctApproach": "Cache lookup data once in INITIALIZATION and reference the cache in AT SELECTION-SCREEN OUTPUT"
+      }
+    ],
+    "quickRevisionNotes": "What: MODIF ID is a 3-character field group used with AT SELECTION-SCREEN OUTPUT for dynamic field visibility\n\nUsed for:\n- Showing or hiding related fields based on radio button or checkbox state\n- Making fields display-only or conditionally required for authorization control\n- Building responsive selection screens that adapt to user choices\n\nKey syntax / tables / Tcodes:\n- PARAMETERS p_field TYPE type MODIF ID xxx\n- AT SELECTION-SCREEN OUTPUT with LOOP AT SCREEN and MODIFY SCREEN\n- SCREEN system table fields: screen-name, screen-group1, screen-active, screen-input, screen-required\n\nInterview keyword: MODIF ID plus LOOP AT SCREEN plus MODIFY SCREEN in AT SELECTION-SCREEN OUTPUT",
     "followupAnswerBank": [
       {
         "question": "What is MODIF ID and where is it declared?",
-        "hinglishExplanation": "MODIF ID declaration ke time pe PARAMETERS ya SELECT-OPTIONS ke saath likha jaata hai inline. Yeh ek 3-character identifier hai jo field ko ek group mein daalta hai. Baad mein AT SELECTION-SCREEN OUTPUT mein screen-group1 se is group ko identify karke saare group ke fields ek saath control kar sakte ho. Ek field sirf ek MODIF ID le sakta hai — multiple IDs ek field ko nahi de sakte.",
+        "tier": "easy",
+        "hinglishExplanation": "MODIF ID declaration time pe PARAMETERS ya SELECT-OPTIONS ke saath inline declare hota hai: PARAMETERS p_date TYPE d MODIF ID dat. Yeh ek 3-character group identifier assign karta hai. AT SELECTION-SCREEN OUTPUT mein, LOOP AT SCREEN karke screen-group1 ko MODIF ID ke against check karo us group ke saare fields identify aur control karne ke liye — screen-active, screen-required, ya screen-input set karke. Ek field ka sirf ek MODIF ID ho sakta hai.",
         "interviewAnswer": "MODIF ID is declared inline with PARAMETERS or SELECT-OPTIONS at declaration time: PARAMETERS p_date TYPE d MODIF ID dat. It assigns a 3-character group identifier. In AT SELECTION-SCREEN OUTPUT, LOOP AT SCREEN and check screen-group1 against the MODIF ID to identify and control all fields of that group — setting screen-active, screen-required, or screen-input. One field can have only one MODIF ID.",
         "realtimeExplanation": "5 date-related fields ek saath hide/show karni thi. Sabko MODIF ID dat diya. AT SELECTION-SCREEN OUTPUT mein sirf ek IF screen-group1 = 'DAT' condition se sab control ho gaye — very maintainable code.",
         "mistakes": "MODIF ID case: declaration mein 'dat' likho ya 'DAT' — screen-group1 mein hamesha uppercase 'DAT' aata hai. Compare karte waqt uppercase use karo: IF screen-group1 = 'DAT'.",
@@ -159,7 +373,8 @@
       },
       {
         "question": "What are the key properties of the SCREEN structure?",
-        "hinglishExplanation": "LOOP AT SCREEN mein screen internal table hoti hai jiske important fields hain: screen-name (field ka program name uppercase mein), screen-group1 (MODIF ID value), screen-active (0=hide, 1=show), screen-required (0=optional, 1=mandatory visual asterisk), screen-input (0=display-only greyed out, 1=editable). Inhe modify karo aur turant MODIFY SCREEN call karo — warna changes apply nahi hote.",
+        "tier": "easy",
+        "hinglishExplanation": "Dynamic layout ke liye key SCREEN structure fields: screen-group1 MODIF ID value match karta hai (hamesha uppercase), screen-active visibility control karta hai (0=hidden, 1=visible), screen-required mandatory asterisk add karta hai (0=optional, 1=required — visual only, enforced nahi), screen-input editability control karta hai (0=output-only greyed, 1=editable). LOOP mein koi bhi property modify karne ke baad, change apply karne ke liye immediately MODIFY SCREEN call karo.",
         "interviewAnswer": "Key SCREEN structure fields for dynamic layout: screen-group1 matches the MODIF ID value (always uppercase), screen-active controls visibility (0=hidden, 1=visible), screen-required adds the mandatory asterisk (0=optional, 1=required — visual only, not enforced), screen-input controls editability (0=output-only greyed, 1=editable). After modifying any property in the LOOP, call MODIFY SCREEN immediately to apply the change.",
         "realtimeExplanation": "Field ko read-only karna tha in certain condition. screen-input = 0 set kiya, screen-active = 1 rakha (visible but not editable). Field greyed out ho gayi — clear visual signal to user ki yeh field editable nahi hai.",
         "mistakes": "screen-active = 0 ke baad MODIFY SCREEN bhool jaana — changes apply nahi hote, fields dikhte rehte hain. Yeh LOOP ke andar turant call karna zaroori hai.",
@@ -167,7 +382,8 @@
       },
       {
         "question": "How does dynamic mandatory field work with MODIF ID?",
-        "hinglishExplanation": "screen-required = 1 set karne se field dynamically mandatory dikhti hai — red asterisk appear hota hai. Yeh OBLIGATORY se different hai jo static hota hai — OBLIGATORY hamesha asterisk dikhata hai, screen-required conditionally. Lekin screen-required sirf visual indicator hai — actual validation AT SELECTION-SCREEN mein khud likhni padti hai. Dono combine karo: screen-required visual ke liye, AT SELECTION-SCREEN validation actual enforcement ke liye.",
+        "tier": "medium",
+        "hinglishExplanation": "AT SELECTION-SCREEN OUTPUT LOOP mein screen-required = 1 set karo ek field mein dynamically mandatory asterisk add karne ke liye. OBLIGATORY jo static hai uske unlike, screen-required conditionally toggle ho sakta hai. Lekin screen-required sirf ek visual indicator hai — yeh validation enforce nahi karta. Hamesha ise AT SELECTION-SCREEN mein explicit validation ke saath pair karo taaki actually execution prevent ho jab dynamically-required field empty ho.",
         "interviewAnswer": "Set screen-required = 1 in AT SELECTION-SCREEN OUTPUT LOOP to dynamically add the mandatory asterisk to a field. Unlike OBLIGATORY which is static, screen-required can be conditionally toggled. However, screen-required is only a visual indicator — it does not enforce validation. Always pair it with explicit validation in AT SELECTION-SCREEN to actually prevent execution when the dynamically-required field is empty.",
         "realtimeExplanation": "Date filter selected karne pe date fields show hue, screen-required = 1 se asterisk bhi aya. AT SELECTION-SCREEN mein backup validation bhi rakhi — both visual cue and actual enforcement. User experience clear tha.",
         "mistakes": "screen-required = 1 ko actual validation samajhna — yeh sirf asterisk dikhata hai. Agar user empty chhodta hai toh program bina error ke chalta hai. Hamesha AT SELECTION-SCREEN mein bhi validate karo.",
@@ -175,7 +391,8 @@
       },
       {
         "question": "Can you hide an entire block using MODIF ID?",
-        "hinglishExplanation": "Haan! Block ke andar saare fields ko ek MODIF ID dedo — phir AT SELECTION-SCREEN OUTPUT mein us MODIF ID wale fields ko hide karne se effectively poora block hide ho jaata hai including frame aur title. Block ka frame automatically disappear ho jaata hai jab saare uske andar ke fields inactive ho jaate hain. Yeh grouped block hiding ka standard technique hai — koi alag mechanism block ke liye nahi hota.",
+        "tier": "medium",
+        "hinglishExplanation": "Haan, ek block ke andar saare fields ko same MODIF ID assign karke, us MODIF ID group ko hide karne se effectively poora block hide ho jaata hai — frame aur title automatically disappear ho jaate hain jab andar ke saare fields inactive (screen-active=0) hote hain. Yeh conditionally entire sections hide karne ki standard technique hai. Block frame ke liye koi separate mechanism nahi chahiye.",
         "interviewAnswer": "Yes, by assigning the same MODIF ID to all fields within a block, hiding that MODIF ID group effectively hides the entire block — the frame and title disappear automatically when all fields inside are inactive (screen-active=0). This is the standard technique for conditionally hiding entire sections. No separate mechanism is needed for the block frame itself.",
         "realtimeExplanation": "Ek 'Advanced Filters' block conditionally hide karna tha. Saare fields ko MODIF ID 'ADV' diya. Checkbox unchecked ho toh screen-active = 0 for all 'ADV' fields — poora block including frame disappeared. Very clean UX.",
         "mistakes": "Block title aur frame ko separately hide karne ki koshish karna — ABAP mein yeh directly possible nahi hai. Automatic hota hai jab saare field MODIF ID ke through inactive ho jaate hain.",
@@ -183,7 +400,8 @@
       },
       {
         "question": "What is the order of selection screen events?",
-        "hinglishExplanation": "Event sequence yaad rakho: (1) INITIALIZATION — ek baar, default values set karo. (2) AT SELECTION-SCREEN OUTPUT — pehli display se pehle, phir har user action ke baad, dynamic layout ke liye. (3) AT SELECTION-SCREEN ON p_field — jab specific field change ho, field-level validation. (4) AT SELECTION-SCREEN — jab Execute dabao, full validation. (5) START-OF-SELECTION — actual data processing. Yeh order samajhna zaroori hai — galat event mein code likhna common mistake hai.",
+        "tier": "easy",
+        "hinglishExplanation": "Selection screen event order: INITIALIZATION (start pe ek baar, default values ke liye) → AT SELECTION-SCREEN OUTPUT (har display se pehle aur har user action pe, dynamic layout ke liye) → AT SELECTION-SCREEN ON field (individual field exit pe, field-level validation ke liye) → AT SELECTION-SCREEN (Execute pe, full cross-field validation ke liye) → START-OF-SELECTION (saari validation pass hone ke baad data processing). Yeh sequence samajhna galat event mein logic place karne se rokta hai.",
         "interviewAnswer": "Selection screen event order: INITIALIZATION (once at start, for default values) → AT SELECTION-SCREEN OUTPUT (before each display and on every user action, for dynamic layout) → AT SELECTION-SCREEN ON field (on individual field exit, for field-level validation) → AT SELECTION-SCREEN (on Execute, for full cross-field validation) → START-OF-SELECTION (data processing after all validation passes). Understanding this sequence prevents placing logic in the wrong event.",
         "realtimeExplanation": "Junior ne default values INITIALIZATION ke bajaaye AT SELECTION-SCREEN OUTPUT mein rakhi. Har user action pe — radio button click, field change — defaults reset ho rahe the. Fix: INITIALIZATION mein move kiya. Immediately stable tha.",
         "mistakes": "Default values AT SELECTION-SCREEN OUTPUT mein rakhna — user entries har refresh pe overwrite ho jaayengi. INITIALIZATION sirf ek baar chalta hai — correct place for defaults.",
@@ -191,7 +409,8 @@
       },
       {
         "question": "How do you make a field input-only (non-editable) dynamically?",
-        "hinglishExplanation": "screen-input = 0 set karne se field display-only (greyed out) ho jaati hai — user dekh sakta hai but edit nahi kar sakta. screen-active = 1 rakho taaki field visible rahe. MODIF ID ke through ya screen-name se specific field pe karo. Example: pre-calculated field dikhana tha jo user change nahi kar sakta — screen-input = 0, screen-active = 1 combination sahi hai.",
+        "tier": "medium",
+        "hinglishExplanation": "Dynamically field ko non-editable banane ke liye: AT SELECTION-SCREEN OUTPUT LOOP AT SCREEN mein field ko screen-group1 ya screen-name se find karo, screen-input = 0 set karo (greyed out, non-editable), screen-active = 1 rakho (still visible), phir MODIFY SCREEN. Field greyed appear hoti hai — ek clear visual signal ki yeh read-only hai. Computed display values ya role-based field locking ke liye use hota hai.",
         "interviewAnswer": "To make a field non-editable dynamically: in AT SELECTION-SCREEN OUTPUT LOOP AT SCREEN, find the field by screen-group1 or screen-name, set screen-input = 0 (greyed out, non-editable), keep screen-active = 1 (still visible), then MODIFY SCREEN. The field appears greyed — a clear visual signal that it is read-only. Used for computed display values or role-based field locking.",
         "realtimeExplanation": "Currency field pre-populated tha from user master — user change nahi kar sakta tha. screen-input = 0, screen-active = 1 set kiya. Field grey tha, value visible — clear signal. No edits possible.",
         "mistakes": "screen-input = 0 ke saath screen-active = 0 bhi set karna — field completely hide ho jaati hai. Display-only ke liye: screen-active = 1 (visible) + screen-input = 0 (not editable).",
@@ -199,7 +418,8 @@
       },
       {
         "question": "Can MODIF ID be used with SELECT-OPTIONS?",
-        "hinglishExplanation": "Haan, SELECT-OPTIONS pe bhi MODIF ID lagta hai — same syntax. SELECT-OPTIONS screen pe multiple elements generate karta hai: label, low field, high field, multiple selection button. Jab MODIF ID se hide karo toh saare elements ek saath hide ho jaate hain. Ek hi condition se sab elements control hote hain — very convenient.",
+        "tier": "advanced",
+        "hinglishExplanation": "Haan, MODIF ID SELECT-OPTIONS ke saath kaam karta hai: SELECT-OPTIONS s_matnr FOR mara-matnr MODIF ID mat. Jab LOOP AT SCREEN screen-group1 = 'MAT' check karta hai, yeh us SELECT-OPTIONS se generated saare screen elements catch karta hai — label, low field, high field, aur multiple selection button. screen-active = 0 set karne se sab ek saath hide ho jaate hain. Yeh individual elements ko screen-name se control karne ki koshish se kafi cleaner hai.",
         "interviewAnswer": "Yes, MODIF ID works with SELECT-OPTIONS: SELECT-OPTIONS s_matnr FOR mara-matnr MODIF ID mat. When LOOP AT SCREEN checks screen-group1 = 'MAT', it catches all screen elements generated by that SELECT-OPTIONS — the label, low field, high field, and multiple selection button. Setting screen-active = 0 hides all of them together. This is much cleaner than trying to control individual elements by screen-name.",
         "realtimeExplanation": "s_matnr SELECT-OPTIONS ko conditionally hide karna tha. MODIF ID lagaya. AT SELECTION-SCREEN OUTPUT mein screen-group1 = 'MAT' check kiya — label, both input fields, and multiple selection button — sab ek saath hide ho gaye. Clean.",
         "mistakes": "SELECT-OPTIONS ke multiple screen elements ko screen-name se individually hide karne ki koshish karna — tedious aur error-prone. MODIF ID ek hi step mein sab handle karta hai. Names bhi complex hote hain for SELECT-OPTIONS elements.",
@@ -207,7 +427,8 @@
       },
       {
         "question": "What happens when radio button changes — how does AT SELECTION-SCREEN OUTPUT fire?",
-        "hinglishExplanation": "Radio button change karne pe SAP selection screen refresh hoti hai aur AT SELECTION-SCREEN OUTPUT dobara fire hota hai. Isliye dynamic hiding kaam karta hai — radio button select karo, screen refresh ho, AT SELECTION-SCREEN OUTPUT mein current radio button value check karo, accordingly fields hide/show karo. Yahi reason hai ki LOOP AT SCREEN mein hamesha current state check karo — stale cached variable mat use karo.",
+        "tier": "advanced",
+        "hinglishExplanation": "Jab radio button change kiya jaata hai, SAP automatically selection screen refresh trigger karta hai aur AT SELECTION-SCREEN OUTPUT fire karta hai. Yeh core mechanism hai jo dynamic layout ko kaam karwata hai — har refresh current radio button state ke against LOOP AT SCREEN logic re-evaluate karta hai aur accordingly field visibility adjust karta hai. Hamesha current radio button value loop ke andar directly read karo, kabhi bhi refresh se pehle ki cached ya previously stored value use mat karo.",
         "interviewAnswer": "When a radio button is changed, SAP automatically triggers a selection screen refresh and fires AT SELECTION-SCREEN OUTPUT. This is the core mechanism that makes dynamic layout work — each refresh re-evaluates the LOOP AT SCREEN logic against the current radio button state and adjusts field visibility accordingly. Always read the current radio button value directly inside the loop, never use a cached or previously stored value from before the refresh.",
         "realtimeExplanation": "rb_all se rb_date switch kiya — screen refresh, AT SELECTION-SCREEN OUTPUT fire, date fields appear. rb_all pe wapas — screen refresh, date fields disappear. Seamless UX without any additional code beyond the LOOP AT SCREEN pattern.",
         "mistakes": "AT SELECTION-SCREEN OUTPUT ko sirf ek baar fire hone wala maanna. Yeh bar bar fire hota hai har user action pe. Expensive operations isme rakhna performance issue create karta hai.",

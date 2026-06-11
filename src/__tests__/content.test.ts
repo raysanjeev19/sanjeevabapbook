@@ -13,7 +13,12 @@ describe("SAP interview content bank", () => {
       expect(question.answers.followupQuestions.length).toBeGreaterThan(0);
       expect(question.answers.advancedFollowupQuestions.length).toBeGreaterThan(0);
       expect(question.answers.hinglishMasterExplanation.length).toBeGreaterThan(120);
-      expect(question.answers.interviewMeKyaBolnaHai).toContain("Interview Me Aap Aise Bol Sakte Ho");
+      expect(question.answers.interviewMeKyaBolnaHai.length).toBeGreaterThan(120);
+      expect(question.answers.interviewScriptHinglish?.length ?? 0).toBeGreaterThan(120);
+      expect(question.answers.interviewScriptEnglish?.length ?? 0).toBeGreaterThan(120);
+      expect(question.answers.wordByWordSamjho?.length ?? 0).toBeGreaterThanOrEqual(5);
+      expect(question.answers.commonMistakesSection?.length ?? 0).toBeGreaterThanOrEqual(3);
+      expect(question.answers.quickRevisionNotes?.length ?? 0).toBeGreaterThan(80);
       expect(question.answers.followupAnswerBank.length).toBeGreaterThanOrEqual(4);
       expect(question.followups.length).toBeGreaterThanOrEqual(8);
     }

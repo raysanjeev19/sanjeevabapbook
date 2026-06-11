@@ -15,7 +15,7 @@ export function Card({
     <div
       id={id}
       className={cn(
-        "rounded-lg border border-border bg-surface transition-colors duration-150",
+        "rounded-xl border border-border bg-surface shadow-card transition-[box-shadow,border-color,background-color] duration-200",
         accent && "border-l-[3px]",
         className,
       )}

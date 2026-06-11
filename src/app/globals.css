@@ -5,53 +5,76 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ============================================================
-   READING-FIRST THEME
-   Two calm palettes designed for long-form focus:
-   - light: warm paper (cream / soft near-black)
-   - dark : calm sepia-dark (warm charcoal / warm off-white)
-   Components consume semantic tokens, so switching is just a
-   variable swap — no neon, no glare.
+   ABAPPREP — LOCK-IN PALETTE
+   Primary #2563EB (trust/learning), success #22C55E (progress),
+   warning #F59E0B (interview tips), error #EF4444 (mistakes).
+   Light bg #F8FAFC + cards #FFFFFF. Dark bg #0F172A + cards #1E293B.
    ============================================================ */
 
 :root,
 .light {
   color-scheme: light;
 
-  --background: #faf6ef; /* warm cream paper */
-  --surface: #fffdf8; /* raised card */
-  --surface-2: #f1eadc; /* inset (code, inputs) */
+  --background: #f8fafc; /* slate-50 */
+  --surface: #ffffff; /* card */
+  --surface-2: #f1f5f9; /* inset (code, inputs) — slate-100 */
 
-  --foreground: #2b2620; /* warm near-black */
-  --muted: #6f6657; /* secondary text */
-  --faint: #9a9080; /* tertiary / placeholder */
+  --foreground: #0f172a; /* slate-900 */
+  --muted: #475569; /* slate-600 */
+  --faint: #94a3b8; /* slate-400 */
 
-  --border: rgba(43, 38, 32, 0.13);
-  --border-strong: rgba(43, 38, 32, 0.22);
+  --border: rgba(15, 23, 42, 0.1);
+  --border-strong: rgba(15, 23, 42, 0.18);
 
-  --accent: #0e7c72; /* deep teal */
-  --accent-soft: rgba(14, 124, 114, 0.1);
-  --accent-contrast: #ffffff; /* text on accent fills */
-  --accent-glow: rgba(14, 124, 114, 0.16);
+  --accent: #2563eb; /* primary — blue-600 */
+  --accent-soft: rgba(37, 99, 235, 0.1);
+  --accent-contrast: #ffffff;
+  --accent-glow: rgba(37, 99, 235, 0.18);
+
+  /* Semantic status colors — used across both themes */
+  --success: #22c55e;
+  --success-soft: rgba(34, 197, 94, 0.12);
+  --warning: #f59e0b;
+  --warning-soft: rgba(245, 158, 11, 0.12);
+  --error: #ef4444;
+  --error-soft: rgba(239, 68, 68, 0.12);
+
+  /* Soft layered elevation — calm, never harsh */
+  --elev-1: 0 1px 2px rgba(15, 23, 42, 0.04), 0 2px 8px rgba(15, 23, 42, 0.04);
+  --elev-2: 0 2px 4px rgba(15, 23, 42, 0.05), 0 8px 24px rgba(15, 23, 42, 0.08);
+  --elev-3: 0 4px 12px rgba(15, 23, 42, 0.08), 0 12px 32px rgba(15, 23, 42, 0.12);
 }
 
 .dark {
   color-scheme: dark;
 
-  --background: #181512; /* warm charcoal */
-  --surface: #211d18;
-  --surface-2: #2a251f;
+  --background: #0f172a; /* slate-900 */
+  --surface: #1e293b; /* card — slate-800 */
+  --surface-2: #273449; /* slightly raised inset */
 
-  --foreground: #ebe3d6; /* warm off-white */
-  --muted: #a89e8d;
-  --faint: #6f665a;
+  --foreground: #f8fafc; /* slate-50 */
+  --muted: #cbd5e1; /* slate-300 */
+  --faint: #64748b; /* slate-500 */
 
-  --border: rgba(235, 227, 214, 0.12);
-  --border-strong: rgba(235, 227, 214, 0.2);
+  --border: rgba(248, 250, 252, 0.1);
+  --border-strong: rgba(248, 250, 252, 0.18);
 
-  --accent: #5fc9bd; /* soft teal */
-  --accent-soft: rgba(95, 201, 189, 0.12);
-  --accent-contrast: #14110e; /* dark text on accent fills */
-  --accent-glow: rgba(95, 201, 189, 0.16);
+  --accent: #3b82f6; /* blue-500 — slightly brighter on dark for AA */
+  --accent-soft: rgba(59, 130, 246, 0.14);
+  --accent-contrast: #ffffff;
+  --accent-glow: rgba(59, 130, 246, 0.22);
+
+  --success: #4ade80;
+  --success-soft: rgba(74, 222, 128, 0.14);
+  --warning: #fbbf24;
+  --warning-soft: rgba(251, 191, 36, 0.14);
+  --error: #f87171;
+  --error-soft: rgba(248, 113, 113, 0.14);
+
+  /* Elevation reads as depth on dark, not glow */
+  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.18);
+  --elev-2: 0 2px 4px rgba(0, 0, 0, 0.25), 0 8px 24px rgba(0, 0, 0, 0.3);
+  --elev-3: 0 4px 12px rgba(0, 0, 0, 0.3), 0 12px 32px rgba(0, 0, 0, 0.4);
 }
 
 @theme inline {
@@ -66,9 +89,19 @@
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
   --color-accent-contrast: var(--accent-contrast);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-error: var(--error);
+  --color-error-soft: var(--error-soft);
 
   --font-sans: var(--font-inter);
   --font-serif: var(--font-lora);
+
+  --shadow-card: var(--elev-1);
+  --shadow-card-hover: var(--elev-2);
+  --shadow-pop: var(--elev-3);
 }
 
 * {
@@ -110,15 +143,16 @@ body {
 
 /* ============================================================
    READING TYPOGRAPHY
-   The reading column is the heart of the experience: a calm
-   serif, comfortable measure (~66ch), generous leading.
+   ABAPPrep spec: Inter primary, body 18px, max 3 lines/para,
+   skimmable. We use Inter for body for clean UI legibility and
+   keep Lora only for chapter/question headings (`font-serif`).
    ============================================================ */
 .reading {
-  font-family: var(--font-lora), Georgia, "Times New Roman", serif;
-  font-size: 1.075rem;
-  line-height: 1.85;
+  font-family: var(--font-inter), "Inter", "Poppins", system-ui, -apple-system, sans-serif;
+  font-size: 1.125rem; /* 18px per spec */
+  line-height: 1.75;
   color: var(--foreground);
-  letter-spacing: 0.003em;
+  letter-spacing: 0;
 }
 .reading p + p {
   margin-top: 1.1em;
@@ -140,6 +174,27 @@ body {
    ============================================================ */
 .aurora {
   background: var(--background);
+}
+
+/* Faint accent wash behind heroes — depth without distraction */
+.ambient-top {
+  background:
+    radial-gradient(56rem 28rem at 18% -10%, var(--accent-soft), transparent 65%),
+    radial-gradient(40rem 22rem at 95% 0%, var(--success-soft), transparent 70%);
+}
+
+/* Horizontal pill strips (section tabs) — scrollable, no scrollbar */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Bottom action bars clear the iPhone home indicator */
+.pb-safe {
+  padding-bottom: max(0.625rem, env(safe-area-inset-bottom));
 }
 
 .glass {
@@ -169,18 +224,18 @@ body {
   outline-color: var(--accent);
 }
 
-/* Difficulty accent (used by chapter color system) */
+/* Difficulty accent (used by chapter color system) — aligned with ABAPPrep palette */
 .diff-beginner {
-  --diff-color: #0e7c72;
+  --diff-color: #22c55e; /* success — beginner = green/easy */
 }
 .diff-intermediate {
-  --diff-color: #2563eb;
+  --diff-color: #2563eb; /* primary blue */
 }
 .diff-advanced {
-  --diff-color: #7c3aed;
+  --diff-color: #f59e0b; /* warning amber */
 }
 .diff-expert {
-  --diff-color: #c0392b;
+  --diff-color: #ef4444; /* error red — expert intensity */
 }
 
 /* ============================================================

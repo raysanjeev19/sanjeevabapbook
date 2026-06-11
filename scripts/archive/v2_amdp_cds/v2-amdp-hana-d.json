@@ -1,0 +1,142 @@
+{
+  "amdp-hana-012": {
+    "interviewScriptHinglish": "Sir, S/4HANA mein AMDP aur HANA optimization first-class citizens hain. Simplification ke karan tables jaise ACDOCA — Universal Journal — bahut bade ho gaye hain jisme finance ki saari posting consolidated hai. Aise tables pe aggregation pure ABAP mein efficient nahi, isliye SAP ne AMDP aur CDS ko strongly recommend kiya hai. Practically, mere project mein FI report ACDOCA pe AMDP se banaya — billions of rows ka GROUP BY HANA columnar engine ne seconds mein process kiya. Iska benefit yeh hai ki S/4HANA simplification — flatter data model, in-memory processing aur AMDP pushdown — sab milke real-time business reporting deliver karte hain, jo ECC mein possible nahi tha.",
+    "interviewScriptEnglish": "S/4HANA architecture is built around HANA, making AMDP and CDS the preferred ways to deliver performance. Simplification has consolidated finance into ACDOCA, sales into VBAK/VBAP variants, and inventory into MATDOC, creating very large central tables. Processing such volumes in ABAP loops is no longer viable, so SAP recommends pushdown via AMDP or CDS. HANA 2.0 features like text analytics, predictive functions, and series data can be used inside AMDP for advanced scenarios. In our migration project we converted legacy SELECT-LOOP finance reports to AMDP and saw real-time response times. The business value is faster month-end close, real-time Fiori KPIs, and the ability to retire batch aggregation jobs.",
+    "wordByWordSamjho": [
+      { "keyword": "ACDOCA", "meaning": "Universal Journal table consolidating finance, CO, ML postings in S/4HANA" },
+      { "keyword": "MATDOC", "meaning": "Simplified material document table replacing legacy MKPF/MSEG" },
+      { "keyword": "Simplification List", "meaning": "SAP-published catalogue of structural changes in S/4HANA" },
+      { "keyword": "Columnar Storage", "meaning": "HANA layout where columns are stored together for aggregation speed" },
+      { "keyword": "@Analytics.dataCategory", "meaning": "CDS annotation marking the view as CUBE, FACT, or DIMENSION" },
+      { "keyword": "RAP", "meaning": "RESTful ABAP Programming model for building business services" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Reusing ECC report patterns directly on S/4HANA simplified tables",
+        "whyWrong": "ECC compatibility views and legacy code patterns hide performance opportunities and may even break",
+        "correctApproach": "Read the simplification list and rewrite reports against ACDOCA, MATDOC and CDS with pushdown"
+      },
+      {
+        "mistake": "Designing AMDP without considering HANA columnar storage",
+        "whyWrong": "Wide SELECT * queries undo the benefits of column-wise compression",
+        "correctApproach": "List only the needed columns and design WHERE clauses that align with columnar pruning"
+      },
+      {
+        "mistake": "Performing post-processing of AMDP results in ABAP loops",
+        "whyWrong": "Brings data back to the app server and negates pushdown gains",
+        "correctApproach": "Keep transformation, filtering, and aggregation inside the AMDP body"
+      },
+      {
+        "mistake": "Skipping CDS Table Function when Fiori needs AMDP logic",
+        "whyWrong": "Fiori cannot consume AMDP directly; you end up with bespoke Gateway code",
+        "correctApproach": "Wrap the AMDP in a CDS Table Function with @OData.publish for clean Fiori consumption"
+      }
+    ],
+    "quickRevisionNotes": "What: AMDP positioned as a first-class S/4HANA pushdown mechanism on simplified tables.\n\nUsed for:\n- Finance reporting on ACDOCA at scale\n- Material movement analytics on MATDOC\n- Real-time KPIs backing Fiori Elements apps\n\nKey syntax / tables / Tcodes:\n- ACDOCA, MATDOC, VBAK/VBAP, BSEG (read access)\n- CDS define table function ... implemented by method\n- HANA 2.0 SQLScript: predictive, series, spatial functions\n- ADT in Eclipse for development, HANA Cockpit for monitoring\n\nInterview keyword: simplified tables plus pushdown equals S/4HANA performance",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "amdp-hana-013": {
+    "interviewScriptHinglish": "Sir, AMDP aur HANA optimization mein bahut saari subtle galtiyan hoti hain jo code compile bhi ho jaata hai aur initial test pe pass bhi ho jaata hai, lekin production mein issues create karti hain. SELECT * pe columnar performance kharab hoti hai. USING bhoolne se transport fail hota hai. Authorization wrapper miss karne se security gap aata hai. Practically, mere project mein ek AMDP USING mein CDS view miss thi — dev mein chal raha tha kyunki object pehle se tha, lekin transport sequence galat hone se QA mein activation fail hua. Iska benefit yeh hai ki yeh common pitfalls pehle se samajh ke code review aur peer testing mein actively check karne se production issues bahut kam ho jaati hain.",
+    "interviewScriptEnglish": "AMDP code can compile and pass unit tests yet introduce subtle production issues. The most common pitfalls include SELECT * on wide HANA tables, missing tables in the USING clause, hardcoded client values, absent authorization checks in the calling wrapper, missing OPTIONS READ-ONLY on reporting methods, swallowed cx_amdp_error exceptions, and post-processing AMDP results in ABAP loops. Each looks harmless individually but undermines performance, security, or maintainability. In one project a missing CDS view in USING worked in dev but failed activation in QA due to transport sequence. The business value of knowing these pitfalls is reducing rework, audit findings, and production incidents.",
+    "wordByWordSamjho": [
+      { "keyword": "SELECT *", "meaning": "Reads every column, hurting columnar HANA performance" },
+      { "keyword": "USING", "meaning": "AMDP clause naming every table or view used inside the body" },
+      { "keyword": "OPTIONS READ-ONLY", "meaning": "Safety addition blocking DML inside an AMDP" },
+      { "keyword": "cx_amdp_error", "meaning": "Exception class raised by failed AMDP execution" },
+      { "keyword": "Hardcoded client", "meaning": "Anti-pattern where MANDT is fixed in SQLScript rather than passed in" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Using SELECT * on wide S/4HANA tables inside AMDP",
+        "whyWrong": "Forces HANA to read all column segments, defeating columnar optimization",
+        "correctApproach": "List only the columns you need to leverage column-store pruning"
+      },
+      {
+        "mistake": "Forgetting tables in the USING clause",
+        "whyWrong": "Activation passes in dev but transport breaks because dependency tracking missed it",
+        "correctApproach": "List every transparent table, CDS view, and called AMDP inside USING"
+      },
+      {
+        "mistake": "Skipping AUTHORITY-CHECK in the ABAP wrapper",
+        "whyWrong": "AMDP itself cannot enforce authorization, leading to unauthorized data exposure",
+        "correctApproach": "Run all authorization checks in the ABAP wrapper before invoking the AMDP"
+      },
+      {
+        "mistake": "Re-processing AMDP results inside ABAP LOOP",
+        "whyWrong": "Wastes the pushdown gains by replicating logic on the application server",
+        "correctApproach": "Keep transformation, aggregation, and joins inside the AMDP body"
+      }
+    ],
+    "quickRevisionNotes": "What: Catalogue of subtle AMDP mistakes that pass compilation but hurt production.\n\nUsed for:\n- Code review checklists for AMDP work\n- Onboarding new ABAP-on-HANA developers\n- Hardening reports before transport\n\nKey syntax / tables / Tcodes:\n- Explicit column lists, full USING clauses, OPTIONS READ-ONLY\n- AUTHORITY-CHECK in ABAP wrapper, cx_amdp_error handling\n- ABAP Dictionary table types for parameters\n- iv_mandt parameter for client filtering\n\nInterview keyword: production-grade discipline around AMDP",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "amdp-hana-014": {
+    "interviewScriptHinglish": "Sir, AMDP testing thoda alag hai normal ABAP se kyunki body HANA pe execute hoti hai. Standard approach hai ABAP Unit test class jisme test doubles use karke method behaviour assert karte hain. Direct HANA test ke liye SQL Analyzer ya HANA Database Explorer mein stored procedure ko sample data se execute karte hain. ST05 SQL trace se pushdown verify hota hai. Practically, mere project mein migration testing kiya — same input pe ABAP report aur naya AMDP report run karke results compare kiye, parallel run validation ki. Iska benefit yeh hai ki AMDP changes confidently transport ho sakte hain aur edge cases — NULL, empty input, large volumes — pehle se cover ho jaate hain.",
+    "interviewScriptEnglish": "Testing AMDP combines ABAP Unit testing for the wrapper logic with HANA-side validation for the SQLScript body. ABAP Unit classes can call the AMDP method with controlled inputs and assert the EXPORTING result; for cases where the framework is too heavy, the generated HANA stored procedure can be called from HANA Database Explorer or SQL Analyzer with sample data. ST05 traces confirm pushdown, and parallel comparison testing — running the old ABAP code and the new AMDP and comparing outputs — guards against migration regressions. Edge cases such as NULL inputs, empty selections, and very large volumes deserve explicit tests. The business value is confident deployments with minimal production surprises.",
+    "wordByWordSamjho": [
+      { "keyword": "ABAP Unit", "meaning": "Unit-testing framework built into ABAP for class-based tests" },
+      { "keyword": "HANA SQL Analyzer", "meaning": "HANA tool that visualises execution plans and runtime for SQL" },
+      { "keyword": "Stored Procedure", "meaning": "HANA object created by the AMDP, executable directly in HANA tools" },
+      { "keyword": "ST05", "meaning": "Performance SQL trace transaction used to verify pushdown" },
+      { "keyword": "Parallel Comparison", "meaning": "Running old and new logic side by side to compare results" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Testing only the ABAP wrapper and assuming the SQLScript is correct",
+        "whyWrong": "Hides bugs in joins, NULL handling, or aggregation that only show on real data",
+        "correctApproach": "Combine ABAP Unit tests with direct execution of the generated stored procedure in HANA tools"
+      },
+      {
+        "mistake": "Skipping edge-case tests for NULL or empty inputs",
+        "whyWrong": "NULL propagation can corrupt aggregates and empty selections often crash callers",
+        "correctApproach": "Write explicit unit tests with NULL columns, empty internal tables, and boundary dates"
+      },
+      {
+        "mistake": "Not validating pushdown after migrating to AMDP",
+        "whyWrong": "The query may still be executed inefficiently on HANA if join hints or types are wrong",
+        "correctApproach": "Capture ST05 traces and inspect PlanViz to confirm the plan matches expectations"
+      },
+      {
+        "mistake": "Releasing AMDP changes without parallel comparison",
+        "whyWrong": "Subtle differences vs the legacy ABAP version may go unnoticed until business complains",
+        "correctApproach": "Run both implementations on production-like data and reconcile every column"
+      }
+    ],
+    "quickRevisionNotes": "What: Combined ABAP-side and HANA-side testing approach for AMDP methods.\n\nUsed for:\n- Regression coverage during ABAP-to-AMDP migrations\n- Validating SQLScript correctness on edge cases\n- Confirming pushdown post-deployment\n\nKey syntax / tables / Tcodes:\n- ABAP Unit (CLASS ltcl_test DEFINITION FOR TESTING)\n- HANA Database Explorer / SQL Analyzer for stored procedure tests\n- ST05 trace, SAT runtime analysis\n- Parallel run scripts comparing old and new outputs\n\nInterview keyword: dual-layer testing with reconciliation",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "amdp-hana-015": {
+    "interviewScriptHinglish": "Sir, interviewer ke trap questions woh hote hain jo sunne mein seedhe lagte hain lekin galat direction mein le jaate hain. Jaise — 'AMDP hamesha faster hai kya?' Jawab hai nahi — chhote datasets pe overhead zyada hai. 'AMDP CDS ko replace kar sakta hai?' Nahi — dono ka purpose alag hai. 'AMDP ECC pe bhi chalta hai?' Sirf HANA-based systems pe. Practically, mere project mein junior developer ne small lookup AMDP banaya — performance kharab hui. Refactor karke Open SQL pe wapas le aaye. Iska benefit yeh hai ki interview mein limitations clearly bolne se candidate experienced lagta hai — beginner sirf benefits bolta hai, experienced trade-offs samajhta hai.",
+    "interviewScriptEnglish": "Interview trap questions on AMDP test whether the candidate understands trade-offs rather than just benefits. Common traps include claims that AMDP is always faster, that AMDP can replace CDS, that AMDP runs on any database, that AMDP with a LOOP outperforms ABAP LOOP, and that AMDP automatically uses indexes. The mature answer is that AMDP shines for high-volume pushdown but has overhead for small queries, complements rather than replaces CDS, is HANA-only, performs best with set-based SQLScript, and depends on HANA optimizer statistics for index usage. Showing awareness of these nuances signals real production experience and elevates the interview answer beyond surface-level theory.",
+    "wordByWordSamjho": [
+      { "keyword": "AMDP overhead", "meaning": "Cost of invoking a stored procedure, noticeable on small data volumes" },
+      { "keyword": "CDS Table Function", "meaning": "Bridge that exposes an AMDP through the CDS layer" },
+      { "keyword": "HANA optimizer", "meaning": "Component that chooses execution plans and decides on index usage" },
+      { "keyword": "Set-based SQLScript", "meaning": "Processing entire result sets in one operation, the preferred AMDP style" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Claiming AMDP is always faster than ABAP Open SQL",
+        "whyWrong": "Procedure call overhead dominates on small queries and may slow them down",
+        "correctApproach": "Use AMDP for high-volume or complex calculations; Open SQL for selective reads"
+      },
+      {
+        "mistake": "Treating AMDP and CDS as interchangeable",
+        "whyWrong": "CDS is declarative with annotations and broad consumption; AMDP is procedural",
+        "correctApproach": "Use CDS for reusable models; AMDP for complex logic; CDS Table Function to bridge"
+      },
+      {
+        "mistake": "Saying AMDP runs on any database",
+        "whyWrong": "AMDP is bound to HANA via IF_AMDP_MARKER_HDB",
+        "correctApproach": "Acknowledge HANA dependency; choose Open SQL for portable solutions"
+      },
+      {
+        "mistake": "Believing a LOOP inside AMDP is automatically fast",
+        "whyWrong": "Row-by-row processing bypasses HANA's parallel set-based engine",
+        "correctApproach": "Replace SQLScript LOOPs with CASE WHEN, GROUP BY, and JOINs"
+      }
+    ],
+    "quickRevisionNotes": "What: Trap questions designed to surface AMDP misconceptions during interviews.\n\nUsed for:\n- Demonstrating senior-level awareness of trade-offs\n- Avoiding overconfident claims about pushdown\n- Differentiating AMDP, CDS, and Open SQL in conversation\n\nKey syntax / tables / Tcodes:\n- AMDP overhead vs Open SQL on small queries\n- CDS vs AMDP vs CDS Table Function decision matrix\n- HANA-only via IF_AMDP_MARKER_HDB\n- Set-based SQLScript over LOOP\n\nInterview keyword: trade-offs over absolutes",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  }
+}

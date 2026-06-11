@@ -4,70 +4,153 @@
     "hinglishMasterExplanation": "ST22 production support ka sabse pehla aur most important tool hai — koi bhi dump aaye, ST22 mein jaao. Transaction kholo, date range filter karo aur apna program name dhundho. Har dump mein structured sections hote hain, inhe sequence mein padho:\n\n1. SHORT TEXT: Error ka ek-line summary jaise 'Access to unassigned field symbol' ya 'Table entry not found'. Yahi batata hai kyaa galat hua — yahan se investigation start hoti hai.\n\n2. PROGRAM NAME + INCLUDE + LINE NUMBER: Exact jagah jahan crash hua. Include important hota hai kyunki large programs multiple includes mein split hoti hain — program name dikhta hai lekin actual code include mein hota hai.\n\n3. EXCEPTION CLASS / TYPE: Technical error category jaise CX_SY_ITAB_LINE_NOT_FOUND, CX_SY_NO_HANDLER, ya MESSAGE_TYPE_X. Yeh batata hai kis category ka error hai aur fix direction kya hoga.\n\n4. ACTIVE CALLS (Call Stack): Us waqt program ki puri call chain — kaunse method ne kaunse form ko call kiya, kaunse FM ne kaunse program ko call kiya. Root cause dhundne ke liye yeh section critical hai — surface level line nahi, actual originating call dhundho.\n\n5. SOURCE EXTRACT: Highlighted error line ke aas paas ka code snippet. Variables ki values us exact moment dikhti hain jab crash hua — yeh data reproduction ke liye use karo.\n\nCommon dump types aur unka matlab: TSV_TNEW_PAGE_ALLOC_FAILED matlab memory overflow — koi internal table bahut badi ho gayi bina limit ke. DBSQL_SQL_ERROR matlab database level error — wrong SQL syntax ya locked table. CX_SY_ITAB_LINE_NOT_FOUND matlab READ TABLE ke baad SY-SUBRC check nahi kiya aur field symbol access kiya. CONVT_NO_NUMBER matlab character value ko numeric field mein daala. MESSAGE_TYPE_X matlab developer ne deliberately program terminate kiya.\n\nFix workflow: ST22 mein dump dekho → exception type samjho → call stack trace karo → source extract mein variable values note karo → DEV mein same data se reproduce karo → breakpoint lagao → fix karo → transport karo → production mein verify karo. Har step document karo incident ticket mein.",
     "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'ST22 is used to analyze ABAP runtime errors, also called short dumps. I check the short text and exception type to understand the error category — for example, CX_SY_ITAB_LINE_NOT_FOUND tells me a READ TABLE failed without SY-SUBRC check. I then look at the include name and line number to locate the exact code. The Source Extract section shows variable values at the moment of the crash, which is critical for reproducing the issue. For memory dumps like TSV_TNEW_PAGE_ALLOC_FAILED, I check internal table sizes and add UP TO N ROWS or PACKAGE SIZE. For field symbol dumps, I verify ASSIGNING logic with IS ASSIGNED check before access.'\n\nHinglish tip: 'Interview mein support experience dikhane ke liye concrete example dena: Production mein TSV_TNEW_PAGE_ALLOC_FAILED dump aaya. ST22 mein dekha ki ek internal table 50 lakh rows fetch kar rahi thi bina WHERE clause aur UP TO rows limit ke. Fix: tighter WHERE clause add ki aur PACKAGE SIZE 1000 use kiya. Ye real scenario interview mein strong impact deta hai.'",
     "codeExamples": "REPORT zdemo_st22_analysis.\n\" ST22 path: ST22 → enter date → find program → double-click\nDATA: lt_mara TYPE TABLE OF mara.\nFIELD-SYMBOLS: <fs_mara> TYPE mara.\n\" BAD: No SY-SUBRC check — CX_SY_ITAB_LINE_NOT_FOUND dump\n\" READ TABLE lt_mara ASSIGNING <fs_mara> WITH KEY matnr = '001'.\n\" WRITE: / <fs_mara>-mtart.  \" DUMP if entry missing!\n\" GOOD: Always check SY-SUBRC and IS ASSIGNED\nSELECT matnr, mtart FROM mara\n  INTO TABLE @lt_mara UP TO 10 ROWS\n  WHERE mtart = 'FERT'.\nIF sy-subrc = 0.\n  LOOP AT lt_mara ASSIGNING <fs_mara>.\n    IF <fs_mara> IS ASSIGNED.\n      WRITE: / <fs_mara>-matnr, <fs_mara>-mtart.\n    ENDIF.\n  ENDLOOP.\nENDIF.\n\" ST22 shows: Exception class, program name, include, line number",
+    "interviewScriptEnglish": "ST22 is used to analyze ABAP runtime errors, also called short dumps. I check the short text and exception type to understand the error category — for example, CX_SY_ITAB_LINE_NOT_FOUND tells me a READ TABLE failed without SY-SUBRC check. I then look at the include name and line number to locate the exact code. The Source Extract section shows variable values at the moment of the crash, which is critical for reproducing the issue. For memory dumps like TSV_TNEW_PAGE_ALLOC_FAILED, I check internal table sizes and add UP TO N ROWS or PACKAGE SIZE. For field symbol dumps, I verify ASSIGNING logic with IS ASSIGNED check before access.",
+    "interviewScriptHinglish": "ST22 ABAP runtime errors, jinhe short dumps bolte hain, analyze karne ke liye use hota hai. Main short text aur exception type check karta hoon error category samajhne ke liye - example ke liye, CX_SY_ITAB_LINE_NOT_FOUND batata hai ki ek READ TABLE bina SY-SUBRC check ke fail hua. Phir include name aur line number dekh ke exact code locate karta hoon. Source Extract section crash ke moment pe variable values dikhata hai, jo issue reproduce karne ke liye critical hai. TSV_TNEW_PAGE_ALLOC_FAILED jaise memory dumps ke liye, main internal table sizes check karta hoon aur UP TO N ROWS ya PACKAGE SIZE add karta hoon. Field symbol dumps ke liye, main ASSIGNING logic verify karta hoon IS ASSIGNED check ke saath access se pehle.",
+    "commonMistakesSection": [
+      {
+        "mistake": "Sirf short text padh ke close karna — call stack aur source extract skip karna.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Real cause often call stack mein hota hai, not just the last line."
+      },
+      {
+        "mistake": "Memory increase request karna SAP Basis ko — yeh band-aid hai.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Root cause fix karo: tighter WHERE, PACKAGE SIZE, streaming approach."
+      },
+      {
+        "mistake": "14-day expiry ignore karna.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "If you get a critical dump on day 1 and don't press KEEP, by day 15 all evidence is gone."
+      },
+      {
+        "mistake": "MESSAGE TYPE 'X' ko bug samajhna — kabhi kabhi it is intentional.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Check the message text and triggering condition before concluding it is a defect."
+      }
+    ],
+    "wordByWordSamjho": [
+      {
+        "keyword": "ST22",
+        "meaning": "Runtime error / short dump analysis transaction — first stop for any ABAP crash investigation."
+      },
+      {
+        "keyword": "Short Text",
+        "meaning": "One-line summary in ST22 dump that names the error category."
+      },
+      {
+        "keyword": "Exception Class",
+        "meaning": "Technical category like CX_SY_ITAB_LINE_NOT_FOUND or MESSAGE_TYPE_X shown in the dump."
+      },
+      {
+        "keyword": "Active Calls",
+        "meaning": "Call stack section in ST22 — shows the chain of FORM/method/FM calls leading to the crash."
+      },
+      {
+        "keyword": "Source Extract",
+        "meaning": "ST22 section showing the failing line plus surrounding code and variable values at crash time."
+      },
+      {
+        "keyword": "KEEP",
+        "meaning": "ST22 button that marks a dump for permanent retention beyond the default 14-day expiry."
+      },
+      {
+        "keyword": "TSV_TNEW_PAGE_ALLOC_FAILED",
+        "meaning": "Memory overflow dump — work process ran out of memory loading an internal table."
+      },
+      {
+        "keyword": "CX_SY_ITAB_LINE_NOT_FOUND",
+        "meaning": "Exception raised when READ TABLE or table expression fails to find a matching row."
+      },
+      {
+        "keyword": "MESSAGE_TYPE_X",
+        "meaning": "Deliberate program termination via MESSAGE ... TYPE 'X' — appears as a dump in ST22."
+      },
+      {
+        "keyword": "CONVT_NO_NUMBER",
+        "meaning": "Conversion dump when a non-numeric character value is assigned to a numeric field."
+      },
+      {
+        "keyword": "SY-SUBRC",
+        "meaning": "System return code — must be checked after READ TABLE, SELECT, and CALL FUNCTION to avoid CX_SY_ITAB_LINE_NOT_FOUND."
+      },
+      {
+        "keyword": "IS ASSIGNED",
+        "meaning": "Field symbol guard — verifies the field symbol points to memory before accessing components."
+      }
+    ],
+    "quickRevisionNotes": "What: ST22 is the SAP transaction that lists ABAP runtime errors (short dumps) with full context for root cause analysis.\n\nUsed for:\n- Investigating production crashes after MESSAGE TYPE X, memory overflow, or exception not handled.\n- Reading exception class, program, include, line number and variable values at the moment of failure.\n- Preserving critical dumps with KEEP before the default 14-day auto-deletion runs.\n\nKey syntax / tables / Tcodes:\n- ST22 → date filter → user / program → double-click dump.\n- Sections: Short Text, Exception Class, Active Calls, Source Extract, Chosen Variables.\n- Common dumps: TSV_TNEW_PAGE_ALLOC_FAILED, CX_SY_ITAB_LINE_NOT_FOUND, CONVT_NO_NUMBER, MESSAGE_TYPE_X.\n\nInterview keyword: ST22 is the black-box recorder of every ABAP crash.",
     "followupAnswerBank": [
       {
         "question": "What information do you first check in ST22 when a production dump occurs?",
-        "hinglishExplanation": "ST22 khola toh sabse pehle SHORT TEXT padho — yeh ek line mein sab batata hai. Phir EXCEPTION CLASS dekho — CX_SY ya MESSAGE_TYPE_X. Phir PROGRAM aur LINE NUMBER note karo taaki code directly khol sako. SOURCE EXTRACT mein us line ke aas paas ka code dikhta hai highlighted.",
+        "hinglishExplanation": "Pehle main error summary ke liye short text check karta hu, fir error type categorize karne ke liye exception class. Next, main program name, include, aur line number note karta hu faulty code pe directly navigate karne ke liye. Source extract section exact line aur surrounding context crash time pe variable values ke saath dikhata hai.",
         "interviewAnswer": "First I check the short text for the error summary, then the exception class to categorize the error type. Next, I note the program name, include, and line number to navigate directly to the faulty code. The source extract section shows the exact line and surrounding context with variable values at crash time.",
         "realtimeExplanation": "Production support mein time critical hota hai. ST22 → Short Text → Exception → Program/Line → Source Extract — yeh sequence 2 minutes mein RCA direction deta hai.",
         "mistakes": "Sirf short text padh ke close karna — call stack aur source extract skip karna. Real cause often call stack mein hota hai, not just the last line.",
-        "codeExample": "\" ST22 navigation:\n\" ST22 → Enter → select date range → find program name\n\" Double-click on dump → review sections:\n\" 1. Short text  2. Exception class  3. Source extract\n\" 4. Active calls (call stack)  5. Variables at crash time"
+        "codeExample": "\" ST22 navigation:\n\" ST22 → Enter → select date range → find program name\n\" Double-click on dump → review sections:\n\" 1. Short text  2. Exception class  3. Source extract\n\" 4. Active calls (call stack)  5. Variables at crash time",
+        "tier": "easy"
       },
       {
         "question": "What is TSV_TNEW_PAGE_ALLOC_FAILED and how do you fix it?",
-        "hinglishExplanation": "TSV_TNEW_PAGE_ALLOC_FAILED matlab SAP work process ki memory full ho gayi — mostly ek internal table mein bahut zyada rows load ho gayi bina kisi limit ke. Common reason: SELECT * FROM badi_table bina WHERE clause. Fix: UP TO N ROWS ya PACKAGE SIZE use karo, ya WHERE clause strict karo.",
+        "hinglishExplanation": "TSV_TNEW_PAGE_ALLOC_FAILED ek memory overflow dump hai jo internal table dwara saari available work process memory consume karne ke karan hota hai. Main call stack check karta hu identify karne ke liye ki kaunse SELECT ne table populate ki. Fix mein strict WHERE conditions add karna shaamil hai, small datasets ke liye UP TO N ROWS use karna, ya bulk operations ke liye PACKAGE SIZE use karke chunks mein process karna.",
         "interviewAnswer": "TSV_TNEW_PAGE_ALLOC_FAILED is a memory overflow dump caused by an internal table consuming all available work process memory. I check the call stack to identify which SELECT populated the table. Fix involves adding strict WHERE conditions, using UP TO N ROWS for small datasets, or processing in chunks using PACKAGE SIZE for bulk operations.",
         "realtimeExplanation": "Production mein yeh dump financial month-end pe aata hai jab data volume bada hota hai. Always question: 'Ye SELECT kab likhaa gaya — dev mein 1000 rows the, production mein 50 lakh hain.'",
         "mistakes": "Memory increase request karna SAP Basis ko — yeh band-aid hai. Root cause fix karo: tighter WHERE, PACKAGE SIZE, streaming approach.",
-        "codeExample": "\" BAD: Full table load — causes TSV_TNEW_PAGE_ALLOC_FAILED\n\" SELECT * FROM bseg INTO TABLE @DATA(lt_bseg).\n\n\" GOOD: Package-based processing\nSELECT bukrs, belnr, gjahr, dmbtr FROM bseg\n  WHERE bukrs = @p_bukrs AND gjahr = @p_gjahr\n  INTO TABLE @DATA(lt_bseg) PACKAGE SIZE 5000.\n  \" Process lt_bseg here\nENDSELECT."
+        "codeExample": "\" BAD: Full table load — causes TSV_TNEW_PAGE_ALLOC_FAILED\n\" SELECT * FROM bseg INTO TABLE @DATA(lt_bseg).\n\n\" GOOD: Package-based processing\nSELECT bukrs, belnr, gjahr, dmbtr FROM bseg\n  WHERE bukrs = @p_bukrs AND gjahr = @p_gjahr\n  INTO TABLE @DATA(lt_bseg) PACKAGE SIZE 5000.\n  \" Process lt_bseg here\nENDSELECT.",
+        "tier": "easy"
       },
       {
         "question": "How do you use the KEEP option in ST22 and why is it important?",
-        "hinglishExplanation": "ST22 mein dumps sirf 14 din rehte hain — iske baad automatically delete ho jaate hain. Agar koi important production dump hai jise detail mein investigate karna hai ya audit ke liye preserve karna hai, toh ST22 mein wo dump open karo aur KEEP button press karo. KEEP se wo dump permanently save ho jaata hai.",
+        "hinglishExplanation": "ST22 dumps ko by default 14 din ke liye retain karta hai, jiske baad wo automatically delete ho jaate hain. ST22 mein KEEP button ek dump ko permanent retention ke liye mark karta hai, jo critical production incidents ke liye important hai jahan root cause analysis mein zyada time lag sakta hai, ya jab audit aur compliance teams ko dump record preserved chahiye.",
         "interviewAnswer": "ST22 retains dumps for 14 days by default, after which they are automatically deleted. The KEEP button in ST22 marks a dump for permanent retention, which is important for critical production incidents where root cause analysis may take longer, or when audit and compliance teams need the dump record preserved.",
         "realtimeExplanation": "Incident ticket raise hua, RCA 3 weeks baad submit karni hai — KEEP button press nahi kiya toh 14 din baad dump gone. Always KEEP important production dumps immediately.",
         "mistakes": "14-day expiry ignore karna. If you get a critical dump on day 1 and don't press KEEP, by day 15 all evidence is gone.",
-        "codeExample": "\" ST22 KEEP steps:\n\" ST22 → find dump → double-click to open\n\" Click 'Keep' button in toolbar\n\" Dump now marked with retention flag\n\" Configurable retention via T-Code SM19 settings\n\" Note: number of kept dumps affects database space"
+        "codeExample": "\" ST22 KEEP steps:\n\" ST22 → find dump → double-click to open\n\" Click 'Keep' button in toolbar\n\" Dump now marked with retention flag\n\" Configurable retention via T-Code SM19 settings\n\" Note: number of kept dumps affects database space",
+        "tier": "easy"
       },
       {
         "question": "How is MESSAGE TYPE 'X' different from other message types?",
-        "hinglishExplanation": "SAP mein message types hote hain: I (information), W (warning), E (error), A (abend), X (terminate). Type X message ek deliberate program termination hai — developer ne jaan bujhkar program band kiya. ST22 mein MESSAGE_TYPE_X dump dikhta hai. Ye usually validation failure pe aata hai jab aage proceed karna allowed nahi.",
+        "hinglishExplanation": "MESSAGE TYPE 'X' ek explicit program termination statement hai — ye immediately program abort karta hai aur ST22 mein MESSAGE_TYPE_X dump type ke saath dump banata hai. E ya A ke unlike jo status bar mein dikhte hain, TYPE X session crash karta hai. Developers ise fatal validation errors ke liye use karte hain jahan processing kisi bhi circumstance mein continue nahi honi chahiye.",
         "interviewAnswer": "MESSAGE TYPE 'X' is an explicit program termination statement — it immediately aborts the program and creates a dump in ST22 with the dump type MESSAGE_TYPE_X. Unlike E or A which shows in the status bar, TYPE X crashes the session. Developers use it for fatal validation errors where processing must not continue under any circumstance.",
         "realtimeExplanation": "Agar ST22 mein MESSAGE_TYPE_X dump dikh raha hai, toh kisi developer ne intentionally crash kiya hai — find that MESSAGE statement in the code and understand what condition triggered it.",
         "mistakes": "MESSAGE TYPE 'X' ko bug samajhna — kabhi kabhi it is intentional. Check the message text and triggering condition before concluding it is a defect.",
-        "codeExample": "\" MESSAGE TYPE X — deliberate dump\nIF lv_company_code IS INITIAL.\n  MESSAGE e001(zmsg) WITH 'Company code missing' TYPE 'X'.\n  \" Program terminates here — dump in ST22\nENDIF.\n\n\" Better approach: use TYPE 'E' and RETURN\nIF lv_company_code IS INITIAL.\n  MESSAGE 'Company code is required' TYPE 'E'.\n  RETURN.  \" Controlled exit\nENDIF."
+        "codeExample": "\" MESSAGE TYPE X — deliberate dump\nIF lv_company_code IS INITIAL.\n  MESSAGE e001(zmsg) WITH 'Company code missing' TYPE 'X'.\n  \" Program terminates here — dump in ST22\nENDIF.\n\n\" Better approach: use TYPE 'E' and RETURN\nIF lv_company_code IS INITIAL.\n  MESSAGE 'Company code is required' TYPE 'E'.\n  RETURN.  \" Controlled exit\nENDIF.",
+        "tier": "medium"
       },
       {
         "question": "What is CX_SY_ITAB_LINE_NOT_FOUND and when does it occur?",
-        "hinglishExplanation": "Yeh dump tab aata hai jab tum READ TABLE use karo ASSIGNING ke saath lekin entry nahi mili — aur tum field symbol access kar lo bina SY-SUBRC check kiye. Ya phir table expression lt_data[ condition ] use karo aur row na mile. Classic beginner mistake hai yeh.",
+        "hinglishExplanation": "CX_SY_ITAB_LINE_NOT_FOUND tab hota hai jab lt_data[ key = value ] jaisi table access expression ya READ TABLE ASSIGNING matching entry dhundhne mein fail hota hai, aur field symbol SY-SUBRC check kiye bina access hota hai. Fix hai READ TABLE ke baad hamesha SY-SUBRC check karna, ya table expression access se pehle IF line_exists( ) use karna.",
         "interviewAnswer": "CX_SY_ITAB_LINE_NOT_FOUND occurs when a table access expression like lt_data[ key = value ] or READ TABLE ASSIGNING fails to find a matching entry, and the field symbol is accessed without checking SY-SUBRC. The fix is to always check SY-SUBRC after READ TABLE, or use IF line_exists( ) before table expression access.",
         "realtimeExplanation": "Dev mein test data mein entry hoti hai, production mein nahi hoti — isliye dump sirf production mein aata hai. Iss case mein READ TABLE ke baad SY-SUBRC check mandatory hai.",
         "mistakes": "READ TABLE karna bina SY-SUBRC check ke. Ye production dump guarantee hai jab test case complete nahi hota.",
-        "codeExample": "\" BAD: No SY-SUBRC check — CX_SY_ITAB_LINE_NOT_FOUND dump\n\" READ TABLE lt_mara ASSIGNING <fs_mara> WITH KEY matnr = lv_mat.\n\" WRITE: / <fs_mara>-mtart.  \" DUMP if not found!\n\n\" GOOD: Always check SY-SUBRC\nREAD TABLE lt_mara ASSIGNING <fs_mara>\n  WITH KEY matnr = lv_mat.\nIF sy-subrc = 0.\n  WRITE: / <fs_mara>-mtart.\nELSE.\n  MESSAGE 'Material not in table' TYPE 'W'.\nENDIF."
+        "codeExample": "\" BAD: No SY-SUBRC check — CX_SY_ITAB_LINE_NOT_FOUND dump\n\" READ TABLE lt_mara ASSIGNING <fs_mara> WITH KEY matnr = lv_mat.\n\" WRITE: / <fs_mara>-mtart.  \" DUMP if not found!\n\n\" GOOD: Always check SY-SUBRC\nREAD TABLE lt_mara ASSIGNING <fs_mara>\n  WITH KEY matnr = lv_mat.\nIF sy-subrc = 0.\n  WRITE: / <fs_mara>-mtart.\nELSE.\n  MESSAGE 'Material not in table' TYPE 'W'.\nENDIF.",
+        "tier": "medium"
       },
       {
         "question": "How do you find which user triggered a dump in ST22?",
-        "hinglishExplanation": "ST22 dump list mein columns hote hain: Date, Time, User, Program, Exception. User column mein clearly dikha dega kaunse user ne wo transaction execute kiya jab dump aaya. Agar background job se aaya hai toh SM37 job log se user aur job name trace kar sakte ho.",
+        "hinglishExplanation": "ST22 dump list mein, har entry user, date, time, program name, aur exception type dikhati hai. Online dumps ke liye, user column directly dikhata hai kisne trigger kiya. Background job dumps ke liye, main SM37 ko program name aur timestamp se cross-reference karta hu job aur use run kar rahe technical user identify karne ke liye.",
         "interviewAnswer": "In the ST22 dump list, each entry shows the user, date, time, program name, and exception type. For online dumps, the user column directly shows who triggered it. For background job dumps, I cross-reference SM37 with the program name and timestamp to identify the job and the technical user running it.",
         "realtimeExplanation": "User-specific issue hai toh wo user se same data input lekar manually reproduce karo SE38 mein debug mode mein. Exact same condition recreate karna root cause dhundne ka fastest tarika hai.",
         "mistakes": "Assuming all users face the same issue. One user's dump may be data-specific — always check with that user's exact input values shown in the source extract.",
-        "codeExample": "\" ST22 column layout:\n\" Date | Time | User | Client | Program | Exception type\n\" Filter in ST22:\n\" - Restrict by user: enter user ID in user field\n\" - Restrict by program: enter program name\n\" - Restrict by date range: e.g., today minus 7 days\n\" Cross-check with SM37 if dump is from background job"
+        "codeExample": "\" ST22 column layout:\n\" Date | Time | User | Client | Program | Exception type\n\" Filter in ST22:\n\" - Restrict by user: enter user ID in user field\n\" - Restrict by program: enter program name\n\" - Restrict by date range: e.g., today minus 7 days\n\" Cross-check with SM37 if dump is from background job",
+        "tier": "medium"
       },
       {
         "question": "What is CONVT_NO_NUMBER dump and how is it fixed?",
-        "hinglishExplanation": "CONVT_NO_NUMBER tab aata hai jab tum kisi character field ki value — jisme numbers nahi hain — ko numeric variable mein convert karne ki koshish karo. Example: lv_amount TYPE p aur usmein 'ABC' assign karna. Ya kisi user ne form mein text daal diya jahan number chahiye tha.",
+        "hinglishExplanation": "CONVT_NO_NUMBER ek runtime dump hai jo non-numeric character value ko TYPE P, I, ya F jaisi numeric-type variable mein assign karne ke karan hota hai. Common causes mein flat files se malformed data padhna, user input errors, ya interface data quality issues shaamil hain. Fix mein CONDENSE ke saath data validate karna aur conversion se pehle REGEX match ya VERIFY NUMERIC pattern use karke numeric content check karna shaamil hai.",
         "interviewAnswer": "CONVT_NO_NUMBER is a runtime dump caused by assigning a non-numeric character value into a numeric-type variable like TYPE P, I, or F. Common causes include reading malformed data from flat files, user input errors, or interface data quality issues. Fix involves validating data with CONDENSE and checking for numeric content using a REGEX match or VERIFY NUMERIC pattern before conversion.",
         "realtimeExplanation": "Interface programs mein yeh bahut common hai — external system ne '12,345.00' bheja aur ABAP directly P field mein daalne ki koshish ki. Always sanitize interface data before numeric assignment.",
         "mistakes": "Directly assigning external/file data to numeric fields without validation. Data quality from external systems is never guaranteed.",
-        "codeExample": "\" CONVT_NO_NUMBER fix: validate before assign\nDATA: lv_input  TYPE string VALUE '1234.56',\n      lv_amount TYPE p DECIMALS 2.\n\n\" Check numeric using REGEX\nIF lv_input CO '0123456789.,+-'.  \" Only numeric chars\n  lv_amount = lv_input.\nELSE.\n  MESSAGE |Invalid amount: { lv_input }| TYPE 'W'.\nENDIF."
+        "codeExample": "\" CONVT_NO_NUMBER fix: validate before assign\nDATA: lv_input  TYPE string VALUE '1234.56',\n      lv_amount TYPE p DECIMALS 2.\n\n\" Check numeric using REGEX\nIF lv_input CO '0123456789.,+-'.  \" Only numeric chars\n  lv_amount = lv_input.\nELSE.\n  MESSAGE |Invalid amount: { lv_input }| TYPE 'W'.\nENDIF.",
+        "tier": "advanced"
       },
       {
         "question": "How do you differentiate a dump in development vs production environment in ST22?",
-        "hinglishExplanation": "ST22 transaction har environment mein alag hota hai — DEV, QAS, PRD systems mein alag SAP instances hain, ST22 sirf us system ka data dikhata hai jis pe tum logged in ho. Production dump dekhhna hai toh production system pe login karo. Development mein agar same dump reproduce kar sako toh debugging easy hai kyunki breakpoint laga sakte ho.",
+        "hinglishExplanation": "ST22 client aur system-specific hai — har SAP system (DEV, QAS, PRD) ka apna dump history hai. Production dump analyze karne ke liye, main production system mein log in karta hu aur wahan ST22 open karta hu. Reproduce aur debug karne ke liye, main same data conditions ko development system mein replicate karta hu, ST22 source extract se identified line number pe breakpoints set karta hu, aur code ke through step karta hu.",
         "interviewAnswer": "ST22 is client and system-specific — each SAP system (DEV, QAS, PRD) has its own dump history. To analyze a production dump, I log into the production system and open ST22 there. To reproduce and debug, I replicate the same data conditions in the development system, set breakpoints at the identified line number from the ST22 source extract, and step through the code.",
         "realtimeExplanation": "Production mein breakpoint nahi laga sakte directly — isliye dump se line number note karo, DEV mein same condition recreate karo, aur wahan debug karo. Production pe sirf read-only investigation hoti hai.",
         "mistakes": "Production system pe ABAP debugging enable karna without approval — this can slow down the system for all users. Always debug in DEV after replicating the scenario.",
-        "codeExample": "\" Production dump investigation workflow:\n\" 1. PRD system: ST22 → note program, include, line, variables\n\" 2. DEV system: SE38 → open same program → go to line number\n\" 3. Set breakpoint: /H in command field or F9 in editor\n\" 4. Reproduce with same data as shown in ST22 source extract\n\" 5. Step through, watch variables, identify root cause\n\" 6. Fix in DEV → unit test → transport QAS → PRD"
+        "codeExample": "\" Production dump investigation workflow:\n\" 1. PRD system: ST22 → note program, include, line, variables\n\" 2. DEV system: SE38 → open same program → go to line number\n\" 3. Set breakpoint: /H in command field or F9 in editor\n\" 4. Reproduce with same data as shown in ST22 source extract\n\" 5. Step through, watch variables, identify root cause\n\" 6. Fix in DEV → unit test → transport QAS → PRD",
+        "tier": "advanced"
       }
     ]
   },
@@ -76,70 +159,153 @@
     "hinglishMasterExplanation": "SM37 production support ka daily routine tool hai — subah aate hi check karo koi job fail toh nahi hui raat ko. Structured troubleshooting approach follow karo:\n\n1. SM37 FILTER: Job name, user, date/time range, aur status field mein 'Aborted' ya 'Cancelled' select karo. Execute karo — failed jobs ki list aayegi. Agar job name nahi pata toh program name se filter karo — Steps section mein program name stored hota hai.\n\n2. JOB LOG: Failed job pe click karo, toolbar mein 'Job Log' button press karo. Chronological messages dikhenge — program start se failure tak. Last kuch lines mein error message clearly aayega — jaise 'Authorization check failed for object S_TCODE' ya 'Memory overflow in internal table LT_BSEG.'\n\n3. SPOOL CHECK: Agar job ne output produce kiya tha (ALV report, spool list), spool mein dekho kahan tak processing gayi thi. Yeh batata hai ki failure kab hua — 10% data ke baad ya 90% ke baad.\n\n4. VARIANT CHECK: Steps tab mein dekho kaunsa program aur kaunsa variant use hua. SE38 mein same program kholo, same variant select karo, manually run karo — reproduce karo error. Agar yahan bhi fail hota hai toh DEV system mein debug karo.\n\n5. COMMON CAUSES list:\n   - Wrong ya deleted variant — variant ka content SE38 mein open karke verify karo\n   - Authorization failure — SU53 se batch user ka last failed auth check dekho, ya STAUTHTRACE se full trace karo\n   - Database lock — SM12 mein lock entries check karo\n   - Memory overflow — ST22 mein TSV_TNEW_PAGE_ALLOC_FAILED dump dekho\n   - Missing master data — wrong company code, plant, fiscal year in variant\n   - Network/RFC timeout — SM59 mein RFC connection check karo\n\n6. RESCHEDULE: Root cause fix ke baad SM37 mein job select karo → Repeat Scheduling, ya SM36 se fresh job schedule karo. Functional team ko inform karo before rerunning — duplicate postings ka risk rehta hai.\n\nImportant distinction: SM36 = nayi job schedule karna. SM37 = existing jobs monitor aur troubleshoot karna. Dono mein equally comfortable hona chahiye.",
     "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'To troubleshoot a failed background job, I open SM37, filter by the job name and date range, find the aborted job, and first check the Job Log for error messages — this usually gives the exact reason. I also check the spool for any partial output to understand how far the job progressed. If the error message is unclear, I check the job steps for the program name and variant, then run the program manually in SE38 with the same variant to reproduce and debug. Common causes include wrong variant, authorization failure checked via SU53 and STAUTHTRACE, database locks, or memory overflow.'\n\nHinglish tip: 'Production support mein SM37 roz ka kaam hai. Interview mein ye bolo: Ek production job fail hua tha — SM37 mein log dekha, message tha AUTHORITY_CHECK_FAILED. SU53 use karke dekha, job user ke paas S_TCODE ke liye authorization nahi thi. Basis team se role add karaya — job successfully completed. End-to-end story dikhana strong answer hai.'",
     "codeExamples": "REPORT zdemo_background_job.\n\" SM37: filter by name/date/status → Job Log → Spool\nDATA: lv_jobname  TYPE btcjob-jobname VALUE 'ZDEMO_NIGHTLY',\n      lv_jobcount TYPE btcjob-jobcount.\nCALL FUNCTION 'JOB_OPEN'\n  EXPORTING jobname  = lv_jobname\n  IMPORTING jobcount = lv_jobcount\n  EXCEPTIONS OTHERS = 1.\n\" Submit program as background task\nSUBMIT zdemo_report\n  WITH SELECTION-TABLE s_params\n  VIA JOB lv_jobname NUMBER lv_jobcount\n  AND RETURN.\n\" Close and release job for immediate execution\nCALL FUNCTION 'JOB_CLOSE'\n  EXPORTING jobname   = lv_jobname\n            jobcount  = lv_jobcount\n            strtimmed = 'X'\n  EXCEPTIONS OTHERS = 1.\n\" SM37 → Job Log shows error if status = Aborted",
+    "interviewScriptEnglish": "To troubleshoot a failed background job, I open SM37, filter by the job name and date range, find the aborted job, and first check the Job Log for error messages — this usually gives the exact reason. I also check the spool for any partial output to understand how far the job progressed. If the error message is unclear, I check the job steps for the program name and variant, then run the program manually in SE38 with the same variant to reproduce and debug. Common causes include wrong variant, authorization failure checked via SU53 and STAUTHTRACE, database locks, or memory overflow.",
+    "interviewScriptHinglish": "ek failed background job troubleshoot karne ke liye, main SM37 open karta hoon, job name aur date range se filter karta hoon, aborted job find karta hoon, aur pehle Job Log check karta hoon error messages ke liye - ye usually exact reason deta hai. Main spool bhi check karta hoon partial output ke liye samajhne ke liye ki job kahan tak progress kiya. Agar error message unclear hai, main job steps mein program name aur variant check karta hoon, phir SE38 mein same variant ke saath program manually run karta hoon reproduce aur debug karne ke liye. Common causes mein wrong variant, authorization failure jo SU53 aur STAUTHTRACE se check hoti hai, database locks ya memory overflow include hain.",
+    "commonMistakesSection": [
+      {
+        "mistake": "Only looking at the last log entry.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Sometimes the root cause message appears several entries before the final abort message."
+      },
+      {
+        "mistake": "Confusing SM36 and SM37 in interview — they have distinct purposes.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "SM36 = create/schedule, SM37 = monitor/troubleshoot."
+      },
+      {
+        "mistake": "Directly editing production roles without Basis team involvement — always raise a formal request for authorization changes in production.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Use the correct approach as described in the deep-dive section."
+      },
+      {
+        "mistake": "Hardcoding absolute dates in variants for recurring jobs.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Use dynamic date calculation in the program instead to avoid manual variant updates each period."
+      }
+    ],
+    "wordByWordSamjho": [
+      {
+        "keyword": "SM37",
+        "meaning": "Background job overview — monitor, view logs, view spool, repeat scheduling for finished/aborted jobs."
+      },
+      {
+        "keyword": "SM36",
+        "meaning": "Schedule a new background job — define program, variant, start condition and job class."
+      },
+      {
+        "keyword": "Job Log",
+        "meaning": "Time-stamped messages produced during job execution; final lines usually carry the failure reason."
+      },
+      {
+        "keyword": "Spool",
+        "meaning": "Captured output of a background job (ALV, list) — useful to see how far processing progressed before abort."
+      },
+      {
+        "keyword": "Aborted",
+        "meaning": "SM37 status for jobs that terminated abnormally — the target of root cause analysis."
+      },
+      {
+        "keyword": "Variant",
+        "meaning": "Saved selection-screen values used by a background job; wrong or missing variant is a common failure cause."
+      },
+      {
+        "keyword": "Job Class",
+        "meaning": "Priority A/B/C controlling work-process allocation; A reserved, B normal, C runs only on spare capacity."
+      },
+      {
+        "keyword": "JOB_OPEN",
+        "meaning": "Function module that creates a new background job header and returns a jobcount."
+      },
+      {
+        "keyword": "JOB_CLOSE",
+        "meaning": "Function module that releases a created job for scheduling (immediate or planned start)."
+      },
+      {
+        "keyword": "SUBMIT ... VIA JOB",
+        "meaning": "Adds a program step with selection options to the open background job."
+      },
+      {
+        "keyword": "SU53",
+        "meaning": "Last failed authorization check for a user — quick fix lookup for AUTHORITY_CHECK failures in jobs."
+      },
+      {
+        "keyword": "STAUTHTRACE",
+        "meaning": "System-wide trace of all authorization checks during a session — full picture for batch users."
+      }
+    ],
+    "quickRevisionNotes": "What: SM37 is the background job monitor used daily by ABAP support to triage failed, hung, or delayed jobs.\n\nUsed for:\n- Finding aborted jobs by name, user, date and status, then reading the job log and spool.\n- Cross-checking variant, program, and start time in the job steps to reproduce failures in SE38.\n- Repeat scheduling, cancelling stuck jobs, and confirming completion of rescheduled runs.\n\nKey syntax / tables / Tcodes:\n- SM36 schedule, SM37 monitor; tables TBTCO / TBTCP / TBTCJOB; FMs JOB_OPEN, SUBMIT ... VIA JOB, JOB_CLOSE.\n- Companion tools: SU53 / STAUTHTRACE for auth failures, SM12 for locks, SM50 for hung processes, ST22 for dumps.\n- Status codes: P planned, S released, R ready, A active, F finished, X cancelled.\n\nInterview keyword: SM37 turns a vague job failed ticket into a fixable root cause in three clicks.",
     "followupAnswerBank": [
       {
         "question": "How do you read the job log in SM37 to find the error?",
-        "hinglishExplanation": "SM37 mein failed job pe click karo — upar toolbar mein 'Job Log' button dikh raha hai (ya menu mein). Job log chronological messages dikhata hai — program kab start hua, kya process hua, kahan fail hua, aur kya message aaya. Last few lines mein usually error message hota hai.",
+        "hinglishExplanation": "SM37 mein, main aborted job select karta hu aur toolbar mein Job Log button click karta hu. Log program start se failure point tak timestamped messages dikhata hai. Final entries typically error message ya exception text contain karti hain. Main ye bhi check karta hu ki failure se pehle program dwara koi MESSAGE statements likhe gaye hain ya nahi samajhne ke liye processing kahan tak gayi.",
         "interviewAnswer": "In SM37, I select the aborted job and click the Job Log button in the toolbar. The log shows timestamped messages from program start to failure point. The final entries typically contain the error message or exception text. I also check if there are MESSAGE statements written by the program before the failure to understand how far processing went.",
         "realtimeExplanation": "Job log mein MESSAGE statements ka output aata hai — developer ne jo likh rakha hai jo messages program produce karta hai during execution. Good developers always add meaningful messages at key steps.",
         "mistakes": "Only looking at the last log entry. Sometimes the root cause message appears several entries before the final abort message.",
-        "codeExample": "\" Adding meaningful messages to background jobs\nREPORT zdemo_job_program.\n\nSTART-OF-SELECTION.\n  MESSAGE 'Job started: fetching vendor data' TYPE 'S' INTO DATA(lv_msg).\n  WRITE: / lv_msg.  \" Appears in spool and job log\n\n  \" Processing...\n  IF sy-subrc <> 0.\n    MESSAGE 'Error: vendor table access failed' TYPE 'E'.\n    \" Job log will show this before abort\n  ENDIF."
+        "codeExample": "\" Adding meaningful messages to background jobs\nREPORT zdemo_job_program.\n\nSTART-OF-SELECTION.\n  MESSAGE 'Job started: fetching vendor data' TYPE 'S' INTO DATA(lv_msg).\n  WRITE: / lv_msg.  \" Appears in spool and job log\n\n  \" Processing...\n  IF sy-subrc <> 0.\n    MESSAGE 'Error: vendor table access failed' TYPE 'E'.\n    \" Job log will show this before abort\n  ENDIF.",
+        "tier": "easy"
       },
       {
         "question": "What is the difference between SM36 and SM37?",
-        "hinglishExplanation": "SM36 matlab job scheduling — nayi job define karo: program name, variant, start time (immediately, specific time, after another job). SM37 matlab job monitoring — existing jobs ki status dekho, log dekho, spool dekho, cancel karo, repeat karo. Ye dono transactions milke background processing manage karte hain. Developer ko dono aane chahiye.",
+        "hinglishExplanation": "SM36 background jobs ko define aur schedule karne ke liye use hota hai — tum program name, variant, job class (A/B/C priority ke liye), aur start condition (immediate, time-triggered, ya event-triggered) specify karte ho. SM37 monitoring transaction hai — ye job status dikhata hai, job log aur spool dekhne deta hai, running jobs cancel karne deta hai, aur failed jobs reschedule karne deta hai. Support mein, SM37 daily use hota hai; SM36 tab use hota hai jab naya job schedule karna ho.",
         "interviewAnswer": "SM36 is used to define and schedule background jobs — you specify the program name, variant, job class (A/B/C for priority), and start condition (immediate, time-triggered, or event-triggered). SM37 is the monitoring transaction — it shows job status, allows viewing the job log and spool, cancelling running jobs, and rescheduling failed jobs. In support, SM37 is used daily; SM36 is used when a new job needs scheduling.",
         "realtimeExplanation": "Production support request: 'Please run the month-end job again.' — SM36 se naya job schedule karo ya SM37 mein existing job pe right-click → Repeat. Always confirm with functional team before rerunning production jobs.",
         "mistakes": "Confusing SM36 and SM37 in interview — they have distinct purposes. SM36 = create/schedule, SM37 = monitor/troubleshoot.",
-        "codeExample": "\" SM37 filter options:\n\" Job name: ZDEMO* (wildcard supported)\n\" User name: BATCH_USER\n\" Date from/to: today minus 7 days\n\" Status: Aborted, Cancelled, Active, Finished\n\" After filter → Execute → list of matching jobs\n\" Select failed job → Job Log button → read error messages"
+        "codeExample": "\" SM37 filter options:\n\" Job name: ZDEMO* (wildcard supported)\n\" User name: BATCH_USER\n\" Date from/to: today minus 7 days\n\" Status: Aborted, Cancelled, Active, Finished\n\" After filter → Execute → list of matching jobs\n\" Select failed job → Job Log button → read error messages",
+        "tier": "easy"
       },
       {
         "question": "How do you handle authorization failure in a background job?",
-        "hinglishExplanation": "Background job ek technical user (batch user) ke under run hota hai — uske paas authorization nahi thi kisi object ke liye. SM37 log mein 'AUTHORITY_CHECK_FAILED' ya 'Authorization check failed' dikhega. SU53 transaction mein us batch user ke liye last failed authorization check dekho. Basis team ko wo object aur value batao — wo role mein add karenge.",
+        "hinglishExplanation": "Jab background job authorization ki wajah se fail kare, job log mein authority check failure message dikhta hai. Main technical batch user ke liye SU53 check karta hu last failed authorization object, field, aur required value dekhne ke liye. Detailed analysis ke liye, STAUTHTRACE job execution ke dauran saare authorization checks trace kar sakta hai. Fir main Basis team ko request raise karta hu batch user ke role mein missing authorization object add karne ke liye.",
         "interviewAnswer": "When a background job fails due to authorization, the job log shows an authority check failure message. I check SU53 for the technical batch user to see the last failed authorization object, field, and required value. For detailed analysis, STAUTHTRACE can trace all authorization checks during job execution. I then raise a request to the Basis team to add the missing authorization object to the batch user's role.",
         "realtimeExplanation": "Authorization issues aate hain jab: nayi functionality add ki, batch user ka role change hua, ya transport ne naya transaction/object add kiya. Har naye release ke baad batch user authorization verify karna good practice hai.",
         "mistakes": "Directly editing production roles without Basis team involvement — always raise a formal request for authorization changes in production.",
-        "codeExample": "\" Authorization check in ABAP code\nAUTHORITY-CHECK OBJECT 'S_TCODE'\n  ID 'TCD' FIELD 'SE38'.\nIF sy-subrc <> 0.\n  MESSAGE 'No authorization for SE38' TYPE 'E'.\n  \" This message appears in SM37 job log\n  RETURN.\nENDIF.\n\" Check SU53 for batch user to see failed auth object"
+        "codeExample": "\" Authorization check in ABAP code\nAUTHORITY-CHECK OBJECT 'S_TCODE'\n  ID 'TCD' FIELD 'SE38'.\nIF sy-subrc <> 0.\n  MESSAGE 'No authorization for SE38' TYPE 'E'.\n  \" This message appears in SM37 job log\n  RETURN.\nENDIF.\n\" Check SU53 for batch user to see failed auth object",
+        "tier": "easy"
       },
       {
         "question": "What is a job variant and what happens if it is wrong or missing?",
-        "hinglishExplanation": "Variant matlab selection screen ka saved set of values — company code, plant, date range. Background job mein program ke saath variant specify hota hai taaki parameters auto-fill ho jaayein. Agar variant delete ho gaya ya wrong values hain (e.g., last year ki date range), job fail ho sakti hai ya wrong data process ho sakti hai.",
+        "hinglishExplanation": "Variant selection screen parameters ka ek saved set hai jo background jobs user input ke bina run karne ke liye use karte hain. Agar variant delete, rename, ya outdated values (jaise hardcoded past date range) contain kare, job ya toh immediately fail hota hai ya silently incorrect data process karta hai. Main SM37 job steps mein variant content check karta hu, fir SE38 program aur variant ke saath open karta hu parameter values review aur correct karne ke liye.",
         "interviewAnswer": "A variant is a saved set of selection screen parameters that background jobs use to run without user input. If the variant is deleted, renamed, or contains outdated values (like a hardcoded past date range), the job either fails immediately or processes incorrect data silently. I check the variant content in SM37 job steps, then open SE38 with the program and the variant to review and correct the parameter values.",
         "realtimeExplanation": "Monthly jobs mein date range hardcoded hoti hai — yeh common mistake hai. Variant mein relative date logic use karo (SY-DATUM based) ya dynamic date calculation karo program mein instead of hardcoded dates.",
         "mistakes": "Hardcoding absolute dates in variants for recurring jobs. Use dynamic date calculation in the program instead to avoid manual variant updates each period.",
-        "codeExample": "\" Dynamic date in program instead of hardcoded variant\nDATA: lv_date_from TYPE d,\n      lv_date_to   TYPE d.\n\nlv_date_to   = sy-datum.         \" Today\nlv_date_from = sy-datum - 30.    \" Last 30 days\n\nSELECT bukrs, belnr FROM bkpf\n  WHERE budat BETWEEN @lv_date_from AND @lv_date_to\n  INTO TABLE @DATA(lt_docs)."
+        "codeExample": "\" Dynamic date in program instead of hardcoded variant\nDATA: lv_date_from TYPE d,\n      lv_date_to   TYPE d.\n\nlv_date_to   = sy-datum.         \" Today\nlv_date_from = sy-datum - 30.    \" Last 30 days\n\nSELECT bukrs, belnr FROM bkpf\n  WHERE budat BETWEEN @lv_date_from AND @lv_date_to\n  INTO TABLE @DATA(lt_docs).",
+        "tier": "medium"
       },
       {
         "question": "How do you check if a background job is still running vs hung?",
-        "hinglishExplanation": "SM37 mein job status 'Active' hai lekin bahut zyada time lag raha hai — ye hung ho sakta hai. SM50 (work process overview) mein check karo — agar work process usi job ke liye bahut long time se 'Running' show kar raha hai toh hung hai. ST05 ya SM12 mein check karo — lock objects hold kar raha hai kya.",
+        "hinglishExplanation": "SM37 mein, ek job jo unusually long 'Active' status mein stuck ho hung hone ka suspect hota hai. Main SM50 cross-check karta hu dekhne ke liye ki us program ke liye work process continuously run kar raha hai ya nahi. Agar runtime abnormally long hai bina progress ke, main SM12 check karta hu job dwara hold ki gayi lock entries ke liye. Performance analysis ke liye, ST05 SQL trace use ho sakta hai dekhne ke liye ki progress block karne wali koi slow-running query hai ya nahi. Resolution mein Basis approval ke baad SM37 ke through job cancel karna aur root cause investigate karna shaamil hai.",
         "interviewAnswer": "In SM37, a job stuck in 'Active' status for unusually long is suspected of being hung. I cross-check SM50 to see if a work process is continuously running for that program. If the runtime is abnormally long with no progress, I check SM12 for lock entries held by the job. For performance analysis, ST05 SQL trace can be used to see if there is a slow-running query blocking progress. Resolution involves cancelling the job via SM37 after Basis approval and investigating the root cause.",
         "realtimeExplanation": "Hung job can block other jobs if using the same resources. Always escalate to Basis team for production job cancellation — never cancel production jobs without approval.",
         "mistakes": "Cancelling a long-running job too early without confirming it is actually hung. Some jobs legitimately take hours — check historical runtimes in SM37 first.",
-        "codeExample": "\" SM37 → check Active jobs → compare with expected runtime\n\" SM50 → Work process overview → look for program name\n\" Column 'CPU' time: if increasing normally = running fine\n\" If CPU static and time high = possibly hung or waiting\n\" SM12 → check for lock entries by the batch user\n\" Basis: cancel job via SM37 → right-click → Cancel active job"
+        "codeExample": "\" SM37 → check Active jobs → compare with expected runtime\n\" SM50 → Work process overview → look for program name\n\" Column 'CPU' time: if increasing normally = running fine\n\" If CPU static and time high = possibly hung or waiting\n\" SM12 → check for lock entries by the batch user\n\" Basis: cancel job via SM37 → right-click → Cancel active job",
+        "tier": "medium"
       },
       {
         "question": "What is job class in SAP background processing and why does it matter?",
-        "hinglishExplanation": "SAP background jobs teen priority classes mein hote hain: A (highest — reserved, runs immediately on dedicated process), B (normal — most jobs ye class use karte hain), C (lowest priority — spare capacity mein chalta hai). Agar critical job C class pe schedule hua toh busy system mein kabhi nahi chalega ya bahut late chalega.",
+        "hinglishExplanation": "Job class background jobs ke liye priority aur work process allocation determine karta hai. Class A highest priority hai, ek reserved background work process ko assigned aur immediately run hota hai. Class B normal class hai most jobs ke liye use hota hai, available background work processes share karta hua. Class C sirf tab run hota hai jab spare background work processes available hon, time-critical processing ke liye unsuitable banate hue. Incorrect job class assignment peak system load ke dauran critical jobs ko delay kar sakti hai.",
         "interviewAnswer": "Job class determines the priority and work process allocation for background jobs. Class A is the highest priority, assigned to a reserved background work process and runs immediately. Class B is the normal class used for most jobs, sharing the available background work processes. Class C runs only when spare background work processes are available, making it unsuitable for time-critical processing. Incorrect job class assignment can delay critical jobs during peak system load.",
         "realtimeExplanation": "Month-end critical jobs should be class A. Routine low-priority reports should be class C to leave capacity for critical processing. This is a Basis and functional team decision, not just technical.",
         "mistakes": "Scheduling all jobs as Class A — this defeats the prioritization. Class A should be reserved for genuinely time-critical processes only.",
-        "codeExample": "\" In SM36 → General data tab:\n\" Job name: ZMONTH_END_CLOSE\n\" Job class: A  (Critical — reserved work process)\n\" Job class: B  (Normal business jobs)\n\" Job class: C  (Non-critical, spare capacity)\n\n\" In ABAP job scheduling code:\nCALL FUNCTION 'JOB_OPEN'\n  EXPORTING jobname  = 'ZMONTH_END'\n            jobclass = 'A'   \" Class A = highest priority\n  IMPORTING jobcount = lv_jobcount."
+        "codeExample": "\" In SM36 → General data tab:\n\" Job name: ZMONTH_END_CLOSE\n\" Job class: A  (Critical — reserved work process)\n\" Job class: B  (Normal business jobs)\n\" Job class: C  (Non-critical, spare capacity)\n\n\" In ABAP job scheduling code:\nCALL FUNCTION 'JOB_OPEN'\n  EXPORTING jobname  = 'ZMONTH_END'\n            jobclass = 'A'   \" Class A = highest priority\n  IMPORTING jobcount = lv_jobcount.",
+        "tier": "medium"
       },
       {
         "question": "How do you reschedule or restart a failed background job?",
-        "hinglishExplanation": "SM37 mein failed job pe click karo. Agar same parameters se dobara chalana hai: Job menu → Repeat Scheduling. Naya job schedule karna hai toh SM36 mein jao ya SM37 se Job → Step → change settings. Fix karne ke baad test karo SE38 mein pehle, phir production mein reschedule karo — hamesha reason document karo ticket mein.",
+        "hinglishExplanation": "Failed job ka root cause fix karne ke baad, main SM37 ka Repeat Scheduling option use karta hu same settings ke saath job re-run karne ke liye, ya SM36 fresh schedule banane ke liye. Production mein reschedule karne se pehle, main hamesha fix ko development mein same variant aur data conditions ke saath test karta hu. Audit trail ke liye incident ticket mein root cause, applied fix, aur reschedule time document karta hu.",
         "interviewAnswer": "After fixing the root cause of a failed job, I use SM37's Repeat Scheduling option to re-run the job with the same settings, or SM36 to create a fresh schedule. Before rescheduling in production, I always test the fix in development with the same variant and data conditions. I document the root cause, fix applied, and reschedule time in the incident ticket for audit trail.",
         "realtimeExplanation": "Production mein job reschedule karna business impact hota hai — functional team ko inform karo pehle. Some jobs run only once per period — running twice may cause duplicate postings.",
         "mistakes": "Rescheduling without fixing the root cause — job will fail again. Also rescheduling without informing functional team risks duplicate processing.",
-        "codeExample": "\" SM37 → Repeat Scheduling steps:\n\" 1. SM37 → filter → find the failed/aborted job\n\" 2. Select the job row\n\" 3. Menu: Job → Repeat Scheduling\n\" 4. Set new start time\n\" 5. Confirm — new job created with same program/variant\n\" Alternatively: SM36 → enter job name → Define steps\n\" Add same program + variant → set start condition → Save"
+        "codeExample": "\" SM37 → Repeat Scheduling steps:\n\" 1. SM37 → filter → find the failed/aborted job\n\" 2. Select the job row\n\" 3. Menu: Job → Repeat Scheduling\n\" 4. Set new start time\n\" 5. Confirm — new job created with same program/variant\n\" Alternatively: SM36 → enter job name → Define steps\n\" Add same program + variant → set start condition → Save",
+        "tier": "advanced"
       },
       {
         "question": "What is STAUTHTRACE and how is it different from SU53?",
-        "hinglishExplanation": "SU53 sirf last failed authorization check dikhata hai — ek user ke liye latest failure. STAUTHTRACE ek full trace hai — ek session ke dauran saare authorization checks record karta hai, both successful aur failed. Background job ke liye STAUTHTRACE better hai kyunki job mein multiple auth checks hote hain aur SU53 sirf aakhiri failure dikhata hai.",
+        "hinglishExplanation": "SU53 sirf ek user ke liye last failed authorization check dikhata hai — quick single-object failures ke liye useful. STAUTHTRACE traced session ke dauran saare authorization checks (both passed aur failed) record karta hai, saari required authorizations ki complete picture deta hai. Multiple authorization dependencies wale background jobs ke liye, STAUTHTRACE zyada useful hai kyunki SU53 sirf most recent failure capture karta hai, potentially earlier required objects miss karte hue.",
         "interviewAnswer": "SU53 shows only the last failed authorization check for a user — useful for quick single-object failures. STAUTHTRACE records all authorization checks (both passed and failed) during a traced session, giving a complete picture of all required authorizations. For background jobs with multiple authorization dependencies, STAUTHTRACE is more useful since SU53 only captures the most recent failure, potentially missing earlier required objects.",
         "realtimeExplanation": "STAUTHTRACE workflow: activate trace for the batch user → run the job (or reproduce manually) → deactivate trace → display results. Filter by 'check failed' to see only failures — these are the objects missing from the user's role.",
         "mistakes": "Using only SU53 for background jobs — if the job has 5 auth failures, SU53 only shows the last one. Fix that, job fails again on next check. STAUTHTRACE reveals all at once.",
-        "codeExample": "\" STAUTHTRACE usage steps:\n\" 1. STAUTHTRACE → Activate trace for user BATCH_USER\n\" 2. Run background job (SM37 → immediate) or reproduce in SE38\n\" 3. STAUTHTRACE → Deactivate trace\n\" 4. Display results → filter: authorization check = Failed\n\" 5. All missing auth objects visible in one view\n\" 6. Send complete list to Basis team for role update\n\" Compare: SU53 = last failure only, STAUTHTRACE = full picture"
+        "codeExample": "\" STAUTHTRACE usage steps:\n\" 1. STAUTHTRACE → Activate trace for user BATCH_USER\n\" 2. Run background job (SM37 → immediate) or reproduce in SE38\n\" 3. STAUTHTRACE → Deactivate trace\n\" 4. Display results → filter: authorization check = Failed\n\" 5. All missing auth objects visible in one view\n\" 6. Send complete list to Basis team for role update\n\" Compare: SU53 = last failure only, STAUTHTRACE = full picture",
+        "tier": "advanced"
       }
     ]
   },
@@ -148,70 +314,153 @@
     "hinglishMasterExplanation": "ST05 use karna simple hai — exact step-by-step process follow karo:\n\nSTEP 1 — ACTIVATE: ST05 transaction kholo, 'Activate Trace' button press karo. Ek popup aa sakta hai jahan tum specific user ya program filter kar sakte ho — single user trace recommended hai taaki doosre users ka noise na aaye.\n\nSTEP 2 — EXECUTE: Usi same session mein ya doosri session mein slow program ya transaction run karo. Exact scenario reproduce karo jaise user ne kiya — same input data, same navigation path.\n\nSTEP 3 — DEACTIVATE: Wapas ST05 mein jao, 'Deactivate Trace' press karo. Deactivate zaroori hai — warna trace buffer bhar jaata hai.\n\nSTEP 4 — DISPLAY: ST05 → 'Display Trace' → results list. Yahan clearly dikhega har SQL statement: table name, operation type, duration in microseconds, rows fetched.\n\nTrace mein kya dhundho — four red flags:\n\nFULL TABLE SCAN (operation = SEQREAD): WHERE clause ki koi field indexed nahi — database ne table ka har row check kiya. Fix: SE11 mein secondary index create karo ya WHERE clause mein indexed field add karo.\n\nHIGH FETCH COUNT (same table 100+ times): Ek hi table pe baar baar SELECT — SELECT inside LOOP ka clear sign. Fix: FOR ALL ENTRIES use karo — ek single SELECT mein poora driver table ka data fetch karo.\n\nHIGH ROW COUNT (1 query mein 5 lakh+ rows): WHERE clause bahut loose hai ya missing. Fix: date range, company code, plant jaise conditions add karo. UP TO N ROWS use karo online display ke liye.\n\nLONG DURATION (ek query mein 5+ seconds): Single query slow hai — network issue, missing index, ya large data volume. Sort by duration descending karo — worst offender top pe aayega.\n\nRelated tools comparison:\n- ST05: manual, session-specific, development/testing ke liye best\n- SQLM (SQL Monitor): automatic, aggregate, real production traffic data — weeks ki stats ek jagah\n- SAT (ABAP Runtime Analysis): SQL nahi — ABAP code execution time profile karta hai, kaunsa method ya FORM zyada time leta hai\n\nST05 aur SAT dono complement each other — database layer aur ABAP layer dono angles cover karte hain.",
     "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'ST05 SQL Trace records all database statements executed during a transaction — table name, operation type, duration, row count, and whether an index was used. I activate the trace, run the problematic program, deactivate, then analyze the trace output. I look for full table scans indicating missing indexes, repeated SELECT calls on the same table suggesting SELECT inside LOOP, and high row counts suggesting loose WHERE conditions. Based on the findings, I add secondary indexes in SE11, optimize WHERE clauses, or refactor repeated SELECTs to use FOR ALL ENTRIES.'\n\nHinglish tip: 'ST05 answer mein ye mandatory points hain: (1) Full table scan dikha → secondary index banaya, performance 70% improve hua. (2) Same SELECT 500 baar chal raha tha → FOR ALL ENTRIES use kiya, time 8 seconds se 0.4 seconds ho gaya. In concrete numbers ke saath interview answer complete hota hai. Always bolo: Performance claim karne se pehle ST05 se prove karta hoon — interviewer ko yeh approach bahut pasand aata hai.'",
     "codeExamples": "REPORT zdemo_st05_comparison.\n\" ST05: Activate → run program → Deactivate → Display Trace\n\" BAD: SELECT inside LOOP — ST05 shows N DB calls (one per order)\nSELECT vbeln FROM vbak INTO TABLE @DATA(lt_orders)\n  WHERE erdat = @sy-datum.\nLOOP AT lt_orders ASSIGNING FIELD-SYMBOL(<ord>).\n  SELECT * FROM vbap WHERE vbeln = @<ord>-vbeln\n    INTO TABLE @DATA(lt_items).  \" 1 call per iteration!\nENDLOOP.\n\" ST05 trace: vbap selected 1000 times = 4200ms total\n\" GOOD: FOR ALL ENTRIES — ST05 shows 2 DB calls total\nIF lt_orders IS NOT INITIAL.  \" MANDATORY empty check!\n  SELECT vbeln, posnr, matnr, netwr FROM vbap\n    FOR ALL ENTRIES IN @lt_orders\n    WHERE vbeln = @lt_orders-vbeln\n    INTO TABLE @DATA(lt_fae_items).\nENDIF.\n\" ST05 trace: vbap selected once = 180ms — 96% faster\n\" Sort ST05 results by Duration desc to find worst offenders",
+    "interviewScriptEnglish": "ST05 SQL Trace records all database statements executed during a transaction — table name, operation type, duration, row count, and whether an index was used. I activate the trace, run the problematic program, deactivate, then analyze the trace output. I look for full table scans indicating missing indexes, repeated SELECT calls on the same table suggesting SELECT inside LOOP, and high row counts suggesting loose WHERE conditions. Based on the findings, I add secondary indexes in SE11, optimize WHERE clauses, or refactor repeated SELECTs to use FOR ALL ENTRIES.",
+    "interviewScriptHinglish": "ST05 SQL Trace ek transaction ke dauran execute hue sab database statements record karta hai - table name, operation type, duration, row count, aur kya index use hua. Main trace activate karta hoon, problematic program run karta hoon, deactivate karta hoon, phir trace output analyze karta hoon. Main full table scans dhundhta hoon jo missing indexes indicate karte hain, same table pe repeated SELECT calls jo SELECT inside LOOP suggest karte hain, aur high row counts jo loose WHERE conditions suggest karte hain. Findings ke basis pe, main SE11 mein secondary indexes add karta hoon, WHERE clauses optimize karta hoon, ya repeated SELECTs ko FOR ALL ENTRIES use karne ke liye refactor karta hoon.",
+    "commonMistakesSection": [
+      {
+        "mistake": "Creating indexes on every field — too many indexes slow down INSERT/UPDATE operations.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Only index the fields used in WHERE clauses of performance-critical SELECT statements."
+      },
+      {
+        "mistake": "Using FOR ALL ENTRIES without IS NOT INITIAL check on the driver table.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "This is one of the most common ABAP production incidents and a standard interview trap question."
+      },
+      {
+        "mistake": "Using ST05 in production for performance analysis when SQLM already has weeks of real production data.",
+        "whyWrong": "Production impact: measurable runtime degradation in ST05/SAT traces.",
+        "correctApproach": "ST05 captures only one execution, SQLM captures all."
+      },
+      {
+        "mistake": "Using only ST05 and concluding no performance issue when the report is clearly slow.",
+        "whyWrong": "Production impact: measurable runtime degradation in ST05/SAT traces.",
+        "correctApproach": "ABAP processing bottlenecks are invisible to ST05 — always complement with SAT analysis."
+      }
+    ],
+    "wordByWordSamjho": [
+      {
+        "keyword": "ST05",
+        "meaning": "Performance Trace transaction — captures SQL, RFC, enqueue and buffer trace for a session."
+      },
+      {
+        "keyword": "SQL Trace",
+        "meaning": "ST05 mode that records every DB statement with operation, duration, rows and execution plan."
+      },
+      {
+        "keyword": "Activate Trace",
+        "meaning": "ST05 button that starts capturing for a chosen user/program/session before reproducing the issue."
+      },
+      {
+        "keyword": "Deactivate Trace",
+        "meaning": "ST05 button that stops capture; mandatory before display to avoid buffer overflow."
+      },
+      {
+        "keyword": "SEQREAD",
+        "meaning": "Trace operation indicating a full table scan — usually means no usable index for the WHERE clause."
+      },
+      {
+        "keyword": "ISREAD",
+        "meaning": "Trace operation indicating index-supported single record read — efficient access path."
+      },
+      {
+        "keyword": "Duration",
+        "meaning": "Microseconds spent per statement in the trace; sort descending to spot the worst offenders."
+      },
+      {
+        "keyword": "Records",
+        "meaning": "Rows returned by the statement — high count signals loose WHERE clause or missing UP TO."
+      },
+      {
+        "keyword": "FOR ALL ENTRIES",
+        "meaning": "ABAP construct replacing SELECT inside LOOP; mandatory IS NOT INITIAL check on the driver table."
+      },
+      {
+        "keyword": "PACKAGE SIZE",
+        "meaning": "Splits a SELECT into chunks of N rows to control memory and enable streaming processing."
+      },
+      {
+        "keyword": "UP TO n ROWS",
+        "meaning": "Limits result set size at the database — protects online programs from huge fetches."
+      },
+      {
+        "keyword": "SQLM",
+        "meaning": "SQL Monitor — production-wide aggregate of expensive SQL across all users and days."
+      }
+    ],
+    "quickRevisionNotes": "What: ST05 is the SQL/Performance Trace that records every database call of a session for performance root cause analysis.\n\nUsed for:\n- Proving SELECT inside LOOP, full table scans, and oversized WHERE results with before/after numbers.\n- Validating that a tuning fix actually reduced DB call count and total duration.\n- Identifying missing indexes to be created via SE11 secondary index on custom Z-tables.\n\nKey syntax / tables / Tcodes:\n- Workflow: ST05 Activate → reproduce → Deactivate → Display Trace → sort by Duration desc.\n- Operations: SEQREAD = full scan, ISREAD = index read, REOPEN/FETCH = cursor handling.\n- Companion: SQLM for production aggregate, SAT for ABAP profile, SE11 Indexes tab for index design.\n\nInterview keyword: ST05 turns I think it is slow into I can prove which SQL is slow.",
     "followupAnswerBank": [
       {
         "question": "What does a full table scan in ST05 mean and how do you fix it?",
-        "hinglishExplanation": "Full table scan matlab SAP ne WHERE clause ke fields pe koi index nahi use kiya — table ke har row ko scan karna pada. ST05 trace mein operation column mein 'SEQREAD' dikhega. Iska matlab ya toh koi index hi nahi hai us field pe, ya wrong field use kiya WHERE mein. SE11 mein table kholo aur secondary index dekho.",
+        "hinglishExplanation": "ST05 mein full table scan SEQREAD operation se indicate hota hai — database ne har row scan ki bina index use kiye. Ye tab hota hai jab WHERE clause fields pe koi matching index nahi. Fix: SE11 mein us table pe existing indexes check karo, frequently queried fields pe secondary index banao, ya WHERE clause ko restructure karo already-indexed field combination use karne ke liye.",
         "interviewAnswer": "A full table scan in ST05 is indicated by the SEQREAD operation — the database scanned every row without using an index. This occurs when the WHERE clause fields have no matching index. Fix: check SE11 for existing indexes on that table, create a secondary index on the frequently queried fields, or restructure the WHERE clause to use an already-indexed field combination.",
         "realtimeExplanation": "Standard SAP tables like VBAK, BKPF have primary and several secondary indexes already. Custom Z-tables often have only primary key index. When custom tables grow large, missing secondary indexes become critical performance issues.",
         "mistakes": "Creating indexes on every field — too many indexes slow down INSERT/UPDATE operations. Only index the fields used in WHERE clauses of performance-critical SELECT statements.",
-        "codeExample": "\" SE11 → table name → Indexes tab → create secondary index\n\" Example: ZCUSTOM_TABLE has no index on ERDAT (creation date)\n\" After creating index on ERDAT:\n\nSELECT * FROM zcustom_table\n  WHERE erdat >= @lv_date_from  \" Now uses new index\n    AND erdat <= @lv_date_to\n  INTO TABLE @DATA(lt_result).\n\" ST05 before: SEQREAD, 2.4 sec, 50000 rows scanned\n\" ST05 after:  index read, 0.1 sec, 120 rows fetched"
+        "codeExample": "\" SE11 → table name → Indexes tab → create secondary index\n\" Example: ZCUSTOM_TABLE has no index on ERDAT (creation date)\n\" After creating index on ERDAT:\n\nSELECT * FROM zcustom_table\n  WHERE erdat >= @lv_date_from  \" Now uses new index\n    AND erdat <= @lv_date_to\n  INTO TABLE @DATA(lt_result).\n\" ST05 before: SEQREAD, 2.4 sec, 50000 rows scanned\n\" ST05 after:  index read, 0.1 sec, 120 rows fetched",
+        "tier": "easy"
       },
       {
         "question": "How does FOR ALL ENTRIES improve performance and what is the critical trap?",
-        "hinglishExplanation": "FOR ALL ENTRIES ek driver table ke saath kaam karta hai — ABAP database ko batata hai: 'In saare values ke liye ek saath data lao.' Isse ek SELECT mein saara kaam ho jaata hai instead of LOOP mein hazaaron SELECT. Critical trap: agar driver table empty hai toh FOR ALL ENTRIES ALL rows fetch kar leta hai — production disaster!",
+        "hinglishExplanation": "FOR ALL ENTRIES LOOP ke andar SELECT ko replace karta hai saare driver table entries ke liye data ek single database call mein fetch karke, database tak round trips dramatically reduce karte hue. Critical trap ye hai ki agar driver table empty hai, FOR ALL ENTRIES bina WHERE clause ke SELECT jaisa behave karta hai — target table se saari rows fetch karta hai. FOR ALL ENTRIES use karne se pehle hamesha check karo driver table IS NOT INITIAL.",
         "interviewAnswer": "FOR ALL ENTRIES replaces SELECT inside LOOP by fetching data for all driver table entries in a single database call, dramatically reducing round trips to the database. The critical trap is that if the driver table is empty, FOR ALL ENTRIES behaves like a SELECT without a WHERE clause — fetching all rows from the target table. Always check driver table IS NOT INITIAL before using FOR ALL ENTRIES.",
         "realtimeExplanation": "Ek production incident: lt_orders empty tha ek specific day pe (no orders processed). FOR ALL ENTRIES without IS NOT INITIAL check → lt_items mein poori vbap table aa gayi → memory dump. Always mandatory check before FAE.",
         "mistakes": "Using FOR ALL ENTRIES without IS NOT INITIAL check on the driver table. This is one of the most common ABAP production incidents and a standard interview trap question.",
-        "codeExample": "\" MANDATORY pattern for FOR ALL ENTRIES\nSELECT vbeln FROM vbak\n  WHERE erdat = @sy-datum\n  INTO TABLE @DATA(lt_orders).\n\n\" Critical check before FOR ALL ENTRIES\nIF lt_orders IS NOT INITIAL.\n  SELECT vbeln, posnr, matnr FROM vbap\n    FOR ALL ENTRIES IN @lt_orders\n    WHERE vbeln = @lt_orders-vbeln\n    INTO TABLE @DATA(lt_items).\nENDIF.  \" If skipped: empty lt_orders = SELECT ALL vbap!"
+        "codeExample": "\" MANDATORY pattern for FOR ALL ENTRIES\nSELECT vbeln FROM vbak\n  WHERE erdat = @sy-datum\n  INTO TABLE @DATA(lt_orders).\n\n\" Critical check before FOR ALL ENTRIES\nIF lt_orders IS NOT INITIAL.\n  SELECT vbeln, posnr, matnr FROM vbap\n    FOR ALL ENTRIES IN @lt_orders\n    WHERE vbeln = @lt_orders-vbeln\n    INTO TABLE @DATA(lt_items).\nENDIF.  \" If skipped: empty lt_orders = SELECT ALL vbap!",
+        "tier": "easy"
       },
       {
         "question": "What is SQLM (SQL Monitor) and when do you use it instead of ST05?",
-        "hinglishExplanation": "ST05 ek session ka trace hai — tumne khud activate kiya, program run kiya, deactivate kiya. SQLM production ka aggregate data hai — days aur weeks ke real user traffic se automatically collect hota hai. Production slow hai toh SQLM better hai kyunki real load ka data dikhata hai. ST05 development/testing mein use karo specific program trace ke liye.",
+        "hinglishExplanation": "ST05 ek session-specific SQL trace hai jise tum ek execution ke liye manually activate karte ho — development aur testing ke liye ideal. SQLM (SQL Monitor) production mein saare program executions ke across din aur hafton mein aggregated statistics collect karta hai, real traffic ke based pe most frequently executed aur slowest SQL statements dikhate hue. Production performance issues ke liye, SQLM zyada representative data deta hai. Main ST05 development ke dauran specific program execution trace karne ke liye use karta hu, aur SQLM production environment mein top SQL bottlenecks identify karne ke liye.",
         "interviewAnswer": "ST05 is a session-specific SQL trace you activate manually for one execution — ideal for development and testing. SQLM (SQL Monitor) collects aggregated statistics across all program executions in production over days and weeks, showing the most frequently executed and slowest SQL statements based on real traffic. For production performance issues, SQLM provides more representative data. I use ST05 to trace specific program execution during development, and SQLM to identify top SQL bottlenecks in the production environment.",
         "realtimeExplanation": "S/4HANA systems have SQLM enabled by default. It is the first place to check for production-wide performance issues — shows top 10 expensive SQLs across all users without any manual trace activation.",
         "mistakes": "Using ST05 in production for performance analysis when SQLM already has weeks of real production data. ST05 captures only one execution, SQLM captures all.",
-        "codeExample": "\" SQLM usage steps:\n\" Transaction SQLM → Start Monitor (if not running)\n\" After collecting data → Display Monitor\n\" Sort by: Total Execution Time or Avg Execution Time\n\" Filter by: Program name, Table name\n\" Drill down to see exact SQL and calling program\n\" Compare: ST05 = manual, one session, dev/test\n\"          SQLM = automatic, all users, production stats"
+        "codeExample": "\" SQLM usage steps:\n\" Transaction SQLM → Start Monitor (if not running)\n\" After collecting data → Display Monitor\n\" Sort by: Total Execution Time or Avg Execution Time\n\" Filter by: Program name, Table name\n\" Drill down to see exact SQL and calling program\n\" Compare: ST05 = manual, one session, dev/test\n\"          SQLM = automatic, all users, production stats",
+        "tier": "easy"
       },
       {
         "question": "How do you use SAT (ABAP Runtime Analysis) and how is it different from ST05?",
-        "hinglishExplanation": "ST05 sirf SQL statements trace karta hai — database calls. SAT (transaction SAT, previously SE30) poore ABAP program ka runtime profile karta hai — kaunsa method, FORM, function module, internal table operation zyada time le raha hai. Performance problem SQL nahi balki ABAP logic mein hai toh SAT use karo.",
+        "hinglishExplanation": "ST05 sirf database SQL calls trace karta hai — dikhate hue kaunse SELECT statements slow ya frequent hain. SAT (ABAP Runtime Analysis) entire ABAP program execution profile karta hai — har method, FORM routine, function module call, aur internal table operation mein time spent dikhate hue. Agar ST05 koi slow SQL nahi dikhata lekin program abhi bhi slow hai, bottleneck ABAP processing mein hai, database mein nahi. Main dono ko together use karta hu: database layer analysis ke liye ST05, ABAP processing layer analysis ke liye SAT.",
         "interviewAnswer": "ST05 traces database SQL calls only — showing which SELECT statements are slow or frequent. SAT (ABAP Runtime Analysis) profiles the entire ABAP program execution — showing time spent in each method, FORM routine, function module call, and internal table operation. If ST05 shows no slow SQL but the program is still slow, the bottleneck is in ABAP processing, not the database. I use both together: ST05 for database layer analysis, SAT for ABAP processing layer analysis.",
         "realtimeExplanation": "Classic case: ST05 clean but report still slow. SAT reveals: LOOP AT lt_huge_table TRANSPORTING ALL FIELDS — switch to FIELD-SYMBOL reference, avoid data copying — performance fixed.",
         "mistakes": "Using only ST05 and concluding no performance issue when the report is clearly slow. ABAP processing bottlenecks are invisible to ST05 — always complement with SAT analysis.",
-        "codeExample": "\" SAT usage:\n\" SAT → Measurement settings → select program or transaction\n\" Start measurement → Execute program → Stop measurement\n\" Analyze results: sorted by gross/net time\n\" Look for: heavy LOOP AT, string operations, nested loops\n\n\" Common fix from SAT finding: TRANSPORTING NO FIELDS\nLOOP AT lt_orders TRANSPORTING NO FIELDS.  \" Count only\n  ADD 1 TO lv_count.\nENDLOOP.\n\" vs LOOP AT + ASSIGNING <fs> for field access — no data copy"
+        "codeExample": "\" SAT usage:\n\" SAT → Measurement settings → select program or transaction\n\" Start measurement → Execute program → Stop measurement\n\" Analyze results: sorted by gross/net time\n\" Look for: heavy LOOP AT, string operations, nested loops\n\n\" Common fix from SAT finding: TRANSPORTING NO FIELDS\nLOOP AT lt_orders TRANSPORTING NO FIELDS.  \" Count only\n  ADD 1 TO lv_count.\nENDLOOP.\n\" vs LOOP AT + ASSIGNING <fs> for field access — no data copy",
+        "tier": "medium"
       },
       {
         "question": "What does 'number of records fetched' column in ST05 tell you?",
-        "hinglishExplanation": "ST05 mein ek column hota hai 'Records' ya 'Rows' — kitne rows us SELECT ne database se laaye. Agar ek SELECT 5 lakh rows la raha hai toh WHERE clause bahut loose hai ya index nahi use ho rahi. Ideal hai ki sirf zaruri rows aayein — UP TO N ROWS ya tighter WHERE clause use karo.",
+        "hinglishExplanation": "ST05 mein records/rows column dikhata hai ki har SELECT statement ne database se kitni rows fetch ki. Short table name ke saath high row count usually missing WHERE conditions ya no index indicate karta hai. Main row count ko operation type ke saath correlate karta hu — high rows ke saath SEQREAD worst case hai. Fix mein WHERE clauses tighten karna, display purposes ke liye UP TO N ROWS add karna, ya batch processing ke liye PACKAGE SIZE use karna shaamil hai saari rows ek baar load karne se bachne ke liye.",
         "interviewAnswer": "The records/rows column in ST05 shows how many rows each SELECT statement fetched from the database. A high row count with a short table name usually indicates missing WHERE conditions or no index. I correlate row count with the operation type — SEQREAD with high rows is the worst case. Fix involves tightening WHERE clauses, adding UP TO N ROWS for display purposes, or using PACKAGE SIZE for batch processing to avoid loading all rows at once.",
         "realtimeExplanation": "Rule of thumb: any SELECT fetching more than 50,000 rows in an online transaction should be questioned. Online programs should fetch only what the user actually needs. Batch programs may legitimately fetch large datasets but should use PACKAGE SIZE.",
         "mistakes": "Ignoring high row counts if the query seems fast in development. With 100 rows in dev, 5 lakh rows in production — same code, catastrophically different performance.",
-        "codeExample": "\" Limiting rows for online programs\nSELECT matnr, maktx FROM makt\n  WHERE spras = @sy-langu\n  INTO TABLE @DATA(lt_materials)\n  UP TO 500 ROWS.   \" Limit for user display\n\n\" For batch: PACKAGE SIZE to process in chunks\nSELECT * FROM bseg WHERE bukrs = @p_bukrs\n  INTO TABLE @DATA(lt_bseg) PACKAGE SIZE 10000.\n  \" Process lt_bseg here per chunk\nENDSELECT."
+        "codeExample": "\" Limiting rows for online programs\nSELECT matnr, maktx FROM makt\n  WHERE spras = @sy-langu\n  INTO TABLE @DATA(lt_materials)\n  UP TO 500 ROWS.   \" Limit for user display\n\n\" For batch: PACKAGE SIZE to process in chunks\nSELECT * FROM bseg WHERE bukrs = @p_bukrs\n  INTO TABLE @DATA(lt_bseg) PACKAGE SIZE 10000.\n  \" Process lt_bseg here per chunk\nENDSELECT.",
+        "tier": "medium"
       },
       {
         "question": "How do you trace SQL from a specific transaction code using ST05?",
-        "hinglishExplanation": "Kuch performance issues ek specific transaction mein aate hain — jaise VA01 (sales order create) slow hai. ST05 mein trace activate karo, phir doosre session mein wo transaction execute karo, phir trace deactivate karo. Display trace mein filter lagao us transaction ka program name se — sirf usi se related SQL statements dikhenge.",
+        "hinglishExplanation": "Specific transaction trace karne ke liye, main ek session mein ST05 activate karta hu, fir second session mein problematic transaction ko completion tak execute karta hu, fir ST05 pe wapas aata hu aur deactivate karta hu. Trace display mein, main us transaction ke main program se filter karta hu relevant SQL isolate karne ke liye. Multiple programs aur function modules call karne wali complex transactions ke liye, main total trace dekhta hu aur duration se sort karta hu single slowest SQL dhundhne ke liye regardless of jisne bhi call kiya ho.",
         "interviewAnswer": "To trace a specific transaction, I activate ST05 in one session, then in a second session execute the problematic transaction to completion, then return to ST05 and deactivate. In the trace display, I filter by the main program of that transaction to isolate relevant SQL. For complex transactions calling multiple programs and function modules, I look at the total trace and sort by duration to find the single slowest SQL regardless of which program called it.",
         "realtimeExplanation": "Transaction slow hai lekin which program? SE93 mein transaction code enter karo — program name aur screen number dikhega. Phir ST05 trace mein us program name se filter karo.",
         "mistakes": "Tracing the wrong session or forgetting to deactivate before display — the trace buffer can overflow if left active too long, losing older entries.",
-        "codeExample": "\" ST05 trace for a transaction:\n\" Session 1: ST05 → Activate Trace\n\" Session 2: Open VA01 → create sales order → save\n\" Session 1: ST05 → Deactivate Trace → Display Trace\n\" Filter by: Program = SAPMV45A (VA01 main program)\n\" Or: Sort by Duration descending → find top slow queries\n\" SE93 → enter T-Code → shows program name for filter"
+        "codeExample": "\" ST05 trace for a transaction:\n\" Session 1: ST05 → Activate Trace\n\" Session 2: Open VA01 → create sales order → save\n\" Session 1: ST05 → Deactivate Trace → Display Trace\n\" Filter by: Program = SAPMV45A (VA01 main program)\n\" Or: Sort by Duration descending → find top slow queries\n\" SE93 → enter T-Code → shows program name for filter",
+        "tier": "medium"
       },
       {
         "question": "What is an index in SAP database context and when do you create one in SE11?",
-        "hinglishExplanation": "Database index matlab ek shortcut — jaise kitaab ka index jo batata hai 'ABAP topic page 45 pe hai' bina poori kitaab padhne ke. Primary index hamesha primary key pe hota hai. Secondary index additional fields pe create karte hain jo frequently WHERE clause mein use hote hain. SE11 → table → Indexes tab → New entry se secondary index create kar sakte ho.",
+        "hinglishExplanation": "Database index ek pre-sorted data structure hai jo database ko rows quickly find karne deti hai bina entire table scan kiye. SAP automatically primary key fields pe primary indexes banata hai. Secondary indexes SE11 mein un fields pe banaye jate hain jo performance-critical SELECT statements ke WHERE clauses mein frequently use hote hain. Main secondary index tab banata hu jab ST05 custom Z-table pe full table scans dikhata hai, verify karne ke baad ki koi existing index un fields ko cover nahi karta aur table mein significant data volume hai.",
         "interviewAnswer": "A database index is a pre-sorted data structure that allows the database to find rows quickly without scanning the entire table. SAP automatically creates primary indexes on primary key fields. Secondary indexes are created in SE11 on fields frequently used in WHERE clauses of performance-critical SELECT statements. I create a secondary index when ST05 shows full table scans on a custom Z-table, after verifying no existing index covers those fields and that the table has significant data volume.",
         "realtimeExplanation": "Secondary index creation on active production tables requires Basis approval and off-peak execution — index build locks the table briefly on some databases. Always assess impact before creating indexes in production.",
         "mistakes": "Creating indexes on standard SAP tables (non-Z tables) — SAP does not support customer-created indexes on standard tables as they can break SAP's own optimizer logic. Only create indexes on custom Z-tables.",
-        "codeExample": "\" SE11 → enter Z-table name → Display/Change\n\" Go to: Indexes tab → New entries\n\" Index name: Z01 (customer indexes start with Z)\n\" Select fields for index: e.g., ERDAT, BUKRS\n\" Activate index → it is built on the database\n\n\" After index on ERDAT:\nSELECT * FROM zcustom_orders\n  WHERE erdat = @sy-datum  \" Now uses Z01 index\n    AND bukrs = @p_bukrs\n  INTO TABLE @DATA(lt_result).\n\" ST05: operation changes from SEQREAD to ISREAD"
+        "codeExample": "\" SE11 → enter Z-table name → Display/Change\n\" Go to: Indexes tab → New entries\n\" Index name: Z01 (customer indexes start with Z)\n\" Select fields for index: e.g., ERDAT, BUKRS\n\" Activate index → it is built on the database\n\n\" After index on ERDAT:\nSELECT * FROM zcustom_orders\n  WHERE erdat = @sy-datum  \" Now uses Z01 index\n    AND bukrs = @p_bukrs\n  INTO TABLE @DATA(lt_result).\n\" ST05: operation changes from SEQREAD to ISREAD",
+        "tier": "advanced"
       },
       {
         "question": "How do you prove a performance fix worked — what metrics do you show?",
-        "hinglishExplanation": "Sirf bolna 'performance improve ho gayi' kafi nahi — prove karo numbers se. ST05 trace before aur after compare karo: total execution time, number of database calls, rows fetched. Screenshot lo ya numbers note karo. Example: 'Before: 1200 DB calls, 8.3 seconds. After FOR ALL ENTRIES: 2 DB calls, 0.4 seconds.' Ye concrete improvement hai.",
+        "hinglishExplanation": "Performance fix prove karne ke liye, main change se pehle ST05 trace run karta hu aur baseline metrics record karta hu: total execution time, SQL statements ki number, per query row count. Fix implement karne ke baad, main same input ke saath ST05 fir run karta hu aur compare karta hu. Dikhane ke liye key metrics: DB call count mein reduction (e.g., 500 calls se 2 calls), total duration mein reduction, per query rows fetched mein reduction. Main evidence ke liye in before/after numbers ko change request mein document karta hu.",
         "interviewAnswer": "To prove a performance fix, I run ST05 trace before the change and record baseline metrics: total execution time, number of SQL statements, row count per query. After implementing the fix, I run ST05 again with the same input and compare. Key metrics to show: reduction in DB call count (e.g., 500 calls to 2 calls), reduction in total duration, reduction in rows fetched per query. I document these before/after numbers in the change request for evidence.",
         "realtimeExplanation": "Interviewer always asks: 'How much improvement did you achieve?' Prepare specific numbers from real projects. Even rough estimates are better than 'it became faster.' Credible answers have data.",
         "mistakes": "Claiming performance improvement without baseline measurements. If you did not measure before, you cannot prove after. Always capture ST05 baseline before making any changes.",
-        "codeExample": "\" ST05 before fix:\n\" Table: VBAP | Operation: SEQREAD | Duration: 4200ms | Rows: 48000\n\" Count: SELECT called 600 times in loop\n\n\" After fix: FOR ALL ENTRIES\n\" Table: VBAP | Operation: ISREAD  | Duration: 180ms  | Rows: 1200\n\" Count: SELECT called 1 time\n\n\" Improvement: 4200ms → 180ms (96% faster)\n\" DB calls: 600 → 1\n\" Document these in TR description and incident ticket"
+        "codeExample": "\" ST05 before fix:\n\" Table: VBAP | Operation: SEQREAD | Duration: 4200ms | Rows: 48000\n\" Count: SELECT called 600 times in loop\n\n\" After fix: FOR ALL ENTRIES\n\" Table: VBAP | Operation: ISREAD  | Duration: 180ms  | Rows: 1200\n\" Count: SELECT called 1 time\n\n\" Improvement: 4200ms → 180ms (96% faster)\n\" DB calls: 600 → 1\n\" Document these in TR description and incident ticket",
+        "tier": "advanced"
       }
     ]
   }

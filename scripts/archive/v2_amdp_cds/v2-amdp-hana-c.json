@@ -1,0 +1,145 @@
+{
+  "amdp-hana-008": {
+    "interviewScriptHinglish": "Sir, AMDP mein client handling ek important security topic hai. Normal ABAP Open SQL automatically MANDT filter add karta hai client-dependent tables ke liye, lekin AMDP body pure SQLScript hai isliye yeh automatic nahi hota. Hume explicitly MANDT IMPORTING parameter banana padta hai aur SQLScript WHERE clause mein use karna hota hai. Practically, mere project mein finance AMDP banaya jisme :iv_mandt parameter add kiya aur har WHERE clause mein mandt = :iv_mandt likha. Calling ABAP method sy-mandt automatically pass karti hai. Iska benefit yeh hai ki data segregation strict rehti hai — agar miss kar diya toh cross-client data leak ho sakta hai, jo ek serious production security issue ban sakta hai.",
+    "interviewScriptEnglish": "AMDP does not automatically apply the implicit client filter that ABAP Open SQL adds to client-dependent tables. Because the body is pure SQLScript executing on HANA, we must define an IMPORTING parameter for the client field, typically iv_mandt, and apply mandt = :iv_mandt in every WHERE clause that touches client-dependent tables. The ABAP wrapper passes sy-mandt at call time. SAP convention names the parameter clnt or iv_mandt; CDS views handle this automatically through @ClientHandling. In our project we audited every AMDP after a code review to confirm explicit client filtering. The business value is preventing cross-client data leakage and meeting compliance standards.",
+    "wordByWordSamjho": [
+      { "keyword": "MANDT", "meaning": "Standard client field on client-dependent tables (also called CLNT)" },
+      { "keyword": "sy-mandt", "meaning": "ABAP system field holding the currently logged-in client" },
+      { "keyword": "iv_mandt", "meaning": "Conventional IMPORTING parameter name for the client value in AMDP" },
+      { "keyword": "Client-dependent", "meaning": "Table where MANDT is part of the key, requiring per-client isolation" },
+      { "keyword": "@ClientHandling", "meaning": "CDS annotation that controls automatic client filtering for the view" },
+      { "keyword": "DD02L", "meaning": "DDIC metadata table where CLIDEP indicates client dependency" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Omitting the client filter in AMDP WHERE clauses",
+        "whyWrong": "HANA returns rows across all clients, causing data leakage",
+        "correctApproach": "Always pass sy-mandt as iv_mandt and apply mandt = :iv_mandt on every client-dependent table"
+      },
+      {
+        "mistake": "Hardcoding the client value such as '100' inside SQLScript",
+        "whyWrong": "Breaks portability across landscapes and exposes wrong client data on transport",
+        "correctApproach": "Pass the client value as an IMPORTING parameter from the ABAP wrapper using sy-mandt"
+      },
+      {
+        "mistake": "Assuming all SAP tables are client dependent",
+        "whyWrong": "Cross-client tables like TADIR do not have MANDT and adding the filter fails",
+        "correctApproach": "Check the table's CLIDEP flag in DD02L before applying the filter"
+      },
+      {
+        "mistake": "Forgetting to propagate the client when one AMDP calls another",
+        "whyWrong": "Nested AMDP loses the client context and reads unfiltered data",
+        "correctApproach": "Forward iv_mandt explicitly as an IMPORTING parameter on every nested AMDP call"
+      }
+    ],
+    "quickRevisionNotes": "What: Explicit client (MANDT) handling required inside AMDP because SQLScript does not add implicit filters.\n\nUsed for:\n- Enforcing data isolation in multi-client SAP systems\n- Preventing accidental cross-client reads in reports and APIs\n- Aligning AMDP behaviour with CDS @ClientHandling defaults\n\nKey syntax / tables / Tcodes:\n- IMPORTING VALUE(iv_mandt) TYPE mandt on the AMDP signature\n- WHERE mandt = :iv_mandt in every WHERE clause for client-dependent tables\n- Caller passes sy-mandt at runtime\n- DD02L.CLIDEP to identify client dependency\n\nInterview keyword: explicit MANDT in AMDP, automatic in CDS",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "amdp-hana-009": {
+    "interviewScriptHinglish": "Sir, AMDP bahut powerful hai lekin uski clear limitations hain jo interview aur design dono mein samajhna zaroori hai. AMDP body mein ABAP statements allowed nahi — koi LOOP, AUTHORITY-CHECK, MESSAGE, ya function module call nahi. Database-portability nahi hai — sirf HANA pe chalta hai. COMMIT WORK ya ROLLBACK WORK AMDP andar nahi kar sakte. Debugging Eclipse mein limited hai. Practically, mere project mein ek requirement aayi jismein RFC call zaroori thi mid-processing — wahan AMDP feasible nahi tha, ABAP layer mein hi keep karna pada. Iska benefit yeh samajhna hai ki AMDP every problem ka solution nahi — sahi use case mein hi use karo, warna code complexity badhti hai aur maintainability suffer hoti hai.",
+    "interviewScriptEnglish": "AMDP offers powerful pushdown but with clear limitations that every developer must understand. Inside the body only SQLScript is permitted — no ABAP statements, no function module calls, no MESSAGE or AUTHORITY-CHECK. Transactions cannot be controlled with COMMIT WORK or ROLLBACK WORK. AMDP only runs on SAP HANA, so database portability is sacrificed. Standard Eclipse debugging cannot step inside the body. Testing requires careful setup with HANA Database Explorer or framework wrappers. We avoid AMDP for low-volume queries, mixed ABAP-DB flows, and scenarios needing change documents. The business value of knowing the limits is avoiding architectural mistakes that hurt maintainability and audit compliance.",
+    "wordByWordSamjho": [
+      { "keyword": "BY DATABASE PROCEDURE", "meaning": "Method addition that routes execution to HANA SQLScript" },
+      { "keyword": "OPTIONS READ-ONLY", "meaning": "Restricts the body to reads, blocking accidental DML" },
+      { "keyword": "MESSAGE", "meaning": "ABAP statement for issuing messages, not permitted inside AMDP" },
+      { "keyword": "COMMIT WORK", "meaning": "ABAP transaction commit, cannot be issued from AMDP body" },
+      { "keyword": "AUTHORITY-CHECK", "meaning": "ABAP authorization statement, not callable inside AMDP" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Trying to call an ABAP function module from inside AMDP",
+        "whyWrong": "Function modules run on the application server; SQLScript cannot invoke them",
+        "correctApproach": "Move the FM call to the ABAP wrapper before or after the AMDP execution"
+      },
+      {
+        "mistake": "Assuming AMDP is portable across databases",
+        "whyWrong": "AMDP is HANA-only; classes implementing IF_AMDP_MARKER_HDB will not run elsewhere",
+        "correctApproach": "Use AMDP only where the landscape is permanently on HANA; otherwise use Open SQL or CDS"
+      },
+      {
+        "mistake": "Using AMDP for simple queries returning few rows",
+        "whyWrong": "Stored procedure overhead outweighs benefit at low data volumes",
+        "correctApproach": "Use Open SQL for selective reads; reserve AMDP for high-volume or complex calculations"
+      },
+      {
+        "mistake": "Attempting COMMIT or ROLLBACK inside AMDP for transactional updates",
+        "whyWrong": "AMDP cannot control SAP LUW; bypasses change documents and ENQUEUE/DEQUEUE",
+        "correctApproach": "Perform DML and commits in the ABAP layer with proper locking; keep AMDP read-only"
+      }
+    ],
+    "quickRevisionNotes": "What: Constraints of AMDP that shape when to use it and when to avoid it.\n\nUsed for:\n- Choosing the correct pushdown tool per scenario\n- Avoiding maintainability and audit issues from misuse\n- Designing AMDP wrappers that handle authorization and locking in ABAP\n\nKey syntax / tables / Tcodes:\n- No ABAP statements inside body; SQLScript only\n- No COMMIT WORK / ROLLBACK WORK / MESSAGE / AUTHORITY-CHECK\n- Eclipse debugger does not stop inside body; use HANA Database Explorer\n- HANA-only execution; not portable\n\nInterview keyword: powerful but bounded; respect the rules",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "amdp-hana-010": {
+    "interviewScriptHinglish": "Sir, AMDP debugging normal ABAP debugger se nahi ho sakti kyunki code HANA pe execute hota hai, application server pe nahi. Standard approach hai: SAP HANA Database Explorer ya HANA Studio se underlying generated stored procedure find karo aur waha test karo. Helpful tactics: intermediate tabular variables banao har step ke liye, taaki output trace ho sake. Practically, mere project mein ek production issue tha jahan AMDP NULL handle nahi kar paa rahi thi. HANA Database Explorer mein stored procedure find ki, sample data se manually execute kiya, NULL row identify ki, COALESCE add karke fix kiya. Iska benefit yeh hai ki proper tool aur tabular variable tracing se complex SQLScript debug ho jaata hai bina ABAP debugger ke.",
+    "interviewScriptEnglish": "AMDP methods cannot be stepped through with the ABAP Eclipse debugger because the SQLScript body runs on HANA. Debugging is done with SAP HANA Database Explorer or HANA Studio, where the generated stored procedure can be located by following the AMDP class naming convention and executed manually with sample inputs. Inserting intermediate tabular variables at each logical step makes the chain inspectable. ST05 SQL trace and SAT runtime analysis help correlate ABAP calls with the underlying HANA execution. The cx_amdp_error exception exposes the original HANA error text for production troubleshooting. The business value is shorter incident resolution times and confidence in AMDP correctness under edge cases.",
+    "wordByWordSamjho": [
+      { "keyword": "HANA Database Explorer", "meaning": "Modern HANA tool for executing SQL and inspecting database objects" },
+      { "keyword": "HANA Studio", "meaning": "Eclipse-based HANA administration and development environment" },
+      { "keyword": "Stored Procedure", "meaning": "HANA object generated from the AMDP method body" },
+      { "keyword": "Tabular Variable", "meaning": "SQLScript intermediate result used to trace step-by-step output" },
+      { "keyword": "cx_amdp_error", "meaning": "ABAP exception carrying the HANA error text for AMDP failures" },
+      { "keyword": "ST05", "meaning": "ABAP SQL trace transaction useful for correlating AMDP calls" },
+      { "keyword": "SAT", "meaning": "Runtime analysis transaction for profiling ABAP and AMDP calls" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Setting Eclipse breakpoints inside the AMDP body",
+        "whyWrong": "Execution is on HANA; ABAP breakpoints never fire inside the SQLScript",
+        "correctApproach": "Place breakpoints in the ABAP wrapper and debug the body via HANA Database Explorer"
+      },
+      {
+        "mistake": "Skipping intermediate tabular variables in complex SQLScript",
+        "whyWrong": "When something goes wrong it is impossible to tell which step produced the bad result",
+        "correctApproach": "Break the logic into clearly named tabular variables that can be inspected one at a time"
+      },
+      {
+        "mistake": "Ignoring cx_amdp_error details in production logs",
+        "whyWrong": "Loses the precise HANA error text needed for root-cause analysis",
+        "correctApproach": "Capture cx_amdp_error->get_text and log it with the AMDP class and method context"
+      },
+      {
+        "mistake": "Debugging in production with no HANA access plan",
+        "whyWrong": "Most production environments restrict direct HANA tooling for compliance",
+        "correctApproach": "Reproduce the issue in QA, add temporary logging tables, or use SAT and ST05 traces in production"
+      }
+    ],
+    "quickRevisionNotes": "What: Toolset and approach for diagnosing AMDP issues since standard ABAP debugger cannot step inside.\n\nUsed for:\n- Functional correctness checks during development\n- Performance tuning of SQLScript logic\n- Production incident root cause analysis\n\nKey syntax / tables / Tcodes:\n- HANA Database Explorer / HANA Studio for stored procedure inspection\n- Intermediate tabular variables in SQLScript for step-wise tracing\n- ST05 for ABAP-side SQL trace; SAT for runtime profile\n- cx_amdp_error->get_text in ABAP catch block\n\nInterview keyword: HANA tools plus tabular variable tracing",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "amdp-hana-011": {
+    "interviewScriptHinglish": "Sir, functional consultant ko AMDP aur HANA optimization explain karna matlab technical jargon chhod ke business language mein baat karna. Code pushdown ko 'kaam wahan karo jahan data hai' ke analogy se samjhao. HANA in-memory ka matlab 'sab kuch RAM mein hai, disk se padhne ki zarurat nahi' — yeh real-time reports possible banata hai. Practically, mere project mein humne functional consultant ke saath workshop ki — Fiori dashboard pehle 30 second leta tha. Humne AMDP se 3 second mein laaye. Unka feedback aaya — 'ab business meeting mein live numbers dikha sakte hain'. Iska benefit yeh hai ki technical aur functional teams ke beech alignment banta hai, aur business value clearly communicate hota hai.",
+    "interviewScriptEnglish": "Explaining AMDP and HANA optimization to a functional consultant requires shifting from technical jargon to business value. Use analogies such as code pushdown meaning processing happens where the data sits, or HANA in-memory storage meaning information lives in RAM ready to read, which enables real-time reports. Focus on outcomes: faster Fiori dashboards, real-time analytics during business meetings, and elimination of overnight batch jobs. Ask the consultant about scenarios where users wait for reports — those are optimization opportunities. We ran a workshop where we showed before-and-after timings on a Fiori KPI tile and the consultant immediately understood the value. The business benefit is alignment between technical and functional teams when prioritising performance work.",
+    "wordByWordSamjho": [
+      { "keyword": "Code pushdown", "meaning": "Moving processing logic from application server to the database" },
+      { "keyword": "In-memory", "meaning": "Data resides in RAM, enabling sub-second analytical reads" },
+      { "keyword": "Columnar storage", "meaning": "HANA storage layout that speeds up aggregations and scans" },
+      { "keyword": "Fiori dashboard", "meaning": "Modern SAP UI tile typically backed by CDS or AMDP" },
+      { "keyword": "Real-time analytics", "meaning": "Reporting on live transactional data without batch ETL" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Using deep technical jargon when explaining AMDP to functional teams",
+        "whyWrong": "Loses the audience and undermines the credibility of the recommendation",
+        "correctApproach": "Use everyday analogies and focus on user-visible outcomes such as faster reports"
+      },
+      {
+        "mistake": "Promising performance gains without baseline metrics",
+        "whyWrong": "Sets unrealistic expectations and creates scepticism if results vary",
+        "correctApproach": "Capture before-and-after numbers from ST05 or PlanViz to justify the claim"
+      },
+      {
+        "mistake": "Ignoring the functional consultant's view of business pain points",
+        "whyWrong": "Optimizes reports that no one uses while leaving real bottlenecks unresolved",
+        "correctApproach": "Interview the consultant to find the slow processes that block business decisions"
+      },
+      {
+        "mistake": "Confusing HANA calculation views with AMDP in business conversations",
+        "whyWrong": "Both deliver pushdown but have different ownership and tooling implications",
+        "correctApproach": "Position AMDP as ABAP-managed and CDS/calc views as data-modelling artifacts"
+      }
+    ],
+    "quickRevisionNotes": "What: Translating HANA optimization concepts so functional consultants understand the value.\n\nUsed for:\n- Stakeholder workshops on performance backlogs\n- Selling investment in pushdown work to non-technical owners\n- Aligning IT and business priorities on Fiori UX\n\nKey syntax / tables / Tcodes:\n- Analogies: process where the data lives, in-memory storage like RAM\n- Before/after metrics from ST05 and PlanViz\n- HANA Cockpit dashboards for visible monitoring\n\nInterview keyword: outcomes over jargon, evidence over promises",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  }
+}

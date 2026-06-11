@@ -1,0 +1,73 @@
+{
+  "cds-views-010": {
+    "interviewScriptHinglish": "Sir, CDS performance troubleshooting structured approach se karte hain. ST05 SQL trace se actual generated SQL aur execution time capture karte hain. HANA PlanViz mein query load karke execution plan dekhte hain — full table scans, bad joins, cardinality issues. Common pitfalls hain cartesian joins, missing WHERE clauses, nested CDS views deeply, large association chains. Practically, mere project mein ek consumption CDS view 8 seconds le raha tha. ST05 mein dekha — 3 nested views ka query 50 column return kar raha tha. SELECT list trim ki, ek nested view ko flatten kiya — 2 seconds mein response aaya. Iska benefit yeh hai ki data-driven tuning hoti hai aur Fiori response time SLA maintain hota hai.",
+    "interviewScriptEnglish": "CDS performance troubleshooting follows a structured method. Start with ST05 SQL trace to capture the generated HANA SQL and runtime; load problem statements into PlanViz for plan analysis showing scans, joins, and cardinality. Common issues include cartesian joins from missing JOIN conditions, large nested view chains, association expansions on huge sets, and missing WHERE filters that should be parameters. Apply targeted fixes such as flattening views, narrowing column lists, switching JOIN strategy, or adding input parameters for filtering. In one project, removing a level of nesting and trimming the SELECT list cut response from eight seconds to two. The business value is predictable Fiori response, lower HANA cost, and confident production go-live.",
+    "wordByWordSamjho": [
+      { "keyword": "ST05", "meaning": "Performance SQL trace transaction used to capture statements" },
+      { "keyword": "PlanViz", "meaning": "HANA tool visualizing execution plan with operator timings" },
+      { "keyword": "Cartesian join", "meaning": "Join with no condition or wrong ON, multiplying rows uncontrollably" },
+      { "keyword": "Nested CDS view", "meaning": "View built on top of other CDS views, possibly amplifying complexity" },
+      { "keyword": "Input parameter", "meaning": "Declared CDS parameter pushing filter to the database" },
+      { "keyword": "EXPLAIN PLAN", "meaning": "HANA SQL command showing estimated execution plan" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Allowing cartesian joins by omitting JOIN conditions",
+        "whyWrong": "Result set blows up; query becomes extremely slow",
+        "correctApproach": "Always include explicit ON clauses; review JOIN syntax in code review"
+      },
+      {
+        "mistake": "Stacking many CDS views deeply for trivial logic",
+        "whyWrong": "Compiler generates very large SQL; HANA struggles to optimize",
+        "correctApproach": "Flatten the hierarchy where reuse is not necessary; keep nesting purposeful"
+      },
+      {
+        "mistake": "Skipping input parameters for filterable fields",
+        "whyWrong": "All data flows from HANA to the application layer before filtering",
+        "correctApproach": "Add parameters for company code, period, or plant filters used by every consumer"
+      },
+      {
+        "mistake": "Ignoring secondary index maintenance for large source tables",
+        "whyWrong": "HANA cannot prune effectively; PlanViz shows full table scans",
+        "correctApproach": "Add indexes only when ST05 and PlanViz prove the need, then re-test"
+      }
+    ],
+    "quickRevisionNotes": "What: Diagnostic process to fix slow CDS views.\n\nUsed for:\n- Meeting Fiori response time SLAs\n- Reducing HANA infrastructure cost\n- Validating new CDS designs before production\n\nKey syntax / tables / Tcodes:\n- ST05 SQL trace -> load into PlanViz\n- EXPLAIN PLAN FOR <statement>\n- Identify cartesian joins, nested-view overhead, missing parameters\n- Validate fix with ADT data preview and ST05 re-run\n\nInterview keyword: trace, plan, fix, validate",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "cds-views-011": {
+    "interviewScriptHinglish": "Sir, functional consultant ko CDS views explain karna matlab technical jargon chhod ke business benefit pe focus karna. CDS view ek smart data window hai — Fiori tile mein data CDS se aata hai, ek hi view multiple apps mein reuse hota hai, authorization centrally enforce hoti hai. DCL ko PFCG ka cousin batao — yeh row-level authorization deta hai, jaise tum PFCG mein roles maintain karte ho. Practically, mere project mein functional team ke saath workshop ki — ek dashboard demo kiya jisme CDS view real-time KPI dikhata tha, fir SE16N dump ke comparison mein difference samjhaya. Iska benefit yeh hai ki cross-team collaboration improve hoti hai aur functional team CDS-driven requirements articulate kar paati hai.",
+    "interviewScriptEnglish": "Explaining CDS views to a functional consultant requires translating technology into business outcomes. Position CDS as a smart, reusable data window that powers Fiori applications, OData services, and analytical reports with consistent semantics. Explain DCL as a cousin of PFCG authorization that enforces row-level access centrally rather than in each report. Use the difference between SE16N dumps and Fiori KPI tiles to make the value tangible. Compare CDS to BW queries by emphasising real-time analytics without ETL. Show how SAP standard CDS views accelerate delivery and how custom views complement them. The business value is better requirement quality from functional teams and stronger collaboration between technical and functional roles.",
+    "wordByWordSamjho": [
+      { "keyword": "Fiori tile", "meaning": "Launchpad entry point backed by an OData service from a CDS view" },
+      { "keyword": "OData", "meaning": "Standard REST-based protocol exposing CDS data to web clients" },
+      { "keyword": "DCL", "meaning": "Data Control Language enforcing row-level CDS authorization" },
+      { "keyword": "PFCG", "meaning": "Role maintenance transaction where authorization objects live" },
+      { "keyword": "Embedded analytics", "meaning": "Real-time analytical scenarios powered by CDS without ETL" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Using deep technical language with functional consultants",
+        "whyWrong": "Conversation stalls and recommendations lack credibility",
+        "correctApproach": "Use analogies and visible outcomes such as Fiori tiles and faster reports"
+      },
+      {
+        "mistake": "Ignoring the SE16N versus CDS view comparison",
+        "whyWrong": "Functional teams default to SE16N dumps for reporting",
+        "correctApproach": "Show how CDS views give controlled, authorized, semantically rich data"
+      },
+      {
+        "mistake": "Treating standard CDS views as unimportant",
+        "whyWrong": "Reinventing CDS that SAP already ships wastes effort and breaks upgrade safety",
+        "correctApproach": "Reuse standard I_/C_ views; only extend or create custom when truly needed"
+      },
+      {
+        "mistake": "Skipping the business-benefit framing in interviews",
+        "whyWrong": "Sounds purely technical and misses the consultant audience",
+        "correctApproach": "Lead with outcomes: real-time KPIs, embedded analytics, controlled access"
+      }
+    ],
+    "quickRevisionNotes": "What: Communication patterns for explaining CDS views to functional consultants.\n\nUsed for:\n- Stakeholder workshops and requirement refinement\n- Cross-team collaboration in S/4HANA projects\n- Demonstrating maturity in mixed audiences\n\nKey syntax / tables / Tcodes:\n- CDS view -> OData -> Fiori tile flow\n- DCL compared to PFCG concepts\n- Real-time embedded analytics vs BW batch ETL\n- SE16N dump vs Fiori KPI tile contrast\n\nInterview keyword: outcomes, analogies, and SAP standards",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  }
+}

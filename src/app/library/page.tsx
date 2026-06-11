@@ -7,6 +7,7 @@ import { allQuestions, chapters } from "@/lib/content";
 import { Badge, difficultyVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ink } from "@/lib/utils";
 import { useStudyStore } from "@/store/use-study-store";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { BrandLogo } from "@/components/layout/brand-logo";
@@ -38,7 +39,7 @@ export default function LibraryPage() {
           <div className="flex items-center gap-2">
             <Link href="/" className="flex items-center gap-2">
               <BrandLogo size={28} />
-              <span className="font-serif text-sm font-semibold text-foreground">CodeGurukul</span>
+              <span className="font-serif text-sm font-semibold text-foreground">ABAPPrep</span>
             </Link>
             <ChevronRight size={12} className="text-faint" />
             <span className="text-sm font-semibold text-accent">Library</span>
@@ -109,7 +110,7 @@ function QuestionRow({ question, done }: { question: Question; done: boolean }) 
         <div className="flex items-center gap-3">
           <span
             className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold"
-            style={{ backgroundColor: `${color}1f`, color }}
+            style={{ backgroundColor: `${color}1f`, color: ink(color) }}
           >
             {done ? "✓" : <Star size={13} />}
           </span>

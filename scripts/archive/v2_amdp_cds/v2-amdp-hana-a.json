@@ -1,0 +1,121 @@
+{
+  "amdp-hana-001": {
+    "interviewScriptHinglish": "Sir, AMDP — ABAP Managed Database Procedures — ek mechanism hai jo ABAP code ko directly SAP HANA database pe execute karne deta hai. Yeh ek ABAP class ka method hota hai jiska body SQLScript mein likha hota hai, aur execution application server par nahi balki HANA database pe hoti hai. Class ko IF_AMDP_MARKER_HDB interface implement karni padti hai, aur method declaration mein BY DATABASE PROCEDURE FOR HDB LANGUAGE SQLSCRIPT likhna padta hai. Practically, mere project mein sales aggregation report ke liye AMDP use kiya tha — 5 crore rows ka GROUP BY application server pe 4 minutes le raha tha, AMDP se HANA pushdown ke baad 8 seconds mein complete hua. Iska benefit yeh hai ki data move nahi hota, sirf final result aata hai — network aur memory dono efficiently use hoti hain.",
+    "interviewScriptEnglish": "AMDP, or ABAP Managed Database Procedures, is a mechanism that allows ABAP class methods to execute directly on the SAP HANA database as stored procedures written in SQLScript. The class must implement the IF_AMDP_MARKER_HDB marker interface, and the method is declared with BY DATABASE PROCEDURE FOR HDB LANGUAGE SQLSCRIPT. We use AMDP for code pushdown scenarios such as complex aggregations, multi-step transformations, and analytical reports where processing millions of rows on the application server would be inefficient. In my project, we used AMDP for a finance summary report and reduced runtime from four minutes to eight seconds. The key business value is faster reports, reduced network traffic, and better utilization of HANA's in-memory columnar engine.",
+    "wordByWordSamjho": [
+      { "keyword": "IF_AMDP_MARKER_HDB", "meaning": "Marker interface signalling that the class contains HANA AMDP methods" },
+      { "keyword": "BY DATABASE PROCEDURE", "meaning": "Method addition declaring the body as a database procedure, not ABAP" },
+      { "keyword": "FOR HDB", "meaning": "Specifies the database is SAP HANA (HDB)" },
+      { "keyword": "LANGUAGE SQLSCRIPT", "meaning": "States the body language is HANA SQLScript" },
+      { "keyword": "OPTIONS READ-ONLY", "meaning": "Restricts the AMDP body to read-only operations, blocks DML" },
+      { "keyword": "USING", "meaning": "Lists database tables and views referenced inside the SQLScript body" },
+      { "keyword": "CX_AMDP_ERROR", "meaning": "Exception class raised when an AMDP fails at runtime" },
+      { "keyword": "VALUE(et_result)", "meaning": "Pass-by-value exporting parameter that returns the tabular result to ABAP" },
+      { "keyword": "GROUP BY", "meaning": "SQL clause that aggregates rows sharing common column values" },
+      { "keyword": "SUM(...)", "meaning": "Aggregate function that totals a numeric column at the database layer" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Forgetting to list a table in the USING clause",
+        "whyWrong": "SAP transport and dependency tracking fail; activation error or unexpected runtime behaviour",
+        "correctApproach": "List every transparent table, CDS view, or other AMDP referenced inside the body explicitly in USING"
+      },
+      {
+        "mistake": "Writing ABAP statements inside the AMDP body",
+        "whyWrong": "AMDP body is pure SQLScript that runs on HANA — ABAP statements like LOOP, AUTHORITY-CHECK, MESSAGE fail to activate",
+        "correctApproach": "Keep ABAP logic in the calling wrapper method; use only SQLScript constructs inside the AMDP body"
+      },
+      {
+        "mistake": "Assuming the standard ABAP debugger can step into an AMDP",
+        "whyWrong": "AMDP runs on HANA, so Eclipse breakpoints do not stop inside the body",
+        "correctApproach": "Use SAP HANA Database Explorer or HANA Studio; add intermediate tabular variables to inspect step-by-step"
+      },
+      {
+        "mistake": "Skipping authorization checks because the AMDP runs on HANA",
+        "whyWrong": "AMDP cannot run AUTHORITY-CHECK; data leaks if calling ABAP layer also skips checks",
+        "correctApproach": "Perform AUTHORITY-CHECK in the ABAP wrapper before calling the AMDP method"
+      }
+    ],
+    "quickRevisionNotes": "What: ABAP class method whose body is SQLScript executed directly on the SAP HANA database.\n\nUsed for:\n- Code pushdown of aggregations, joins, and analytical logic\n- Complex multi-step transformations on large datasets\n- Backing CDS table functions with procedural SQLScript logic\n\nKey syntax / tables / Tcodes:\n- INTERFACES if_amdp_marker_hdb in class definition\n- METHOD ... BY DATABASE PROCEDURE FOR HDB LANGUAGE SQLSCRIPT OPTIONS READ-ONLY USING <tables>\n- ADT in Eclipse for development; HANA Database Explorer for debugging\n- Exception class CX_AMDP_ERROR for error handling in calling ABAP\n\nInterview keyword: managed code pushdown via ABAP-owned SQLScript",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "amdp-hana-002": {
+    "interviewScriptHinglish": "Sir, CDS Views aur AMDP dono HANA pe code pushdown ke tools hain lekin nature alag hai. CDS view declarative DDL hai — tum data model define karte ho with annotations like @OData.publish, @Analytics — Fiori, OData, ABAP sab consume kar sakte hain. AMDP procedural SQLScript hai — multi-step logic, tabular variables, conditional processing. Practically, mere project mein sales region-wise aggregation ke liye CDS view banaya kyunki Fiori app aur OData service dono use karne the. Lekin inventory aging report mein AMDP use kiya kyunki age buckets ka complex date logic ek single CDS SELECT mein express nahi ho sakta tha. Iska benefit yeh hai ki right tool for right job — CDS for reusable data models, AMDP for complex calculations, aur CDS Table Function se dono ko combine bhi kar sakte ho.",
+    "interviewScriptEnglish": "CDS views are declarative data models written in DDL, ideal for read scenarios that need reusability, annotations, and integration with OData and Fiori. AMDP is procedural SQLScript suited for complex multi-step database logic that cannot be expressed in a single declarative SELECT. In our project we used CDS views for Fiori KPI tiles and OData services because annotations gave us automatic metadata; we used AMDP for inventory aging where conditional bucket assignments and date arithmetic required procedural constructs. The business value is choosing the right pushdown mechanism — CDS for reusable, broadly consumable data layers, and AMDP for heavy calculation logic. When needed, a CDS Table Function backed by an AMDP combines both benefits.",
+    "wordByWordSamjho": [
+      { "keyword": "define view", "meaning": "CDS DDL keyword that introduces a view definition in ADT" },
+      { "keyword": "@AbapCatalog.sqlViewName", "meaning": "Annotation that maps the CDS entity to a SQL view name in DDIC" },
+      { "keyword": "@Analytics.dataCategory", "meaning": "Marks the CDS view as CUBE, FACT, or DIMENSION for analytical consumption" },
+      { "keyword": "association [0..1]", "meaning": "Lazy navigational join evaluated only when the consumer accesses the path" },
+      { "keyword": "BY DATABASE PROCEDURE FOR HDB", "meaning": "AMDP method declaration routing execution to HANA SQLScript" },
+      { "keyword": "OPTIONS READ-ONLY", "meaning": "AMDP guardrail preventing INSERT, UPDATE, or DELETE inside the body" },
+      { "keyword": "DAYS_BETWEEN", "meaning": "HANA SQLScript function returning the day difference between two dates" },
+      { "keyword": "CASE WHEN", "meaning": "Set-based conditional used to assign buckets inline in a SELECT" },
+      { "keyword": "SUM(item.netwr)", "meaning": "Aggregate function summing the net value column on HANA" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Trying to call an AMDP from inside a CDS view",
+        "whyWrong": "CDS DDL is declarative and cannot invoke procedural code",
+        "correctApproach": "Use a CDS Table Function that is implemented by the AMDP method when CDS-side procedural logic is needed"
+      },
+      {
+        "mistake": "Using AMDP for every analytical requirement",
+        "whyWrong": "Simple aggregations are cleaner, more reusable, and easier to maintain as CDS views",
+        "correctApproach": "Default to CDS views; switch to AMDP only when procedural multi-step logic is unavoidable"
+      },
+      {
+        "mistake": "Skipping access control on a CDS view by setting authorizationCheck to NOT_REQUIRED without justification",
+        "whyWrong": "Bypasses ABAP authorization and creates a security gap visible to every consumer",
+        "correctApproach": "Keep @AccessControl.authorizationCheck: #CHECK and define a DCL role that restricts rows via pfcg_auth"
+      },
+      {
+        "mistake": "Performing DML in AMDP without considering ABAP locking",
+        "whyWrong": "ENQUEUE/DEQUEUE and change documents do not apply at the HANA layer",
+        "correctApproach": "Keep AMDPs read-only with OPTIONS READ-ONLY; perform writes through ABAP MODIFY with proper locks"
+      }
+    ],
+    "quickRevisionNotes": "What: CDS views are declarative DDL data models, AMDP is procedural SQLScript inside an ABAP class method.\n\nUsed for:\n- CDS: reusable data layer for Fiori, OData, analytics with annotations\n- AMDP: complex multi-step calculations, conditional transformations\n- CDS Table Function: bridges both by exposing AMDP via CDS\n\nKey syntax / tables / Tcodes:\n- define view ZI_... with @OData.publish, @Analytics, @AccessControl\n- METHOD ... BY DATABASE PROCEDURE FOR HDB LANGUAGE SQLSCRIPT USING ...\n- define table function ... implemented by method <class>=><method>\n- Eclipse ADT for both; HANA Database Explorer for AMDP debug\n\nInterview keyword: declarative CDS vs procedural AMDP, bridged by CDS Table Function",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "amdp-hana-003": {
+    "interviewScriptHinglish": "Sir, SQLScript SAP HANA ka procedural SQL language hai jo standard SQL ko extend karta hai with scalar variables, tabular variables, IF-THEN-ELSE aur procedural constructs. AMDP method ke andar SQLScript hi likha jata hai. Sabse important feature hai tabular variable — ek intermediate result ko table ki tarah store karte hain, phir colon notation se reference karte hain, jaise FROM :lt_orders. Practically, mere project mein vendor aging report ke liye SQLScript use kiya — pehle lt_invoices mein open items liye, phir DAYS_BETWEEN se age calculate ki, phir CASE WHEN se buckets banaye, sab HANA ke andar set-based. Iska benefit yeh hai ki LOOP avoid karke set operations use karte hain, jisse HANA ka parallel columnar engine fully utilize hota hai aur performance massive improve hoti hai.",
+    "interviewScriptEnglish": "SQLScript is SAP HANA's procedural extension of SQL, supporting scalar variables, tabular variables, conditional logic, and built-in functions. It is the language used inside AMDP method bodies. Tabular variables hold intermediate result sets in HANA memory and are referenced with a colon prefix, enabling multi-step transformations without sending data to the application server. We use SQLScript for date arithmetic with DAYS_BETWEEN, NULL-safe aggregations with COALESCE, and conditional bucketing with CASE WHEN. The business value is significant performance gains: set-based operations on HANA's columnar engine process millions of rows in seconds, where ABAP loops would take minutes. Avoiding row-by-row LOOP constructs is the key best practice.",
+    "wordByWordSamjho": [
+      { "keyword": "DECLARE", "meaning": "Declares a scalar SQLScript variable with type and optional default" },
+      { "keyword": ":lt_var", "meaning": "Colon-prefix syntax used to reference a tabular or scalar variable" },
+      { "keyword": "INNER JOIN", "meaning": "Returns only matching rows from both tables on the join condition" },
+      { "keyword": "LEFT OUTER JOIN", "meaning": "Returns all rows from the left side plus matching rows from the right" },
+      { "keyword": "GROUP BY", "meaning": "Aggregates rows that share values in listed columns" },
+      { "keyword": "COALESCE", "meaning": "Returns the first non-NULL argument, used as a NULL-safe default" },
+      { "keyword": "CURRENT_DATE", "meaning": "HANA built-in returning today's date on the database server" },
+      { "keyword": "ADD_YEARS", "meaning": "Adds or subtracts years from a date, returning the new date" },
+      { "keyword": "SUM, COUNT, AVG", "meaning": "Aggregate functions executed inside HANA on the entire result set" },
+      { "keyword": "ORDER BY", "meaning": "Sorts the result set ascending or descending" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Forgetting the colon prefix when referencing a tabular or scalar variable",
+        "whyWrong": "SQLScript parser cannot resolve the identifier and activation fails",
+        "correctApproach": "Always use :lt_name for tabular and :lv_name for scalar references inside the body"
+      },
+      {
+        "mistake": "Writing LOOP constructs to process rows one by one",
+        "whyWrong": "Bypasses HANA's parallel columnar engine and performs worse than ABAP",
+        "correctApproach": "Use set-based alternatives like CASE WHEN, GROUP BY, and JOINs across the whole result set"
+      },
+      {
+        "mistake": "Ignoring NULL handling in aggregations",
+        "whyWrong": "NULL propagates through arithmetic and skews SUM, AVG, or breaks WHERE comparisons",
+        "correctApproach": "Wrap nullable columns with COALESCE(col, 0) or use IS NULL / IS NOT NULL for checks"
+      },
+      {
+        "mistake": "Using INNER JOIN with SERIES_GENERATE_DATE for time-series reports",
+        "whyWrong": "Periods with no transactions are dropped, leaving gaps in the report",
+        "correctApproach": "LEFT OUTER JOIN the generated date series with transaction data so empty periods show as 0"
+      }
+    ],
+    "quickRevisionNotes": "What: HANA's procedural SQL extension used inside AMDP for multi-step database-side logic.\n\nUsed for:\n- Multi-step aggregations and transformations with tabular variables\n- Date series and time bucket generation with built-in functions\n- Conditional transformations using CASE WHEN at set level\n\nKey syntax / tables / Tcodes:\n- DECLARE lv_var TYPE := value; :lv_var to reference\n- lt_data = SELECT ...; :lt_data for tabular reference\n- DAYS_BETWEEN, ADD_DAYS, COALESCE, CURRENT_DATE, SERIES_GENERATE_DATE\n- OPTIONS READ-ONLY to enforce read-only contract\n\nInterview keyword: set-based SQLScript inside AMDP, avoid LOOP",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  }
+}

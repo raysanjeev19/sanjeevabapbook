@@ -2,12 +2,89 @@
   "ooabap-001": {
     "easyUnderstanding": "Socho ghar banana hai. Purane procedural ABAP mein — ek bade kamre mein sab kuch rakh dete the: furniture bhi, kitchen bhi, sofa bhi, sab ek hi jagah. Sab mixed up, dhundhna mushkil, change karo toh kuch aur toot jaata tha. OOABAP mein — alag alag rooms hain: ek room furniture ke liye (attributes/data), ek room kaam karne ke liye (methods/behavior), ek room store ke liye (private data). Har cheez organized hai, har cheez apni jagah hai. Ab ek blueprint ki baat karte hain — jaise architect ka house plan. Is plan ko class kehte hain. Us plan se jo actual ghar banta hai woh object hai. Ek hi blueprint se 10 ghar bana sakte ho, har ghar apna alag address rakhta hai — usi tarah ek hi class se 10 objects, har object apna alag data rakhta hai. SAP khud bhi isi approach pe chalta hai: CL_GUI_ALV_GRID ek class hai, jab tum ALV banate ho toh us class ka object banate ho aur screen pe attach karte ho. BAdI implementations, exception classes, HTTP client calls, Fiori backend logic — sab OOABAP pe based hain. Toh agar modern SAP mein kaam karna hai, OOABAP aana hi chahiye — yeh optional nahi hai. OOABAP ke 4 bade fayde hain: Encapsulation (data hide karo), Inheritance (code reuse karo), Polymorphism (flexible behavior), Reusability (ek baar banao, baar baar use karo). Simple yaad rakho: Class = design, Object = real cheez. Yeh formula pakad lo, OOABAP kabhi confuse nahi karega.",
     "hinglishMasterExplanation": "OOABAP yaani Object Oriented ABAP — yeh ek programming paradigm hai jahan code ko classes aur objects ke through organize karte hain. Interview mein sirf 'classes aur objects hote hain' bolna kafi nahi — 4 pillars clearly explain karo:\n\n1. Encapsulation: Data aur methods ek class ke andar band rehte hain. Bahar ka code seedha DATA access nahi kar sakta — sirf PUBLIC methods ke through jaata hai. Isse data protect hota hai, accidental change nahi hoti. Example: Bank account ka balance PRIVATE hai — seedha change nahi kar sakte, sirf deposit( ) ya withdraw( ) method se karo.\n\n2. Inheritance: Ek class doosri class ki public aur protected properties aur methods inherit kar sakti hai — CLASS lcl_child DEFINITION INHERITING FROM lcl_parent. Child class parent ka code reuse karti hai, phir apna extra behavior add karti hai. Code duplication khatam. Maintenance easy.\n\n3. Polymorphism: Ek parent type reference variable alag alag child objects ko point kar sakta hai. Method call pe runtime pe sahi child ki method call hoti hai — late binding. Very powerful for flexible, extensible code. Example: Shape reference circle ko point kare ya rectangle ko — draw( ) call karo aur sahi wala run hoga.\n\n4. Reusability: Ek baar class banao, baar baar different programs mein use karo. SAP standard library bhi isi pe based hai — CL_ABAP_MATH, CL_GUI_ALV_GRID, CX_SY_MOVE_CAST_ERROR sab global classes hain.\n\nSyntax quick reference:\n- CLASS lcl_car DEFINITION. PUBLIC SECTION. METHODS: drive. ENDCLASS.\n- CLASS lcl_car IMPLEMENTATION. METHOD drive. WRITE: / 'Driving'. ENDMETHOD. ENDCLASS.\n- DATA lr_car TYPE REF TO lcl_car. lr_car = NEW lcl_car( ). lr_car->drive( ).\n\nVs. Procedural: FORM routines global variables use karte hain, coupling zyada hoti hai, unit testing almost impossible hoti hai. OOABAP mein encapsulation, single responsibility, aur testability significantly better hoti hai — isliye modern SAP aur S/4HANA development exclusively OOABAP prefer karta hai.",
-    "interviewMeKyaBolnaHai": "Object Oriented ABAP allows us to organize code using classes and objects. A class defines the blueprint — it contains attributes for data and methods for behavior. An object is a runtime instance of a class created using the NEW operator. OOABAP brings four key benefits: encapsulation keeps data safe within the class, inheritance enables code reuse across related classes, polymorphism allows flexible runtime behavior, and reusability reduces duplication. In my projects, I use OOABAP for ALV event handling with CL_GUI_ALV_GRID, custom exception classes inheriting from CX_STATIC_CHECK, and BAdI implementations where the framework itself instantiates my class.\n\nHinglish tip: Interviewer agar poocha 'why OOABAP over FORM routines?' toh confidently bolo: 'FORM mein global variables aur tight coupling zyada hoti hai. OOABAP mein encapsulation, reusability, aur testability better hoti hai — isliye modern SAP aur S/4HANA development OOABAP ko prefer karta hai.'",
+    "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'Object Oriented ABAP allows us to organize code using classes and objects. A class defines the blueprint — it contains attributes for data and methods for behavior. An object is a runtime instance of a class created using the NEW operator. OOABAP brings four key benefits: encapsulation keeps data safe within the class, inheritance enables code reuse across related classes, polymorphism allows flexible runtime behavior, and reusability reduces duplication. In my projects, I use OOABAP for ALV event handling with CL_GUI_ALV_GRID, custom exception classes inheriting from CX_STATIC_CHECK, and BAdI implementations where the framework itself instantiates my class.'\n\nHinglish tip: Interviewer agar poocha 'why OOABAP over FORM routines?' toh confidently bolo: 'FORM mein global variables aur tight coupling zyada hoti hai. OOABAP mein encapsulation, reusability, aur testability better hoti hai — isliye modern SAP aur S/4HANA development OOABAP ko prefer karta hai.'",
     "codeExamples": "CLASS lcl_car DEFINITION.\n  PUBLIC SECTION.\n    DATA: mv_brand TYPE string,\n          mv_speed TYPE i.\n    METHODS:\n      constructor IMPORTING iv_brand TYPE string,\n      drive       IMPORTING iv_speed TYPE i,\n      get_speed   RETURNING VALUE(rv_speed) TYPE i.\nENDCLASS.\n\nCLASS lcl_car IMPLEMENTATION.\n  METHOD constructor.\n    mv_brand = iv_brand.\n  ENDMETHOD.\n  METHOD drive.\n    mv_speed = iv_speed.\n    WRITE: / mv_brand, 'is driving at', mv_speed, 'km/h'.\n  ENDMETHOD.\n  METHOD get_speed.\n    rv_speed = mv_speed.\n  ENDMETHOD.\nENDCLASS.\n\nDATA lr_car TYPE REF TO lcl_car.\nlr_car = NEW lcl_car( iv_brand = 'Toyota' ).\nlr_car->drive( iv_speed = 80 ).",
+    "interviewScriptHinglish": "Object Oriented ABAP code ko classes aur objects ke through organize karta hai, jahan class attributes aur methods define karti hai aur object NEW operator se banaya gaya runtime instance hota hai. Yeh chaar pillars deta hai: encapsulation, inheritance, polymorphism, aur reusability. Hum isko CL_GUI_ALV_GRID ke saath ALV grids ke liye, BAdI implementations ke liye, custom CX_STATIC_CHECK exception classes ke liye, aur ABAP Unit tests ke liye use karte hain. Business value yeh hai ki maintainability aur testability significantly badhti hai aur defect rates kam hote hain, isliye saara modern S/4HANA aur Fiori backend development procedural FORM routines ki jagah OOABAP par hi banta hai.",
+    "interviewScriptEnglish": "Object Oriented ABAP organizes code using classes and objects, where a class defines attributes and methods and an object is a runtime instance created via the NEW operator. It delivers four pillars: encapsulation, inheritance, polymorphism, and reusability. We use it for ALV grids with CL_GUI_ALV_GRID, BAdI implementations, custom CX_STATIC_CHECK exception classes, and ABAP Unit tests. The business value is significantly higher maintainability, testability, and lower defect rates, which is why all modern S/4HANA and Fiori backend development is built on OOABAP rather than procedural FORM routines.",
+    "wordByWordSamjho": [
+      {
+        "keyword": "CLASS ... DEFINITION",
+        "meaning": "Declares the class blueprint with sections and member signatures."
+      },
+      {
+        "keyword": "PUBLIC SECTION",
+        "meaning": "Members visible to any external caller."
+      },
+      {
+        "keyword": "DATA",
+        "meaning": "Declares instance attributes that live per object."
+      },
+      {
+        "keyword": "METHODS",
+        "meaning": "Declares instance methods callable on an object."
+      },
+      {
+        "keyword": "IMPORTING",
+        "meaning": "Input parameter passed into the method by the caller."
+      },
+      {
+        "keyword": "RETURNING VALUE",
+        "meaning": "Single output value returned by the method."
+      },
+      {
+        "keyword": "CLASS ... IMPLEMENTATION",
+        "meaning": "Provides the actual code bodies for declared methods."
+      },
+      {
+        "keyword": "constructor",
+        "meaning": "Special method automatically run when an object is created."
+      },
+      {
+        "keyword": "TYPE REF TO",
+        "meaning": "Declares a reference variable that can hold an object."
+      },
+      {
+        "keyword": "NEW",
+        "meaning": "Operator that creates an object and returns its reference."
+      },
+      {
+        "keyword": "->",
+        "meaning": "Arrow operator to call instance methods or access attributes."
+      }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Treating class and object as the same thing in interview answers.",
+        "whyWrong": "A class is the design loaded in memory; an object is a runtime instance holding its own data.",
+        "correctApproach": "Say class = template in code, object = NEW-created instance with independent state per instantiation."
+      },
+      {
+        "mistake": "Putting all attributes in the PUBLIC section for convenience.",
+        "whyWrong": "It breaks encapsulation and lets external code mutate state without validation, causing data corruption.",
+        "correctApproach": "Keep attributes PRIVATE and expose controlled access via PUBLIC getter or setter methods."
+      },
+      {
+        "mistake": "Manually calling CONSTRUCTOR or declaring a RETURNING for it.",
+        "whyWrong": "Constructor is auto-invoked by NEW exactly once and has no return type by language definition.",
+        "correctApproach": "Let NEW lcl_x( ) trigger it; pass IMPORTING parameters for required initial state only."
+      },
+      {
+        "mistake": "Using EXCEPTIONS ... = 1 with SY-SUBRC check in OOABAP methods.",
+        "whyWrong": "Old non-class exceptions skip the structured error object and break Clean ABAP guidelines.",
+        "correctApproach": "Declare RAISING cx_static_check, RAISE EXCEPTION TYPE, and handle via TRY-CATCH-ENDTRY."
+      },
+      {
+        "mistake": "Quoting only theory like four pillars without naming any real SAP class.",
+        "whyWrong": "Interviewers test depth by asking for actual usage and you sound like a beginner.",
+        "correctApproach": "Reference CL_GUI_ALV_GRID, CX_SY_MOVE_CAST_ERROR, BAdI interface IF_EX_ME_PROCESS_PO_CUST or similar in your answer."
+      }
+    ],
+    "quickRevisionNotes": "What: OOABAP is a paradigm that structures code via classes (blueprints) and objects (instances) using encapsulation, inheritance, polymorphism, and reusability.\n\nUsed for:\n- ALV grids with CL_GUI_ALV_GRID and CL_SALV_TABLE\n- BAdI implementations that implement SAP-provided interfaces\n- Custom exception classes inheriting from CX_STATIC_CHECK or CX_DYNAMIC_CHECK\n- ABAP Unit tests written with FOR TESTING / RISK LEVEL\n\nKey syntax / tables / Tcodes:\n- CLASS ... DEFINITION / IMPLEMENTATION blocks with PUBLIC, PROTECTED, PRIVATE sections\n- DATA lr TYPE REF TO lcl_x. lr = NEW lcl_x( ). lr->method( ).\n- Tcodes SE24 (global classes), SE80 (object navigator), SE19 (BAdI impl), ATC for Clean ABAP checks\n\nInterview keyword: Class is the blueprint, object is the NEW instance.",
     "followupAnswerBank": [
       {
         "question": "What is the difference between a class and an object in OOABAP?",
-        "hinglishExplanation": "Class ek blueprint hai — jaise architect ka house plan. Object ek real, runtime instance hai — jaise actual bana hua ghar. Ek class se multiple objects bana sakte ho, har object apna alag data rakhta hai. Class memory nahi leta — object leta hai. SE24 mein class banate ho, program mein NEW operator se object instantiate karte ho.",
+        "tier": "easy",
+        "hinglishExplanation": "Class ek template hai jo attributes aur methods define karti hai. Object us class ka runtime instance hai, NEW operator se banaya jaata hai. Same class se multiple objects exist kar sakte hain, har ek independent data hold karta hai. Example, ek lcl_employee class har employee record ke liye separate objects rakh sakti hai.",
         "interviewAnswer": "A class is a template that defines attributes and methods. An object is a runtime instance of that class, created using the NEW operator. Multiple objects can exist from the same class, each holding independent data. For example, a single lcl_employee class can have separate objects for each employee record.",
         "realtimeExplanation": "Real project mein CL_GUI_ALV_GRID ek class hai — jab ALV grid show karna hota hai toh DATA lr_grid TYPE REF TO cl_gui_alv_grid karke NEW se object banate ho aur us specific screen ke liye use karte ho.",
         "mistakes": "Class aur object ko same cheez bolna interviewer ko impress nahi karta. Clearly distinguish karo: class = definition in memory (code), object = instance at runtime (data + behavior).",
@@ -15,7 +92,8 @@
       },
       {
         "question": "What are PUBLIC, PROTECTED, and PRIVATE sections in a class?",
-        "hinglishExplanation": "Teen visibility levels hain. PUBLIC: sabke liye accessible — bahar ka code, child classes. PROTECTED: sirf current class aur child classes access kar sakti hain — bahar nahi. PRIVATE: sirf us class ke andar — child bhi access nahi kar sakta. Best practice: data PRIVATE rakho, access ke liye PUBLIC methods do — yahi encapsulation hai.",
+        "tier": "easy",
+        "hinglishExplanation": "OOABAP mein PUBLIC members kahin se bhi accessible hote hain. PROTECTED members sirf class aur uski subclasses ke andar accessible hain, jo inheritance enable karta hai jabki external code se hide karta hai. PRIVATE members sirf defining class ke andar accessible hain. Best practice yeh hai ki attributes PRIVATE rakho aur sirf zaroori cheezein PUBLIC methods ke through expose karo.",
         "interviewAnswer": "In OOABAP, PUBLIC members are accessible from anywhere. PROTECTED members are accessible only within the class and its subclasses, enabling inheritance while hiding from external code. PRIVATE members are accessible only within the defining class. Best practice is to keep attributes PRIVATE and expose only what is needed via PUBLIC methods.",
         "realtimeExplanation": "Real project mein internal calculation logic aur DB read methods PRIVATE rakhte hain. External callers — report, form, BAdI — sirf PUBLIC interface use karte hain. Isse refactoring easy hoti hai bina callers tod ke.",
         "mistakes": "Sab kuch PUBLIC section mein rakhna — yeh encapsulation break karta hai. Interviewer yeh dekhta hai ki tum data hiding samajhte ho ya nahi.",
@@ -23,7 +101,8 @@
       },
       {
         "question": "What is a constructor in OOABAP and when is it called?",
-        "hinglishExplanation": "Constructor ek special method hai jiska naam hamesha CONSTRUCTOR hota hai. Yeh automatically call hota hai jab NEW se object banate ho. Iska kaam hai object ko initial state mein set karna — mandatory data pass karo, default values set karo, resources initialize karo. Constructor ek baar hi call hota hai per object. Return type nahi hota constructor ka.",
+        "tier": "easy",
+        "hinglishExplanation": "OOABAP mein constructor ek special instance method hai jiska naam CONSTRUCTOR hota hai aur jo NEW operator se object banane par automatically call hota hai. Iska use object ki state initialize karne ke liye hota hai — default values set karna, mandatory input parameters store karna, ya connections open karna. Iska koi return type nahi hota aur object creation ke baad explicitly call nahi kiya ja sakta.",
         "interviewAnswer": "A constructor in OOABAP is a special instance method named CONSTRUCTOR that is automatically called when an object is created with the NEW operator. It is used to initialize the object's state — setting default values, storing mandatory input parameters, or opening connections. It has no return type and cannot be called explicitly after object creation.",
         "realtimeExplanation": "Real project mein — utility class jo DB connection handle karta hai — constructor mein connection open karte hain, destructor mein close. Ya ALV class mein constructor mein grid reference aur field catalog initialize karte hain taaki har method call pe repeat na ho.",
         "mistakes": "Constructor ko normal method ki tarah manually call karna — yeh allowed nahi. Aur constructor ka return type declare karna bhi galat hai. Ye do traps interview mein aate hain.",
@@ -31,7 +110,8 @@
       },
       {
         "question": "What is the difference between instance methods and static methods?",
-        "hinglishExplanation": "Instance method: object banane ke baad call hota hai — lr_obj->method( ). Har object ka apna data hota hai. Static method: class ka method hai, object ki zarurat nahi — lcl_util=>format_date( ). Static sirf static attributes access kar sakta hai. Static methods utility functions ke liye use karo — no state needed. Instance methods tabhi use karo jab method ko object ke data pe kaam karna ho.",
+        "tier": "medium",
+        "hinglishExplanation": "Instance methods ko pehle ek object banana zaroori hota hai aur arrow operator (->) se call hote hain. Yeh instance aur static dono attributes access kar sakte hain. Static methods class ke khud ke methods hote hain, double arrow (=>) se call hote hain, aur object ki zaroorat nahi padti. Yeh sirf static attributes access kar sakte hain. Static methods utility functions ke liye ideal hain jinhein object state dependency nahi chahiye.",
         "interviewAnswer": "Instance methods require an object to be created first and are called using the arrow operator (->). They can access both instance and static attributes. Static methods belong to the class itself, called using the double arrow (=>), and do not require an object. They can only access static attributes. Static methods are ideal for utility functions with no object state dependency.",
         "realtimeExplanation": "Real project: data formatting, unit conversion, string manipulation ke liye static methods use karte hain — ye pure functions hain, no side effects. ALV event handling, DB read ke liye instance methods use karte hain kyunki state manage karna hota hai.",
         "mistakes": "Static method mein instance attribute (DATA declared without CLASS-DATA) access karna — compile error. Interview mein static vs instance ka distinction confidently bolna chahiye.",
@@ -39,7 +119,8 @@
       },
       {
         "question": "How do you handle exceptions in OOABAP?",
-        "hinglishExplanation": "OOABAP mein exceptions class-based hain. Ek custom exception class banate hain jo CX_STATIC_CHECK ya CX_DYNAMIC_CHECK se inherit karta hai. Method mein RAISING clause add karte hain. Caller TRY...CATCH...ENDTRY block mein method call karta hai. Isse exception propagation clean hoti hai — ABAP dumps prevent hote hain aur caller ko meaningful error message milta hai.",
+        "tier": "medium",
+        "hinglishExplanation": "OOABAP mein exceptions class-based hote hain. Ek custom exception class CX_STATIC_CHECK ya CX_DYNAMIC_CHECK se inherit karti hai. Methods RAISING addition ke through exceptions declare karte hain. Callers call ko TRY-CATCH-ENDTRY mein wrap karte hain. Yeh SY-SUBRC checks se cleaner hai kyunki caller ko error handle karna force karta hai aur exception object ke through structured error information provide karta hai.",
         "interviewAnswer": "In OOABAP, exceptions are class-based. A custom exception class inherits from CX_STATIC_CHECK or CX_DYNAMIC_CHECK. Methods declare exceptions using the RAISING addition. Callers wrap the call in TRY-CATCH-ENDTRY. This is cleaner than SY-SUBRC checks because it forces the caller to handle the error and provides structured error information via the exception object.",
         "realtimeExplanation": "Real project: ek data validation service class banaya tha jo business rule violations ke liye custom exception raise karta tha. Caller BAdI implementation mein TRY-CATCH se handle karta tha aur user ko meaningful error message show karta tha — not a generic dump.",
         "mistakes": "Old-style exception: EXCEPTIONS my_error = 1 aur sy-subrc check karna — yeh OOABAP best practice nahi hai. Class-based exceptions use karo aur TRY-CATCH propagate karo.",
@@ -47,7 +128,8 @@
       },
       {
         "question": "What is the difference between TYPE REF TO class and TYPE REF TO interface?",
-        "hinglishExplanation": "Dono reference variables hain, but behavior different hai. TYPE REF TO lcl_car: sirf lcl_car ya uske subclasses ko point kar sakta hai. TYPE REF TO lif_vehicle: koi bhi class jo lif_vehicle implement karti ho us par point kar sakta hai — even unrelated class hierarchy se. Interface reference zyada flexible hai polymorphism ke liye. Real project mein: agar multiple unrelated classes same behavior share karna chahte ho, interface reference use karo.",
+        "tier": "medium",
+        "hinglishExplanation": "TYPE REF TO class wala reference variable us class ke ya uske subclasses ke objects par point kar sakta hai. TYPE REF TO interface wala reference variable kisi bhi aise object par point kar sakta hai jiski class us interface ko implement karti ho, chahe class hierarchy kuch bhi ho. Interface references unrelated classes ke beech polymorphism ke liye zyada flexible hote hain. Zaroorat padne par casting CAST operator se ki jaati hai.",
         "interviewAnswer": "A reference variable of TYPE REF TO a class can point to objects of that class or its subclasses. A reference variable of TYPE REF TO an interface can point to any object whose class implements that interface, regardless of class hierarchy. Interface references are more flexible for polymorphism across unrelated classes. Casting is done with CAST operator when needed.",
         "realtimeExplanation": "Real project: ek plugin architecture banaya tha jahan multiple output handlers the — file, email, SAP message. Sab ek lif_output_handler interface implement karte the. Caller sirf interface reference rakhta tha — actual implementation runtime pe inject hoti thi.",
         "mistakes": "Class reference se interface reference bina casting ke assign karna — compile ya runtime error. Explicit CAST ya polymorphic assignment samajhna zaroori hai.",
@@ -55,7 +137,8 @@
       },
       {
         "question": "What is the FINAL addition in class definition?",
-        "hinglishExplanation": "CLASS lcl_xxx DEFINITION FINAL — iska matlab yeh class inherit nahi ki ja sakti. Koi bhi class isse INHERITING FROM use nahi kar sakti. Kyun use karo? Jab tum chahte ho ki class ka behavior stable rahe aur koi subclass override karke unexpected behavior na introduce kare. Utility classes aur singleton classes often FINAL hoti hain. Java ke final keyword jaisa hi hai.",
+        "tier": "advanced",
+        "hinglishExplanation": "Class definition mein FINAL addition class ko inherit hone se rokta hai. FINAL class ke against koi bhi class INHERITING FROM use nahi kar sakti. Yeh class ke behavior ko lock down karne ke liye use hota hai — typically utility classes, singleton implementations, ya security-sensitive classes ke liye jahan subclass overriding dangerous ya undesirable ho.",
         "interviewAnswer": "The FINAL addition in a class definition prevents the class from being inherited. No other class can use INHERITING FROM against a FINAL class. This is used to lock down the class behavior — typically for utility classes, singleton implementations, or security-sensitive classes where subclass overriding would be dangerous or undesirable.",
         "realtimeExplanation": "Real project: ek singleton configuration manager class thi — FINAL mark ki thi taaki koi accidentally subclass na banaye aur singleton pattern break na ho. Ye design intent clearly communicate karta hai doosre developers ko.",
         "mistakes": "FINAL class ko extend karne ki koshish karna — compile error aayega. Interview mein FINAL ka purpose confidently explain karo: intentional inheritance prevention for stability.",
@@ -63,7 +146,8 @@
       },
       {
         "question": "How does OOABAP fit into real SAP development — give examples?",
-        "hinglishExplanation": "SAP standard khud OOABAP pe based hai. ALV: CL_GUI_ALV_GRID ka object banate ho, events register karte ho — ye OOABAP hai. BAdI: interface implement karte ho — OOABAP hai. Workflow: BOR ke baad newer developments classes use karti hain. RFC + Proxy: generated proxy classes OOABAP hain. Fiori + OData: CL_REST_HTTP_CLIENT, exception classes — sab OOABAP. ABAP Unit testing bhi class-based hai — FOR TESTING addition.",
+        "tier": "advanced",
+        "hinglishExplanation": "Real SAP development mein OOABAP har jagah hai. ALV reports event handler classes ke saath CL_GUI_ALV_GRID instances use karte hain. BAdI implementations ke liye ek SAP-defined interface implement karna padta hai. HTTP calls CL_HTTP_CLIENT objects use karte hain. Custom exception classes clean error handling ke liye SY-SUBRC ko replace karte hain. ABAP Unit tests class-based test suites ke roop mein likhe jaate hain. Koi bhi modern ya S/4HANA development heavily OOABAP-based hai.",
         "interviewAnswer": "In real SAP development, OOABAP is everywhere. ALV reports use CL_GUI_ALV_GRID instances with event handler classes. BAdI implementations require implementing a SAP-defined interface. HTTP calls use CL_HTTP_CLIENT objects. Custom exception classes replace SY-SUBRC for clean error handling. ABAP Unit tests are written as class-based test suites. Any modern or S/4HANA development is heavily OOABAP-based.",
         "realtimeExplanation": "My real project: ek email notification framework banaya tha. Ek abstract class lcl_notifier thi with send( ) abstract method. Subclasses: lcl_email_notifier, lcl_sap_msg_notifier. Caller sirf abstract reference rakhta tha — runtime pe sahi implementation call hoti thi. Very clean, very extensible.",
         "mistakes": "Sirf theory bolna bina real example ke — interviewer hamesha 'give me a real use case' poochega. OOABAP ko ALV, BAdI, exception, unit test se connect karo.",
@@ -74,12 +158,72 @@
   "ooabap-002": {
     "easyUnderstanding": "Socho ek job offer letter hai. Abstract class wali analogy: yeh offer letter partially filled hai. Usme kuch cheezein already likhi hain — 'office 9 baje aana', 'monthly salary yeh milegi' (implemented — pehle se tay). Aur kuch cheezein blank hain — 'apni territory ke targets tum set karo', 'apni client strategy tum banao' (abstract — tum khud define karo). Matlab, kuch kaam already done hai, kuch tum karo. Interface wali analogy: yeh ek pure contract hai jisme sirf obligations likhi hain, koi kaam nahi. 'Jo bhi is contract pe sign karega woh yeh yeh kaam karega — baki sab apne hisaab se.' No partial work, no defaults, no code — sirf promise. Ab ABAP syntax mein: Abstract class mein kuch methods fully implemented hote hain (shared logic — ye sab subclasses use kar sakti hain), aur kuch methods ABSTRACT hote hain — subclass mein zaroor define karna padta hai nahi toh compile error. Interface mein sirf method signatures hain — koi code body nahi, sirf method names aur parameters. Koi bhi class jo interface implement kare, usse woh sab methods khud likhne padte hain. Sabse important difference jo interview mein poochha jaata hai: ek class sirf ek abstract class inherit kar sakti hai — ek se zyada nahi. Lekin ek class multiple interfaces implement kar sakti hai — unlimited. Yaad rakho yeh shortcut: Abstract class = partial blueprint with some done work. Interface = pure contract, zero code, maximum flexibility.",
     "hinglishMasterExplanation": "Abstract Class aur Interface — dono hi subclasses/implementations ko methods define karne force karte hain, but approach aur capabilities alag hain. Interview mein inka comparison table-wise yaad rakho:\n\nAbstract Class (CLASS ... DEFINITION ABSTRACT):\n- Kuch methods fully implemented ho sakte hain — shared logic jo sab subclasses use kar sakti hain, dobara likhne ki zarurat nahi\n- Kuch methods ABSTRACT declare ho sakte hain — METHODS process ABSTRACT — subclass mein zaroor REDEFINITION karni padti hai\n- Instance attributes (DATA) rakh sakte hain — state maintain ho sakti hai\n- Constructor allowed hai — SUPER->CONSTRUCTOR( ) se child call kar sakti hai\n- Ek class sirf ek abstract class inherit kar sakti hai — single inheritance\n- Direct instantiation nahi hoti — NEW lcl_abstract_class( ) karo toh compile error\n- Use case: Related classes jo common base logic share karte hain plus kuch mandatory overrides chahiye — jaise base report class\n\nInterface (INTERFACE lif_xxx. ENDINTERFACE.):\n- Sirf method signatures — koi implementation nahi, zero code body\n- Saare methods automatically PUBLIC hote hain — visibility set karne ki zarurat nahi\n- No instance DATA — sirf constants (CONSTANTS) rakh sakte hain\n- No constructor — state nahi hoti\n- Ek class MULTIPLE interfaces implement kar sakti hai — INTERFACES: lif_a, lif_b, lif_c.\n- Interface method call mein tilde use hota hai: lo_obj->lif_printable~print( )\n- Use case: Unrelated classes ko same contract follow karwana ho — jaise lif_printable ko invoice aur label dono implement karein\n\nMental comparison table:\n- Implementation: Abstract partial allowed vs Interface none\n- Multiple: Abstract no (single) vs Interface yes (unlimited)\n- Attributes: Abstract yes (DATA) vs Interface constants only\n- Constructor: Abstract yes vs Interface no\n\nDecision rule in interview: 'Is-a relationship with shared logic?' → Abstract class. 'Can-do contract across unrelated types?' → Interface. Real projects mein dono saath use hote hain — ek abstract class ek interface implement kar sakti hai.",
-    "interviewMeKyaBolnaHai": "An abstract class can have both implemented and abstract methods, while an interface contains only method signatures with no implementation. A class can inherit from only one abstract class but can implement multiple interfaces simultaneously. Abstract classes are used when there is shared base logic with some mandatory overrides — for example, a base report class with common header logic but abstract generate_output. Interfaces are used for contracts across unrelated classes — for example, a printable interface implemented by invoice, delivery note, and label classes independently.\n\nHinglish tip: Classic interview trap — 'kya ABAP mein multiple inheritance hoti hai?' Answer: Direct class-to-class multiple inheritance nahi hoti. But ek class multiple interfaces implement kar sakti hai — yahi ABAP ka multiple inheritance equivalent hai. Yeh confidently bolna bahut important hai — zyada tar freshers yahan confuse ho jaate hain.",
+    "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'An abstract class can have both implemented and abstract methods, while an interface contains only method signatures with no implementation. A class can inherit from only one abstract class but can implement multiple interfaces simultaneously. Abstract classes are used when there is shared base logic with some mandatory overrides — for example, a base report class with common header logic but abstract generate_output. Interfaces are used for contracts across unrelated classes — for example, a printable interface implemented by invoice, delivery note, and label classes independently.'\n\nHinglish tip: Classic interview trap — 'kya ABAP mein multiple inheritance hoti hai?' Answer: Direct class-to-class multiple inheritance nahi hoti. But ek class multiple interfaces implement kar sakti hai — yahi ABAP ka multiple inheritance equivalent hai. Yeh confidently bolna bahut important hai — zyada tar freshers yahan confuse ho jaate hain.",
     "codeExamples": "\" --- Abstract Class ---\nCLASS lcl_vehicle DEFINITION ABSTRACT.\n  PUBLIC SECTION.\n    METHODS: start_engine,           \" Implemented\n             get_fuel_type ABSTRACT. \" Must override\nENDCLASS.\nCLASS lcl_vehicle IMPLEMENTATION.\n  METHOD start_engine.\n    WRITE: / 'Engine started'.\n  ENDMETHOD.\nENDCLASS.\n\n\" --- Interface ---\nINTERFACE lif_serviceable.\n  METHODS: service_due RETURNING VALUE(rv_bool) TYPE abap_bool.\nENDINTERFACE.\n\n\" --- Class implementing both ---\nCLASS lcl_car DEFINITION INHERITING FROM lcl_vehicle.\n  PUBLIC SECTION.\n    INTERFACES: lif_serviceable.\n    METHODS: get_fuel_type REDEFINITION.\nENDCLASS.\nCLASS lcl_car IMPLEMENTATION.\n  METHOD get_fuel_type.\n    WRITE: / 'Petrol'.\n  ENDMETHOD.\n  METHOD lif_serviceable~service_due.\n    rv_bool = abap_true.\n  ENDMETHOD.\nENDCLASS.",
+    "interviewScriptHinglish": "ek abstract class implemented aur abstract dono methods, instance data, aur constructor rakh sakti hai, lekin ek class sirf ek hi abstract class se inherit kar sakti hai. Interface mein sirf method signatures aur constants hote hain aur ek class multiple interfaces implement kar sakti hai, jo ABAP ka multiple inheritance ka substitute hai. Hum abstract class tab choose karte hain jab related types shared base logic share karte hain — jaise report base class jisme shared header processing ho — aur interface cross-cutting contracts ke liye, jaise printable interface jo invoices aur labels dono implement karein. Business value loose coupling aur teams ke beech easier extensibility hai.",
+    "interviewScriptEnglish": "An abstract class can hold both implemented and abstract methods, instance data, and a constructor, but a class can inherit from only one. An interface contains only method signatures and constants and a class can implement many interfaces, which is ABAP's substitute for multiple inheritance. We choose abstract classes for related types that share base logic such as a report base class with shared header processing, and interfaces for cross-cutting contracts like a printable interface implemented by invoices and labels. The business value is loose coupling and easier extensibility across teams.",
+    "wordByWordSamjho": [
+      {
+        "keyword": "CLASS ... DEFINITION ABSTRACT",
+        "meaning": "Marks the class as non-instantiable and meant to be subclassed."
+      },
+      {
+        "keyword": "METHODS ... ABSTRACT",
+        "meaning": "Declares a method that must be redefined by the subclass."
+      },
+      {
+        "keyword": "REDEFINITION",
+        "meaning": "Overrides a parent or abstract method with the same signature."
+      },
+      {
+        "keyword": "INTERFACE ... ENDINTERFACE",
+        "meaning": "Defines a pure contract of method signatures with no body."
+      },
+      {
+        "keyword": "INTERFACES",
+        "meaning": "Inside a class, lists the interfaces the class will implement."
+      },
+      {
+        "keyword": "INHERITING FROM",
+        "meaning": "Establishes single inheritance from a base class."
+      },
+      {
+        "keyword": "~",
+        "meaning": "Tilde separates interface name and method when calling or implementing."
+      },
+      {
+        "keyword": "abap_bool",
+        "meaning": "Standard ABAP boolean type returning abap_true or abap_false."
+      }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Trying to instantiate an abstract class with NEW lcl_vehicle( ).",
+        "whyWrong": "ABSTRACT classes are intentionally non-instantiable and the compiler blocks the NEW call.",
+        "correctApproach": "Subclass the abstract class, redefine all abstract methods, and instantiate the concrete child."
+      },
+      {
+        "mistake": "Claiming ABAP supports class-to-class multiple inheritance.",
+        "whyWrong": "ABAP only allows one parent class via INHERITING FROM, multiple parents are not supported.",
+        "correctApproach": "Use multiple interfaces in INTERFACES section to achieve the multiple inheritance effect cleanly."
+      },
+      {
+        "mistake": "Calling interface methods without the tilde, like lo_obj->print( ).",
+        "whyWrong": "ABAP requires the interface name as prefix for unaliased interface method calls.",
+        "correctApproach": "Use lo_obj->lif_printable~print( ) or define ALIASES print FOR lif_printable~print in PUBLIC."
+      },
+      {
+        "mistake": "Putting ALIASES in the PRIVATE section of the class.",
+        "whyWrong": "Aliases inherit the visibility rule and a PRIVATE alias makes the method unreachable from callers.",
+        "correctApproach": "Declare ALIASES in PUBLIC or PROTECTED so external code or subclasses can call them."
+      }
+    ],
+    "quickRevisionNotes": "What: Abstract class is a partially implemented base that cannot be instantiated; interface is a pure contract of signatures with no implementation.\n\nUsed for:\n- Abstract: base report classes, base notifier classes, common framework hooks\n- Interface: BAdI interfaces (IF_EX_*), cross-cutting contracts like printable or loggable\n- Multiple-inheritance effect via multiple INTERFACES on one class\n\nKey syntax / tables / Tcodes:\n- CLASS ... DEFINITION ABSTRACT, METHODS ... ABSTRACT, REDEFINITION\n- INTERFACE lif_x ... ENDINTERFACE, INTERFACES: lif_a, lif_b inside class\n- ALIASES short_name FOR lif_x~method in PUBLIC section\n- SE24 abstract flag, SE19 BAdI implementations\n\nInterview keyword: Abstract is is-a with code, interface is can-do without code.",
     "followupAnswerBank": [
       {
         "question": "Can an abstract class have a constructor?",
-        "hinglishExplanation": "Haan, abstract class mein constructor ho sakta hai. Lekin tum seedha abstract class ka object nahi bana sakte — woh ABSTRACT hai. Constructor tab useful hota hai jab subclass ka constructor SUPER->CONSTRUCTOR( ) call kare aur shared initialization logic run ho. Subclass object banta hai toh pehle abstract class ka constructor run hota hai agar SUPER call kiya gaya ho.",
+        "tier": "easy",
+        "hinglishExplanation": "Haan, ek abstract class mein constructor ho sakta hai. Lekin abstract class ko directly instantiate nahi kar sakte. Constructor shared state initialize karne ke liye useful hota hai. Jab subclass instantiate hoti hai, woh SUPER->CONSTRUCTOR( ) call karke abstract parent class ki initialization logic apne setup se pehle trigger kar sakti hai.",
         "interviewAnswer": "Yes, an abstract class can have a constructor. However, you cannot instantiate an abstract class directly. The constructor is useful for initializing shared state. When a subclass is instantiated, it can call SUPER->CONSTRUCTOR( ) to trigger the abstract parent class's initialization logic before its own setup.",
         "realtimeExplanation": "Real project: ek abstract base logger class thi jiska constructor log file name aur timestamp format set karta tha. Har subclass — file logger, DB logger — SUPER->CONSTRUCTOR( ) call karta tha taaki shared setup automatic ho jaye.",
         "mistakes": "Abstract class ka object banane ki koshish — compile error. 'Abstract class mein constructor nahi hota' bolna — yeh galat hai. Constructor hota hai, sirf direct instantiation nahi hoti.",
@@ -87,7 +231,8 @@
       },
       {
         "question": "Can a class implement multiple interfaces?",
-        "hinglishExplanation": "Haan — yeh ABAP ki multiple inheritance equivalent hai. Ek class INTERFACES section mein multiple interfaces list kar sakti hai. Har interface ke methods implement karne padte hain. Method call mein interface name prefix use karna padta hai: lo_obj->lif_printable~print( ). Agar koi conflict ho (same method name alon do interfaces mein), ALIASES use karo clarity ke liye.",
+        "tier": "easy",
+        "hinglishExplanation": "Haan, ABAP mein ek class multiple interfaces implement kar sakti hai. Har implemented interface ke saare methods class implementation mein provide karne padte hain. Interface methods ko tilde notation se call kiya jaata hai: object->interface_name~method_name( ). Yeh hi tarika hai jisse ABAP single class hierarchy maintain karte hue multiple inheritance ka effect achieve karta hai.",
         "interviewAnswer": "Yes, a class can implement multiple interfaces in ABAP. All methods of each implemented interface must be provided in the class implementation. Interface methods are called using the tilde notation: object->interface_name~method_name( ). This is how ABAP achieves the effect of multiple inheritance while keeping a single class hierarchy.",
         "realtimeExplanation": "Real project: ek document class thi jo lif_printable aur lif_archivable dono implement karti thi. Print functionality alag team handle karti thi, archive functionality alag — dono cleanly separated through interfaces. Test bhi independently ho sakti thi.",
         "mistakes": "Interface method call mein tilde (~) bhool jaana — lo_obj->print( ) kaam nahi karega agar print interface ka method hai. Sahi hai: lo_obj->lif_printable~print( ).",
@@ -95,7 +240,8 @@
       },
       {
         "question": "What is the ALIASES addition for interfaces?",
-        "hinglishExplanation": "Interface method call mein hamesha lif_xxx~method( ) likhna tedious hota hai especially jab ek hi class mein multiple interfaces ho. ALIASES addition se tum ek short name define kar sakte ho. CLASS mein PUBLIC SECTION ke andar: ALIASES print FOR lif_printable~print. Ab lo_obj->print( ) bhi kaam karega — internally lif_printable~print( ) hi call hogi.",
+        "tier": "easy",
+        "hinglishExplanation": "ALIASES addition ek class ke andar interface method ke liye chhota local naam define karne deti hai. object->interface~method call karne ki jagah, tum public section mein ALIASES method FOR interface~method define kar sakte ho, jisse call object->method jitna simple ho jaata hai. Yeh readability improve karta hai khaaskar jab multiple interfaces implement ho.",
         "interviewAnswer": "The ALIASES addition allows you to define a short local name for an interface method within a class. Instead of calling object->interface~method, you can define ALIASES method FOR interface~method in the public section, making the call as simple as object->method. This improves readability especially when multiple interfaces are implemented.",
         "realtimeExplanation": "Real project mein ek utility class multiple interfaces implement karti thi. Frequently called methods ke liye ALIASES define kiye taaki calling code zyada readable ho — especially jab BAdI implementation mein interface chain zyada lambi hoti thi.",
         "mistakes": "ALIASES define karna PRIVATE section mein — yeh compile error deta hai. ALIASES hamesha PUBLIC ya PROTECTED section mein define hote hain taaki callers access kar sakein.",
@@ -103,7 +249,8 @@
       },
       {
         "question": "When should you choose interface over abstract class?",
-        "hinglishExplanation": "Rule of thumb: Agar classes unrelated hain aur sirf ek common contract share karna hai — interface use karo. Jaise Invoice, DeliveryNote, Label — sab alag hain but sab 'printable' hain. Interface dono ko connect karta hai bina common parent ke. Abstract class tab use karo jab classes logically related hain aur shared implementation bhi share karna hai — jaise different report types jo sab ek base report class se extend karte hain.",
+        "tier": "medium",
+        "hinglishExplanation": "Interface tab choose karo jab logically unrelated classes ke beech ek contract chahiye — example, ek printable interface jo invoice aur packing list classes share karein jinka koi common parent nahi hai. Abstract class tab choose karo jab classes related hain aur common base logic kuch mandatory overrides ke saath share karti hain — example, ek report base class jisme shared header logic aur abstract generate_output method hai.",
         "interviewAnswer": "Choose an interface when you need a contract across logically unrelated classes — for example, a printable interface shared by invoice and packing list classes that have no common parent. Choose an abstract class when classes are related and share common base logic with some mandatory overrides — for example, a report base class with shared header logic and abstract generate_output method.",
         "realtimeExplanation": "Design decision real project mein: Vehicle hierarchy ke liye abstract class — all vehicles share start_engine logic. Printable behavior ke liye interface — vehicles, documents, labels alag cheezein hain but sab print ho sakti hain. Design pattern ka decision hamesha 'is-a' vs 'can-do' ke basis pe karo.",
         "mistakes": "Abstract class sirf isliye use karna kyunki 'kuch code share karna hai' — agar classes unrelated hain toh interface + composition better design hai. Tightly coupling unrelated classes through abstract parent ek common architectural mistake hai.",
@@ -111,7 +258,8 @@
       },
       {
         "question": "What happens if you do not implement an abstract method?",
-        "hinglishExplanation": "Agar ek class ek abstract class inherit karti hai aur abstract method REDEFINITION nahi karti — compile error aayega. ABAP ensure karta hai ki abstract contract poora ho. Similarly agar interface implement ki hai aur koi method chhoot gaya — compile error. Yeh safety net hai jo ensure karta hai ki objects always complete aur functional hote hain.",
+        "tier": "medium",
+        "hinglishExplanation": "Agar subclass abstract class se inherit karti hai lekin saare abstract methods ke liye REDEFINITION provide nahi karti, toh ABAP compiler error raise karta hai — subclass ko khud bhi ABSTRACT declare karna padega ya saare abstract methods implement karne padenge. Similarly, agar class interface declare karti hai aur koi method implementation chhod deti hai, compile error raise hota hai. Yeh enforcement ensure karta hai ki interface contracts hamesha fulfill ho.",
         "interviewAnswer": "If a subclass inherits from an abstract class but does not provide REDEFINITION for all abstract methods, the ABAP compiler raises an error — the subclass itself must also be declared ABSTRACT or implement all abstract methods. Similarly, if a class declares an interface but omits any method implementation, a compile error is raised. This enforcement ensures interface contracts are always fulfilled.",
         "realtimeExplanation": "Real project mein nayi plugin class banate waqt compile error aaya tha — team member ek naya abstract method add kar diya tha base class mein aur chhote se subclass mein miss ho gaya. Yeh compile-time catching ek major advantage hai over runtime errors in procedural code.",
         "mistakes": "Subclass bhi ABSTRACT mark karna sirf compile error se bachne ke liye — yeh valid approach hai actually. Agar intermediate class hai jo further subclassed hogi, woh khud bhi ABSTRACT reh sakti hai.",
@@ -119,7 +267,8 @@
       },
       {
         "question": "Can an interface extend another interface?",
-        "hinglishExplanation": "Haan — interfaces mein bhi inheritance hoti hai. INTERFACES lif_base inside another interface definition. Child interface mein parent ke saare methods automatically aate hain plus child ke apne. Implementing class ko dono ke sab methods implement karne padte hain. Yeh useful hai jab ek general contract hai aur ek specialized extended contract chahiye — unrelated implementations break nahi hoti.",
+        "tier": "medium",
+        "hinglishExplanation": "Haan, interfaces dusre interfaces ko interface definition ke andar INTERFACES addition use karke extend kar sakte hain. Extending interface base interface ke saare method signatures inherit karta hai. Extended interface implement karne wali class ko base aur extending dono ke saare methods implement karne padte hain. Yeh layered contracts banane deta hai base interface ke existing implementations ko break kiye bina.",
         "interviewAnswer": "Yes, interfaces can extend other interfaces using the INTERFACES addition inside the interface definition. The extending interface inherits all method signatures from the base interface. A class implementing the extended interface must implement all methods from both the base and the extending interface. This allows building layered contracts without breaking existing implementations of the base interface.",
         "realtimeExplanation": "Real project: lif_loggable base interface tha simple log( ) method ke saath. lif_audit_loggable isse extend karta tha aur extra log_with_user( ) add karta tha. Older classes sirf lif_loggable implement karti thin. Newer audit-sensitive classes lif_audit_loggable implement karti thin — clean versioning.",
         "mistakes": "Interface extending interface ko direct instantiation samajhna — interface ka object nahi banta. Sirf implementing class ka object banta hai. Aur caller interface reference rakh sakta hai polymorphism ke liye.",
@@ -127,7 +276,8 @@
       },
       {
         "question": "What is a deferred class definition and why is it used?",
-        "hinglishExplanation": "Kabhi kabhi do classes ek doosre ko reference karti hain — chicken-egg problem. Class A mein TYPE REF TO Class B use karna hai, lekin Class B abhi define nahi hua. Deferred definition se pehle sirf naam declare karte ho: CLASS lcl_b DEFINITION DEFERRED. Ab Class A compile ho sakti hai. Baad mein Class B fully define karo. Yeh circular dependencies handle karne ka ABAP ka tarika hai.",
+        "tier": "advanced",
+        "hinglishExplanation": "Deferred class definition class ke naam ko uski full definition se pehle declare karta hai, CLASS lcl_name DEFINITION DEFERRED use karke. Yeh circular reference issues solve karta hai jahan do classes ko ek doosre ko reference karna hota hai. Compiler forward declaration accept karta hai aur full class definition baad mein same program mein aa sakti hai. Yeh complex object graphs mein commonly use hota hai jahan mutual references chahiye hote hain.",
         "interviewAnswer": "A deferred class definition declares a class name before its full definition, using CLASS lcl_name DEFINITION DEFERRED. This resolves circular reference issues where two classes need to reference each other. The compiler accepts the forward declaration and the full class definition can appear later in the same program. It is commonly used in complex object graphs where mutual references are needed.",
         "realtimeExplanation": "Real project: ek event system mein EventBus aur EventHandler classes ek doosre ko reference kar rahe the. EventBus ka object EventHandler mein tha, EventHandler ka TYPE REF EventBus mein tha. Deferred definition se yeh circular dependency cleanly resolve hui.",
         "mistakes": "Deferred class use karna aur phir full definition miss karna — compile error. Deferred sirf forward declaration hai, full definition zaroor aani chahiye baad mein same include/program mein.",
@@ -135,7 +285,8 @@
       },
       {
         "question": "How do you test that a class correctly implements an interface?",
-        "hinglishExplanation": "Testing ke liye ABAP Unit (FOR TESTING) use karo. Ek test class banao jo interface reference rakhti hai. Actual implementing class ka object banao, interface reference mein assign karo, phir methods call karo aur CL_ABAP_UNIT_ASSERT se expected result verify karo. Interface se test karna best practice hai — kal implementation change ho, test same interface pe chalta rahega.",
+        "tier": "advanced",
+        "hinglishExplanation": "Interface implementation verify karne ke liye ABAP Unit (CLASS ... FOR TESTING) use karo. Ek test class banao, implementing class instantiate karo, usse interface reference variable mein assign karo, interface methods call karo, aur results verify karne ke liye CL_ABAP_UNIT_ASSERT use karo. Concrete class ke bajaye interface ke against testing ensure karti hai ki tests implementation change hone par bhi valid rahein.",
         "interviewAnswer": "Use ABAP Unit (CLASS ... FOR TESTING) to verify interface implementation. Create a test class, instantiate the implementing class, assign it to an interface reference variable, call the interface methods, and use CL_ABAP_UNIT_ASSERT to verify results. Testing against the interface rather than the concrete class ensures tests remain valid even if the implementation changes.",
         "realtimeExplanation": "Real project: ek payment gateway class thi jo lif_payment_processor implement karti thi. Unit tests sirf lif_payment_processor reference use karte the. Jab gateway provider change kiya, nayi implementation class banai, tests same rahe — sirf instantiation line change ki. Zero test rewrite.",
         "mistakes": "Concrete class type se test karna — kal refactor karo toh tests bhi tod sakte ho. Interface type se test karna loosely coupled aur future-proof hota hai.",
@@ -146,12 +297,72 @@
   "ooabap-003": {
     "easyUnderstanding": "Inheritance socho aise: Beta baap ki properties aur skills inherit karta hai. Ek ABAP child class apne parent class ki public aur protected attributes aur methods seedha use kar sakti hai — dobara likhne ki zarurat nahi. Jaise beta baap ki aankhein, uski kaafi skills inherit karta hai, lekin apni personality aur extra skills bhi add karta hai jo baap mein nahi thi. ABAP mein: CLASS lcl_dog DEFINITION INHERITING FROM lcl_animal — ab lcl_dog ke paas lcl_animal ke saare PUBLIC aur PROTECTED members hain plus jo khud define karo. PRIVATE wala baap ne lock kar diya — bete ko nahi milega. Ab Polymorphism socho aise: Same baat, alag andaaz. Ek hi variable jo parent type ka hai — DATA lr_animal TYPE REF TO lcl_animal — us mein dog ka object bhi aa sakta hai, cat ka bhi, lion ka bhi. Jab tum method call karte ho — runtime pe ABAP dekhta hai actual object kiska hai aur usi ki method call karta hai automatically. Ye late binding hai — compile time pe nahi, runtime pe decide hota hai. Classic analogy: ek teacher class hai jiska method hai 'padhaao( )'. Physics teacher alag tarike se padhata hai, Math teacher alag — but caller sirf 'padhaao( )' bolta hai aur runtime pe sahi wala automatically call hota hai. Yeh powerful isliye hai kyunki naya child class add karo, caller ka code bilkul nahi badlega. ABAP ke 3 key keywords: INHERITING FROM (inheritance ke liye), REDEFINITION (method override ke liye), super-> (parent method call ke liye).",
     "hinglishMasterExplanation": "Inheritance aur Polymorphism — dono OOABAP ke most asked concepts hain. Dono ko separately clearly samjho:\n\nInheritance — key facts:\n- Syntax: CLASS lcl_child DEFINITION INHERITING FROM lcl_parent.\n- Child ko automatically milte hain: parent ke saare PUBLIC aur PROTECTED attributes, methods, aur type definitions\n- PRIVATE components bilkul inherit nahi hote — child access nahi kar sakta, override nahi kar sakta\n- Method override ke liye child mein: METHODS drive REDEFINITION. phir implementation mein method body likho\n- Parent ki original method call ke liye: super->drive( ). — parent logic preserve hoti hai\n- Constructor inherit nahi hota — child ka apna CONSTRUCTOR likhna padta hai. Super->constructor( ) call karo shared init ke liye\n- Multilevel inheritance allowed hai: lcl_a → lcl_b → lcl_c — C ko A aur B dono ke public/protected milte hain\n- Multiple class inheritance NOT allowed — sirf ek parent class\n\nPolymorphism — key facts:\n- DATA lr_animal TYPE REF TO lcl_animal. → parent type reference variable\n- lr_animal = NEW lcl_dog( iv_name = 'Bruno' ). → child object, parent reference — yeh UP CAST hai, automatic\n- lr_animal->speak( ). → lcl_dog ki speak( ) call hogi at runtime — lcl_animal ki nahi\n- Yeh late binding / dynamic dispatch hai — runtime pe decide hota hai actual object type ke basis pe\n- Kaam karne ke liye zaruri hai: child class mein woh method REDEFINED hona chahiye\n- DOWN CAST: child reference chahiye toh CAST operator use karo, TRY-CATCH mein wrap karo\n\nCommon interview traps — yeh confidently bolna:\n1. Constructor inheritance? NO — constructor never inherits. Ye strong answer hai.\n2. REDEFINITION vs overloading? ABAP mein overloading exist nahi karti — only REDEFINITION with same signature.\n3. PRIVATE method override? PRIVATE methods redefined nahi ho sakti — compile error.\n4. SUPER call mandatory? No, but best practice — parent logic skip na ho.",
-    "interviewMeKyaBolnaHai": "Inheritance in ABAP means a child class inherits all public and protected attributes and methods of its parent class using the INHERITING FROM keyword. Methods can be overridden in the child using REDEFINITION, and the parent's original method can still be called using super->method_name( ). Polymorphism means a parent-type reference variable can point to a child class object, and when a method is called on that reference, the child's overridden version executes at runtime — this is called late binding or dynamic dispatch. In my project, I used polymorphism in an ALV event handler where a base handler class reference could point to different specialized handlers depending on the report type.\n\nHinglish tip: Constructor inheritance trap mein mat aana — 'inheritance mein constructor nahi aata.' Agar yeh confidently bolte ho, interviewer bahut impressed hota hai. Super->method( ) ka use batana bhi important hai — show karta hai ki tum parent logic preserve karna jaante ho.",
+    "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'Inheritance in ABAP means a child class inherits all public and protected attributes and methods of its parent class using the INHERITING FROM keyword. Methods can be overridden in the child using REDEFINITION, and the parent's original method can still be called using super->method_name( ). Polymorphism means a parent-type reference variable can point to a child class object, and when a method is called on that reference, the child's overridden version executes at runtime — this is called late binding or dynamic dispatch. In my project, I used polymorphism in an ALV event handler where a base handler class reference could point to different specialized handlers depending on the report type.'\n\nHinglish tip: Constructor inheritance trap mein mat aana — 'inheritance mein constructor nahi aata.' Agar yeh confidently bolte ho, interviewer bahut impressed hota hai. Super->method( ) ka use batana bhi important hai — show karta hai ki tum parent logic preserve karna jaante ho.",
     "codeExamples": "CLASS lcl_animal DEFINITION.\n  PUBLIC SECTION.\n    METHODS: speak,\n             constructor IMPORTING iv_name TYPE string.\n  PROTECTED SECTION.\n    DATA: mv_name TYPE string.\nENDCLASS.\nCLASS lcl_animal IMPLEMENTATION.\n  METHOD constructor. mv_name = iv_name. ENDMETHOD.\n  METHOD speak. WRITE: / mv_name, 'makes a sound'. ENDMETHOD.\nENDCLASS.\n\nCLASS lcl_dog DEFINITION INHERITING FROM lcl_animal.\n  PUBLIC SECTION.\n    METHODS: speak REDEFINITION.\nENDCLASS.\nCLASS lcl_dog IMPLEMENTATION.\n  METHOD speak.\n    super->speak( ).                   \" call parent first\n    WRITE: / mv_name, 'says: Woof!'.  \" then add own behavior\n  ENDMETHOD.\nENDCLASS.\n\n\" Polymorphism demo\nDATA lr_animal TYPE REF TO lcl_animal.\nlr_animal = NEW lcl_dog( iv_name = 'Bruno' ).\nlr_animal->speak( ).   \" Calls lcl_dog->speak at runtime",
+    "interviewScriptHinglish": "inheritance se child class parent ke PUBLIC aur PROTECTED members INHERITING FROM keyword se reuse karti hai aur REDEFINITION se behaviour override karti hai, super->method( ) parent logic preserve karta hai. Polymorphism mein parent-type reference koi bhi child object hold kar sakti hai aur runtime pe correct overridden method dispatch hoti hai, jise late binding kehte hain. Hamare notification framework mein ek base notifier class thi jisme email aur SAP message subclasses thin, aur callers sirf base reference rakhte the. Business value open-closed extensibility hai — naye channels add ho sakte hain bina caller code ko touch kiye.",
+    "interviewScriptEnglish": "Inheritance allows a child class to reuse the parent's public and protected members using INHERITING FROM and override behaviour using REDEFINITION, with super->method( ) preserving parent logic. Polymorphism allows a parent-type reference to hold any child object and dispatch the correct overridden method at runtime, known as late binding. In our notification framework, a base notifier class had email and SAP message subclasses, and callers held only the base reference. The business value is open-closed extensibility — new channels can be added without touching caller code.",
+    "wordByWordSamjho": [
+      {
+        "keyword": "INHERITING FROM",
+        "meaning": "Declares the parent class for single inheritance."
+      },
+      {
+        "keyword": "REDEFINITION",
+        "meaning": "Marks a method as overridden by the child class with identical signature."
+      },
+      {
+        "keyword": "super->",
+        "meaning": "Reference to invoke the parent class implementation from a child method."
+      },
+      {
+        "keyword": "PROTECTED SECTION",
+        "meaning": "Members accessible inside the class and all its subclasses."
+      },
+      {
+        "keyword": "PRIVATE SECTION",
+        "meaning": "Members accessible only inside the defining class itself."
+      },
+      {
+        "keyword": "TYPE REF TO lcl_animal",
+        "meaning": "Parent-type reference variable usable for polymorphic assignment."
+      },
+      {
+        "keyword": "NEW lcl_dog( )",
+        "meaning": "Creates a child object that can be assigned to the parent reference."
+      },
+      {
+        "keyword": "constructor",
+        "meaning": "Per-class initializer; never inherited and must be defined per class."
+      }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Saying constructor is inherited by child classes.",
+        "whyWrong": "Constructors are class-specific and must be defined per class; only SUPER->CONSTRUCTOR can chain them.",
+        "correctApproach": "Declare a CONSTRUCTOR in the child and explicitly call super->constructor( ) to reuse parent setup."
+      },
+      {
+        "mistake": "Attempting REDEFINITION of a PRIVATE parent method.",
+        "whyWrong": "PRIVATE members are not visible to the child so the compiler rejects the override declaration.",
+        "correctApproach": "Move the method to PROTECTED in the parent if subclasses must override or call it."
+      },
+      {
+        "mistake": "Performing a DOWN CAST with CAST without TRY-CATCH protection.",
+        "whyWrong": "If the actual object is the wrong type a CX_SY_MOVE_CAST_ERROR runtime exception will dump the program.",
+        "correctApproach": "Wrap CAST lcl_dog( lr_animal ) inside TRY-CATCH CX_SY_MOVE_CAST_ERROR or pre-check with IS INSTANCE OF."
+      },
+      {
+        "mistake": "Assuming static methods participate in polymorphism via REDEFINITION.",
+        "whyWrong": "Static methods use compile-time binding and cannot be redefined, only shadowed by a same-named method.",
+        "correctApproach": "Use instance methods for any polymorphic dispatch and keep static methods for stateless utilities only."
+      }
+    ],
+    "quickRevisionNotes": "What: Inheritance reuses parent public and protected members via INHERITING FROM; polymorphism dispatches the right child REDEFINITION through a parent reference at runtime.\n\nUsed for:\n- Base report or notifier classes with shared logic and child-specific overrides\n- BAdI implementations where SAP holds an interface or class reference and runs your class\n- Factory patterns that return parent or interface references for caller-side flexibility\n\nKey syntax / tables / Tcodes:\n- CLASS lcl_child DEFINITION INHERITING FROM lcl_parent\n- METHODS x REDEFINITION and super->x( ) inside the override\n- DATA lr TYPE REF TO lcl_parent, lr = NEW lcl_child( ), lr->x( )\n- CAST lcl_child( lr ) inside TRY-CATCH cx_sy_move_cast_error\n- SE24 hierarchy view, SE80 inheritance browser\n\nInterview keyword: Same call, different runtime body via late binding.",
     "followupAnswerBank": [
       {
         "question": "Can you call the parent class method from a child class?",
-        "hinglishExplanation": "Haan — SUPER keyword use karo. Child ki method mein SUPER->method_name( ) likho aur parent ki original implementation run hoti hai. Yeh tab useful hai jab child parent ka kaam bhi karna chahta hai plus apna extra kaam. Jaise child class mein override kiya speak( ), but SUPER->speak( ) bhi call kiya taaki parent ka 'makes a sound' bhi chalega, phir child apna 'Woof' add karega.",
+        "tier": "easy",
+        "hinglishExplanation": "Haan, SUPER pseudo-reference use karke, child class apne parent ki method implementation call kar sakti hai. Redefined method ke andar SUPER->method_name( ) parent version ko invoke karta hai. Yeh parent behavior ko completely replace karne ke bajaye extend karne ke liye useful hai — child parent ki logic ko discard karne ke bajaye usme add karta hai.",
         "interviewAnswer": "Yes, using the SUPER pseudo-reference, a child class can call its parent's method implementation. Inside a redefined method, SUPER->method_name( ) invokes the parent version. This is useful to extend rather than completely replace parent behavior — the child adds to the parent's logic rather than discarding it entirely.",
         "realtimeExplanation": "Real project: ek base logging method thi parent class mein jo timestamp aur username log karti thi. Child class SUPER->log( ) call karta tha aur phir apna additional business-specific context append karta tha. Ek line change se audit trail bahut rich ho gayi.",
         "mistakes": "SUPER->method( ) sirf REDEFINITION mein kaam karta hai. Normal method mein parent ka naam directly nahi le sakte. Aur SUPER->CONSTRUCTOR( ) child ke constructor mein call karna best practice hai — skip karna bugs laata hai agar parent mein initialization hai.",
@@ -159,7 +370,8 @@
       },
       {
         "question": "What is late binding in ABAP polymorphism?",
-        "hinglishExplanation": "Late binding ka matlab hai: method kaunsi call hogi yeh compile time pe nahi, runtime pe decide hota hai. Jab parent type reference variable child object ko point kar raha hai aur tum method call karte ho — ABAP runtime dekhta hai ki actual object kiska instance hai, aur usi class ki method call karta hai. Compile time pe sirf syntax check hota hai — actual dispatch runtime pe. Isliye isko 'late' binding kehte hain — late matlab runtime.",
+        "tier": "easy",
+        "hinglishExplanation": "Late binding ka matlab hai ki actual method jo execute hogi woh runtime par determine hoti hai, compile time par nahi. Jab parent-type reference variable child object hold karta hai aur method call hoti hai, toh ABAP ka runtime actual object type ke basis par decide karta hai ki kis class ki implementation invoke karni hai. Yeh polymorphism enable karta hai — same call alag-alag implementations invoke kar sakta hai depending on reference variable mein actual object kya store hai.",
         "interviewAnswer": "Late binding means the actual method to be executed is determined at runtime, not at compile time. When a parent-type reference variable holds a child object and a method is called, ABAP's runtime resolves which class's implementation to invoke based on the actual object type. This enables polymorphism — the same call can invoke different implementations depending on what object is actually stored in the reference variable.",
         "realtimeExplanation": "Real project: ek report framework mein ek base reference variable different report type objects rakhta tha — sales report, finance report, HR report. Ek loop mein sab pe generate( ) call hoti thi — late binding ensure karta tha ki sahi report ka generate( ) run ho. Zero if-else conditions.",
         "mistakes": "Late binding sirf tab kaam karta hai jab method REDEFINED ho child mein. Agar child ne method redefined nahi kiya, parent wali call hogi — yeh expected behavior hai but sometimes developers confuse ho jaate hain.",
@@ -167,7 +379,8 @@
       },
       {
         "question": "What components are NOT inherited from the parent class?",
-        "hinglishExplanation": "PRIVATE components — data aur methods — inherit nahi hote. Child class parent ke private section ko access nahi kar sakta, redefined nahi kar sakta. Constructors bhi inherit nahi hote — child ka apna CONSTRUCTOR likhna padta hai. Friendship (FRIENDS addition) bhi inherit nahi hoti — agar parent ne kisi class ko friend banaya, child ko woh benefit nahi milega automatically.",
+        "tier": "easy",
+        "hinglishExplanation": "ABAP mein teen cheezein inherit nahi hoti: pehle, PRIVATE attributes aur methods — child classes inhe access ya redefine nahi kar sakti. Doosre, constructors — har class ko apna constructor define karna padta hai; yeh inheritance chain ke through pass nahi hote. Teesre, FRIENDS addition se define class friendships inherit nahi hoti. Sirf PUBLIC aur PROTECTED components inheritance chain mein neeche flow karte hain.",
         "interviewAnswer": "Three things are not inherited in ABAP: First, PRIVATE attributes and methods — child classes cannot access or redefine them. Second, constructors — every class must define its own constructor; they are not passed down through inheritance. Third, class friendships defined using the FRIENDS addition are not inherited. Only PUBLIC and PROTECTED components flow down the inheritance chain.",
         "realtimeExplanation": "Interview mein yeh trap question aata hai — 'child class parent ke kya kya use kar sakta hai?' Confidently teen exclusions bolo: private, constructor, friends. Yeh specific answer interviewer ko pata deta hai ki tumhara OOABAP deep knowledge hai na sirf surface level.",
         "mistakes": "Sochna ki PROTECTED components bhi inherit nahi hote — woh hote hain. PROTECTED specifically banaya gaya hai inheritance ke liye — child access kar sakta hai, bahar ka code nahi.",
@@ -175,7 +388,8 @@
       },
       {
         "question": "What is the difference between REDEFINITION and method overloading?",
-        "hinglishExplanation": "REDEFINITION: child class mein parent ka same method same signature ke saath override karna. Ek hi naam, ek hi parameters — sirf implementation alag. Method Overloading: same method name different parameters ke saath multiple versions banana — Java, C++ mein hota hai. ABAP mein method overloading nahi hoti. ABAP mein sirf REDEFINITION hai — same signature mandatory. Agar different parameters chahiye toh alag method naam use karo ya OPTIONAL parameters se ek method handle karo.",
+        "tier": "medium",
+        "hinglishExplanation": "ABAP mein REDEFINITION ka matlab hai child class ek parent method ko exactly same signature ke saath override karti hai — same naam, same parameters. Method overloading — same name ke saath different parameters wale multiple methods — ABAP mein exist nahi karta. Agar different parameter combinations chahiye, toh single method mein OPTIONAL ya DEFAULT parameters use karo, ya different behaviors ke liye distinctly named methods define karo.",
         "interviewAnswer": "REDEFINITION in ABAP means a child class overrides a parent method with the exact same signature — same name, same parameters. Method overloading — having multiple methods with the same name but different parameters — does not exist in ABAP. If different parameter combinations are needed, use OPTIONAL or DEFAULT parameters in a single method, or define distinctly named methods for different behaviors.",
         "realtimeExplanation": "Real project mein ek junior developer ne Java background se ABAP mein same method naam do baar different parameters ke saath likhne ki koshish ki — compile error. Explain kiya: ABAP mein overloading nahi hoti. OPTIONAL parameter use karke ek hi method mein dono cases handle karo.",
         "mistakes": "ABAP mein overloading hoti hai sochna — galat. ABAP single method definition ke OPTIONAL aur DEFAULT additions se flexibility provide karta hai. Yeh clearly explain karna important hai interview mein.",
@@ -183,7 +397,8 @@
       },
       {
         "question": "How does UP CAST and DOWN CAST work in ABAP?",
-        "hinglishExplanation": "UP CAST: child object ko parent reference mein assign karna — automatic, no keyword needed. Safe hai kyunki child ke paas sab kuch hai jo parent mein hai. DOWN CAST: parent reference ko child type mein convert karna — explicit CAST operator chahiye. Risky hai — agar actual object sahi type ka nahi toh runtime error CX_SY_MOVE_CAST_ERROR aata hai. Isliye DOWN CAST ke baad check karo.",
+        "tier": "medium",
+        "hinglishExplanation": "UP CAST child object ko parent-type reference variable mein assign karta hai — yeh implicit hota hai aur hamesha safe hai kyunki child ke paas woh sab kuch hota hai jo parent ke paas hai. DOWN CAST parent-type reference ko CAST operator se wapas child type mein convert karta hai. Yeh explicit hota hai aur runtime par fail ho sakta hai agar actual object expected child type ka nahi hai, jisse CX_SY_MOVE_CAST_ERROR raise hota hai. DOWN CASTs ko hamesha TRY-CATCH se protect karo.",
         "interviewAnswer": "An UP CAST assigns a child object to a parent-type reference variable — this is implicit and always safe because the child has everything the parent has. A DOWN CAST converts a parent-type reference back to a child type using the CAST operator. This is explicit and can fail at runtime if the actual object is not of the expected child type, raising CX_SY_MOVE_CAST_ERROR. Always protect DOWN CASTs with TRY-CATCH.",
         "realtimeExplanation": "Real project: ek framework se parent reference milti thi. Specific child-only method call karne ke liye DOWN CAST karna padta tha — TRY-CATCH mein wrap karke safe tarike se. Bina TRY-CATCH ke dump production mein aaya tha — lesson learned.",
         "mistakes": "DOWN CAST bina TRY-CATCH ke karna — runtime dump guarantee hai agar wrong type object aaya. UP CAST ke liye CAST keyword likhna — unnecessary hai, auto-assignment kaam karta hai.",
@@ -191,7 +406,8 @@
       },
       {
         "question": "What is the role of inheritance in BAdI implementation?",
-        "hinglishExplanation": "BAdI (Business Add-In) ek SAP enhancement framework hai. BAdI definition mein SAP ek interface define karta hai. Tumhara kaam hai ek class banana jo us interface implement kare — CLASS zcl_my_impl DEFINITION INTERFACES if_badi_xxx. SAP runtime tumhari class ka object banata hai aur interface method call karta hai. Yeh pure OOABAP hai — interface contract follow karna mandatory hai, implementation tumhara. Enhancement spot pe code change bina modification.",
+        "tier": "medium",
+        "hinglishExplanation": "BAdI implementations SAP standard mein OOABAP interfaces ka direct application hain. SAP ek BAdI interface define karta hai, aur developer ek class banata hai jo usse implement kare. Class ko interface mein declared saare methods provide karne padte hain. SAP ka framework runtime par implementation class instantiate karta hai aur methods call karta hai. Yeh interface-based polymorphism hai — SAP code ek standard interface call karta hai, tumhari custom class behavior provide karti hai.",
         "interviewAnswer": "BAdI implementations are a direct application of OOABAP interfaces in SAP standard. SAP defines a BAdI interface, and the developer creates a class that implements it. The class must provide all methods declared in the interface. SAP's framework instantiates the implementation class at runtime and calls the methods. This is interface-based polymorphism — SAP code calls a standard interface, your custom class provides the behavior.",
         "realtimeExplanation": "Real project: purchase order save pe custom validation chahiye thi — BAdI ME_PROCESS_PO_CUST implement kiya. Interface method CHECK( ) mein business validation logic likhi. Test kiya, transport kiya — standard SAP code automatically meri class call karne laga. Zero modification to standard.",
         "mistakes": "BAdI implementation class ko se24 mein manually instantiate karne ki koshish karna — SAP framework automatically karta hai. Tumhara kaam sirf interface methods implement karna hai, rest framework handle karta hai.",
@@ -199,7 +415,8 @@
       },
       {
         "question": "Can a child class override a parent's static method?",
-        "hinglishExplanation": "Static methods REDEFINED nahi ho sakti — ABAP mein static methods class-level hoti hain, instance-level nahi. Static binding hoti hai — compile time pe decide hota hai kaunsi class ki static method call hogi. Agar child mein same naam ka static method likho, woh parent ka alag method hai — hiding kehte hain, overriding nahi. Late binding sirf instance methods pe kaam karta hai.",
+        "tier": "advanced",
+        "hinglishExplanation": "ABAP mein static methods redefined nahi ho sakte. Yeh static binding use karte hain — call hone wali method compile time par reference variable type ke basis par determine hoti hai, actual object par nahi. Agar child class parent jaise hi naam ka static method define karti hai, woh parent ka method shadow karta hai par override nahi karta. Late binding ke through polymorphism sirf un instance methods par kaam karta hai jo explicitly redefined hain.",
         "interviewAnswer": "Static methods cannot be redefined in ABAP. They use static binding — the method called is determined at compile time based on the reference variable type, not the actual object. If a child class defines a static method with the same name as the parent, it shadows the parent's method but does not override it. Polymorphism through late binding works only for instance methods that are explicitly redefined.",
         "realtimeExplanation": "Design lesson real project se: utility logic jo polymorphic behavior chahti thi — woh static method mein nahi jaani chahiye. Instance method mein rakho taaki REDEFINITION aur late binding kaam kare. Static methods strictly stateless, context-free utilities ke liye use karo.",
         "mistakes": "Static method mein REDEFINITION likhne ki koshish karna — compile error. Sochna ki static method pe bhi polymorphism kaam karega — galat, static binding hoti hai.",
@@ -207,7 +424,8 @@
       },
       {
         "question": "How do you implement a simple factory pattern using inheritance and polymorphism?",
-        "hinglishExplanation": "Factory pattern: ek static method jo different child class objects return karta hai based on input. Caller ko pata nahi hota actual class ka naam — sirf parent type reference milti hai. Ander polymorphism kaam karta hai. Yeh very common design pattern hai ABAP mein — SAP khud BAdI framework mein yahi karta hai. Loosely coupled, extensible code ke liye factory pattern bahut useful hai.",
+        "tier": "advanced",
+        "hinglishExplanation": "Factory pattern ek static factory method use karta hai jo different child class objects ko parent-type reference ke roop mein return karta hai. Caller ek key ya type parameter provide karta hai, factory method decide karta hai ki kis child class ko instantiate karna hai, aur usse parent reference ke roop mein return karta hai. Caller phir polymorphically methods call karta hai bina concrete class jaane. Yeh ABAP mein pluggable, extensible architectures banane ke liye ek common pattern hai.",
         "interviewAnswer": "A factory pattern uses a static factory method that returns different child class objects as a parent-type reference. The caller provides a key or type parameter, the factory method decides which child class to instantiate, and returns it as the parent reference. The caller then calls methods polymorphically without knowing the concrete class. This is a common pattern in ABAP for creating pluggable, extensible architectures.",
         "realtimeExplanation": "Real project: ek output handler factory banaya tha. Input type ke basis pe — 'EMAIL', 'FILE', 'SAP_MSG' — factory corresponding handler object return karta tha as lif_output_handler reference. Calling code zero if-else — sirf factory se object lo aur send( ) call karo. Naya handler add karna sirf factory mein ek WHEN add karna tha.",
         "mistakes": "Factory method mein return type concrete class ka rakhna — yeh purpose defeat karta hai. Return type hamesha parent class ya interface reference hona chahiye taaki caller implementation se decoupled rahe.",

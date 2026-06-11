@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // One-off content-generation scripts kept for provenance only.
+    "scripts/archive/**",
   ]),
 ]);
 

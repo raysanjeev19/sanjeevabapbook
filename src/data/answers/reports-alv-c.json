@@ -4,70 +4,149 @@
     "hinglishMasterExplanation": "Spool SAP ka output management system hai — print output ko printer pe bhejne se pehle temporarily store karta hai. Jab bhi background job run hota hai ya koi report print karte hain, output pehle spool mein jaata hai, phir printer pe.\n\nCommon spool issues aur solutions:\n\n1. Spool generate hi nahi hua: SM37 mein job log check karo — kya job successfully complete hua? Program mein printer parameter (P_PRNTR) check karo, IMMEDIATELY flag check karo. Agar selection screen pe printer set nahi kiya toh spool create nahi hoga.\n\n2. Spool full ho gaya: SPOOL_NO_INFO ya similar error aata hai. BASIS team spool space badhati hai — RSP01_DELETE_SPOOLREQUESTS report se purani requests delete hoti hain.\n\n3. Wrong layout aaya: Form ya SmartForm mein issue hai. Output type NACE transaction mein check karo — correct form assign hua hai ya nahi. Driver program mein form name hard-coded hai toh galat form print ho sakta hai.\n\n4. Spool expired: Default retention 8 days hoti hai. Agar user 10 din baad SP01 mein dhundh raha hai toh spool already delete ho chuka hai. Program mein retention period badh sakti hai.\n\nABAP coding angle: NEW-LIST-ID keyword use karo taaki har run ka alag spool bane — bina iske purane spool mein new output append ho jaata hai. Background scheduling SM36 se hoti hai, job step mein spool parameters set karo.",
     "interviewMeKyaBolnaHai": "Interview Me Exact Bolna Hai:\n'Spool issues are common in production support. If a spool is not generated, I first check the job log in SM37 to confirm the job completed successfully, then verify the printer parameter in the program variant. If the spool exists but the output is incorrect, I check the SmartForm or SAPscript and the output type configuration in NACE. For expired spools, I check the retention period set in the program or ask the user to re-run the job. I use SP01 to view all spool requests and SP02 for my own.\n\nHinglish tip: Interview mein SP01, SP02, SM37 ka naam lena bahut important hai — ye dikhata hai ki tum production support karte ho. Spool retention aur printer parameter — dono angles cover karo. Real scenario batao: kisi user ne bola print nahi aaya, toh tumne SM37 check kiya, phir SP01 mein spool dhundha.'",
     "codeExamples": "REPORT zbackground_spool_demo.\n\nPARAMETERS: p_prntr TYPE sy-spool OBLIGATORY DEFAULT 'LP01',\n             p_immed TYPE c LENGTH 1 DEFAULT 'X'.  \" Print immediately\n\nNEW-LIST-ID.  \" Ensures a fresh spool for each run, no appending\n\nDATA: ls_pri    TYPE pri_params,\n      ls_arc    TYPE arc_params,\n      lv_valid  TYPE c.\n\n\" Set spool/print parameters for background-friendly output\nls_pri-pdest    = p_prntr.    \" Printer destination (SP01 target)\nls_pri-pimmed   = p_immed.    \" 'X' = print immediately\nls_pri-pexpire  = 14.          \" Retain spool for 14 days\nls_pri-listname = 'ZMY_REPORT_OUTPUT'.\n\nCALL FUNCTION 'GET_PRINT_PARAMETERS'\n  EXPORTING\n    destination  = ls_pri-pdest\n    immediately  = ls_pri-pimmed\n    expiration   = ls_pri-pexpire\n  IMPORTING\n    out_parameters = ls_pri\n    valid          = lv_valid.\n\nIF lv_valid = 'X'.\n  NEW-PAGE PRINT ON PARAMETERS ls_pri ARCHIVE PARAMETERS ls_arc.\n  WRITE: / 'Report output line 1'.\n  NEW-PAGE PRINT OFF.\nELSE.\n  MESSAGE 'Invalid spool parameters — check printer' TYPE 'W'.\nENDIF.",
+    "interviewScriptEnglish": "Spool issues are common in production support. If a spool is not generated, I first check the job log in SM37 to confirm the job completed successfully, then verify the printer parameter in the program variant. If the spool exists but the output is incorrect, I check the SmartForm or SAPscript and the output type configuration in NACE. For expired spools, I check the retention period set in the program or ask the user to re-run the job. I use SP01 to view all spool requests and SP02 for my own.",
+    "interviewScriptHinglish": "spool issues production support mein common hain. Agar spool generate nahi hua, toh main pehle SM37 mein job log check karta hoon yeh confirm karne ke liye ki job successfully complete hua, phir program variant mein printer parameter verify karta hoon. Agar spool exist karta hai but output incorrect hai, toh main SmartForm ya SAPscript aur NACE mein output type configuration check karta hoon. Expired spools ke liye, program mein set retention period check karta hoon ya user ko bolta hoon job re-run karne ke liye. Main SP01 use karta hoon saare spool requests dekhne ke liye aur SP02 apne liye.",
+    "commonMistakesSection": [
+      {
+        "mistake": "SP01 aur SP02 ko same samajhna.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "SP01 admin-level view hai jo production support mein use hoti hai, SP02 personal hai. Ye distinction interview mein clarity dikhata hai."
+      },
+      {
+        "mistake": "Seedha SP01 mein bina job log dekhe dhundna.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "SM37 pehle karo — job log mein actual error message milega jo root cause bataata hai."
+      },
+      {
+        "mistake": "Developer yeh issue khud fix karne ki koshish karna — spool tablespace aur system-level cleanup BASIS ka kaam hai.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Escalate karo, explain karo, coordinate karo."
+      },
+      {
+        "mistake": "NEW-LIST-ID bhool jaana in batch programs.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Result: spool entries accumulate, users complain old data aur naya data mix ho rahe hain."
+      }
+    ],
+    "wordByWordSamjho": [
+      {
+        "keyword": "NEW-LIST-ID",
+        "meaning": "Ensures a fresh spool entry for each report run instead of appending"
+      },
+      {
+        "keyword": "PRI_PARAMS",
+        "meaning": "Print parameter structure used to configure printer destination, immediate flag and expiry"
+      },
+      {
+        "keyword": "ARC_PARAMS",
+        "meaning": "Archive parameter structure for SAP ArchiveLink integration"
+      },
+      {
+        "keyword": "GET_PRINT_PARAMETERS",
+        "meaning": "Function module that returns validated print parameters for background printing"
+      },
+      {
+        "keyword": "PDEST",
+        "meaning": "Printer destination, the SP01 spool target"
+      },
+      {
+        "keyword": "PIMMED",
+        "meaning": "Print immediately flag, X means do not wait"
+      },
+      {
+        "keyword": "PEXPIRE",
+        "meaning": "Number of days to retain the spool request"
+      },
+      {
+        "keyword": "LISTNAME",
+        "meaning": "Name shown in the SP01 spool list for easy search"
+      },
+      {
+        "keyword": "NEW-PAGE PRINT ON PARAMETERS",
+        "meaning": "Switches list output into print mode using supplied parameters"
+      },
+      {
+        "keyword": "NEW-PAGE PRINT OFF",
+        "meaning": "Closes the print job so the spool entry is created"
+      },
+      {
+        "keyword": "SP01",
+        "meaning": "Transaction for spool overview, request status and output retrieval"
+      }
+    ],
+    "quickRevisionNotes": "What: Background spool handling for ALV and classical report output.\n\nUsed for:\n- Sending background list output to a specific printer destination\n- Controlling spool expiry, immediate print and list name\n- Diagnosing missing or malformed spool entries\n\nKey syntax / tables / Tcodes:\n- PRI_PARAMS, ARC_PARAMS, GET_PRINT_PARAMETERS\n- NEW-LIST-ID; NEW-PAGE PRINT ON PARAMETERS ls_pri ARCHIVE PARAMETERS ls_arc\n- NEW-PAGE PRINT OFF to close the spool job\n- SP01 to view, SP02 for own requests, SM37 for the background job\n\nInterview keyword: PRI_PARAMS with GET_PRINT_PARAMETERS then NEW-PAGE PRINT ON",
     "followupAnswerBank": [
       {
         "question": "What is the difference between SP01 and SP02 in SAP?",
-        "hinglishExplanation": "SP01 mein sab users ke spool requests dikhte hain — admin/support ke liye. SP02 mein sirf tumhare apne spool requests dikhte hain. Production support mein SP01 use karte hain kyunki user ka spool dhundna hota hai. SP02 development/testing ke liye personal use hota hai.",
+        "hinglishExplanation": "SP01 saare users ke saare spool requests display karta hai — production support mein useful jab user ki print issue investigate kar rahe ho. SP02 sirf tumhare apne spool requests dikhata hai, typically development aur testing ke dauran use hota hai apne program ka output verify karne ke liye.",
         "interviewAnswer": "SP01 displays all spool requests for all users — useful in production support when investigating a user's print issue. SP02 shows only your own spool requests, typically used during development and testing to verify your program's output.",
         "realtimeExplanation": "User ne ticket raise kiya — 'mera invoice print nahi hua.' Tum SP01 kholo, user name aur date filter karo, spool request dhundho. Status check karo — completed, error, or still waiting.",
         "mistakes": "SP01 aur SP02 ko same samajhna. SP01 admin-level view hai jo production support mein use hoti hai, SP02 personal hai. Ye distinction interview mein clarity dikhata hai.",
-        "codeExample": "\" Call SP01 programmatically (rarely needed, but possible)\nCALL TRANSACTION 'SP01' AND SKIP FIRST SCREEN.\n\" Or check spool via function module:\nCALL FUNCTION 'RSPO_RETURN_ABAP_SPOOLJOB'\n  EXPORTING\n    rqident = lv_spool_id\n  TABLES\n    buffer  = lt_spool_data."
+        "codeExample": "\" Call SP01 programmatically (rarely needed, but possible)\nCALL TRANSACTION 'SP01' AND SKIP FIRST SCREEN.\n\" Or check spool via function module:\nCALL FUNCTION 'RSPO_RETURN_ABAP_SPOOLJOB'\n  EXPORTING\n    rqident = lv_spool_id\n  TABLES\n    buffer  = lt_spool_data.",
+        "tier": "easy"
       },
       {
         "question": "How do you check if a background job generated a spool?",
-        "hinglishExplanation": "SM37 mein job dhundho — job name aur date ke saath. Job select karo, phir 'Spool' button click karo ya menu se check karo. Agar spool ID dikhta hai toh spool bana — SP01 mein us ID se directly dekh sakte ho. Agar spool ID nahi hai toh job ne output generate hi nahi kiya — program mein print parameter issue hai.",
+        "hinglishExplanation": "SM37 mein, main background job ko name aur date se search karta hoon, phir job detail screen mein Spool button click karta hoon. Agar spool ID exist karti hai, main usse SP01 mein open karta hoon. Agar koi spool generate nahi hua, main job log mein errors check karta hoon aur phir program variant examine karta hoon printer parameter aur output configuration verify karne ke liye.",
         "interviewAnswer": "In SM37, I search for the background job by name and date, then click the Spool button in the job detail screen. If a spool ID exists, I open it in SP01. If no spool was generated, I check the job log for errors and then examine the program variant to verify the printer parameter and output configuration.",
         "realtimeExplanation": "Step-by-step: SM37 → find job → click job → Spool tab → spool ID milega → SP01 mein verify karo. Spool status bhi dekho: 'Completed', 'Error', 'Processing'.",
         "mistakes": "Seedha SP01 mein bina job log dekhe dhundna. SM37 pehle karo — job log mein actual error message milega jo root cause bataata hai.",
-        "codeExample": "\" Reading spool data programmatically after job completes\nDATA: lv_jobname TYPE tbtcjob-jobname VALUE 'ZMONTHLY_REPORT',\n      lv_jobcount TYPE tbtcjob-jobcount.\n\nSELECT SINGLE jobcount FROM tbtcjob\n  WHERE jobname = @lv_jobname AND status = 'F'  \" F = Finished\n  INTO @lv_jobcount.\n\nIF sy-subrc = 0.\n  MESSAGE |Job { lv_jobcount } completed — check SP01 for spool| TYPE 'I'.\nENDIF."
+        "codeExample": "\" Reading spool data programmatically after job completes\nDATA: lv_jobname TYPE tbtcjob-jobname VALUE 'ZMONTHLY_REPORT',\n      lv_jobcount TYPE tbtcjob-jobcount.\n\nSELECT SINGLE jobcount FROM tbtcjob\n  WHERE jobname = @lv_jobname AND status = 'F'  \" F = Finished\n  INTO @lv_jobcount.\n\nIF sy-subrc = 0.\n  MESSAGE |Job { lv_jobcount } completed — check SP01 for spool| TYPE 'I'.\nENDIF.",
+        "tier": "easy"
       },
       {
         "question": "What happens when the spool system is full in SAP?",
-        "hinglishExplanation": "Spool full hone pe naye spool requests create nahi hote — error aata hai SPOOL_NO_INFO ya similar. BASIS team ko escalate karna padta hai — wo RSP01_DELETE_SPOOLREQUESTS report se old/expired spool requests delete karte hain. Developer ke taur par tum spool retention period ko reasonable rakh sakte ho — zyada nahi, kyunki old spools space lete hain.",
+        "hinglishExplanation": "Jab spool system full hota hai, naye spool requests error ke saath fail ho jaate hain. Resolution mein BASIS RSP01_DELETE_SPOOLREQUESTS report run karta hai expired spool entries purge karne ke liye. Developer ke roop mein, main isse prevent karta hoon print parameters mein ek reasonable expiration period set karke — necessary se zyada nahi — aur ensure karke ki programs har run mein unnecessary spools generate na karein.",
         "interviewAnswer": "When the spool system is full, new spool requests fail with an error. The resolution involves BASIS running the RSP01_DELETE_SPOOLREQUESTS report to purge expired spool entries. As a developer, I prevent this by setting a reasonable expiration period in print parameters — not more than necessary — and ensuring programs don't generate unnecessary spools in every run.",
         "realtimeExplanation": "Production alert: users complain printing stopped. Check with BASIS — spool full hai. Immediate fix: RSP01_DELETE_SPOOLREQUESTS. Long-term: review retention periods in all background jobs.",
         "mistakes": "Developer yeh issue khud fix karne ki koshish karna — spool tablespace aur system-level cleanup BASIS ka kaam hai. Escalate karo, explain karo, coordinate karo.",
-        "codeExample": "\" Programmatically limit spool retention to avoid overflow\nls_pri-pexpire = 3.  \" Only 3 days — don't default to 8 if not needed\n\" Also: set meaningful spool list name for easy identification\nls_pri-listname = |{ sy-repid }_{ sy-datum }|."
+        "codeExample": "\" Programmatically limit spool retention to avoid overflow\nls_pri-pexpire = 3.  \" Only 3 days — don't default to 8 if not needed\n\" Also: set meaningful spool list name for easy identification\nls_pri-listname = |{ sy-repid }_{ sy-datum }|.",
+        "tier": "easy"
       },
       {
         "question": "What is the NEW-LIST-ID statement used for in spool management?",
-        "hinglishExplanation": "Bina NEW-LIST-ID ke agar same program dobara chalao toh output purane spool mein append ho jaata hai — ek hi spool mein multiple runs ka data aa jaata hai, confusing ho jaata hai. NEW-LIST-ID likhne se SAP har run ke liye naya spool ID create karta hai — alag aur clean. Background jobs mein ye best practice hai.",
+        "hinglishExplanation": "NEW-LIST-ID ensure karta hai ki har program run ek naya, separate spool entry create kare bajaaye previous run ke spool mein append karne ke. Iske bina, repeated runs ek single spool mein accumulate ho jaate hain, jisse per run output identify karna mushkil ho jaata hai. Main isse saare background-scheduled report programs mein use karta hoon spool entries ko distinct aur easy to manage rakhne ke liye.",
         "interviewAnswer": "NEW-LIST-ID ensures that each program run creates a new, separate spool entry instead of appending to the previous run's spool. Without it, repeated runs accumulate in a single spool, making it difficult to identify output per run. I use it in all background-scheduled report programs to keep spool entries distinct and easy to manage.",
         "realtimeExplanation": "Without NEW-LIST-ID: Monday run aur Tuesday run dono ek spool mein — user confuse ho jaata hai. With NEW-LIST-ID: Monday ka alag, Tuesday ka alag. SP01 mein clearly identify hota hai.",
         "mistakes": "NEW-LIST-ID bhool jaana in batch programs. Result: spool entries accumulate, users complain old data aur naya data mix ho rahe hain.",
-        "codeExample": "REPORT zbatch_report_clean.\n\nSTART-OF-SELECTION.\n  NEW-LIST-ID.  \" Place at start — before any WRITE or output\n  WRITE: / 'Execution date:', sy-datum.\n  WRITE: / 'Execution time:', sy-uzeit.\n  \" ... report data output below ..."
+        "codeExample": "REPORT zbatch_report_clean.\n\nSTART-OF-SELECTION.\n  NEW-LIST-ID.  \" Place at start — before any WRITE or output\n  WRITE: / 'Execution date:', sy-datum.\n  WRITE: / 'Execution time:', sy-uzeit.\n  \" ... report data output below ...",
+        "tier": "medium"
       },
       {
         "question": "How do you handle expired spool issues raised by users?",
-        "hinglishExplanation": "Default spool retention 8 din hoti hai SAP mein. User 2 hafte baad bolta hai 'mera SP01 output dikhao' — toh spool expire ho chuka hai. Solution: user ko re-run karna padega program. Agar report scheduled hai toh SM36 se naya job schedule karo. Aur aage ke liye program mein retention period badha do — 14 ya 30 din per requirement.",
+        "hinglishExplanation": "Jab user expired spool report karta hai, main explain karta hoon ki default retention 8 days hai aur spool automatically delete ho gaya hai. Main program ya background job ka ek re-run arrange karta hoon, aur ek permanent fix ke roop mein, main program ke print parameters ko update karta hoon business requirement ke based pe expiration period 14 ya 30 days tak extend karne ke liye.",
         "interviewAnswer": "When a user reports an expired spool, I explain that the default retention is 8 days and the spool has been automatically deleted. I arrange a re-run of the program or background job, and as a permanent fix, I update the program's print parameters to extend the expiration period to 14 or 30 days based on the business requirement.",
         "realtimeExplanation": "User ticket: 'Last month ka invoice spool nahi dikh raha SP01 mein.' Root cause: spool expired. Action: re-run the job, update retention period in program variant, document the change.",
         "mistakes": "User ko bina explanation ke sirf 're-run karo' bolna. Pehle explain karo ki spool retention period expire hui, phir fix provide karo aur future ke liye permanent solution implement karo.",
-        "codeExample": "\" Setting longer expiry for important financial reports\nls_pri-pexpire = 30.  \" 30 days retention for month-end reports\n\" Document this in TS so support team knows why\n\" Also: consider archiving critical output to document server"
+        "codeExample": "\" Setting longer expiry for important financial reports\nls_pri-pexpire = 30.  \" 30 days retention for month-end reports\n\" Document this in TS so support team knows why\n\" Also: consider archiving critical output to document server",
+        "tier": "medium"
       },
       {
         "question": "What is the role of NACE transaction in spool and print issues?",
-        "hinglishExplanation": "NACE output condition types manage karta hai — like invoice print, delivery note, purchase order output. Agar output type wrong printer pe configure hua hai ya wrong form assign hai toh NACE mein fix hoga. Developer ke liye: program mein hard-coded form name check karo, NACE mein output type ka condition record check karo — agar dono match nahi karte toh wrong form print hoga.",
+        "hinglishExplanation": "NACE output condition types manage karta hai — yeh define karta hai ki har output type ke liye konsa form ya SmartForm use karna hai, aur konsa printer ya transmission medium use karna hai. Jab user wrong output format report karta hai, main NACE check karta hoon verify karne ke liye ki correct SmartForm assigned hai aur printer determination correct hai. NACE configuration aur driver program ke beech mismatches incorrect spool output cause karte hain.",
         "interviewAnswer": "NACE manages output condition types — it defines which form or SmartForm to use for each output type, and which printer or transmission medium to use. When a user reports wrong output format, I check NACE to verify the correct SmartForm is assigned and the printer determination is correct. Mismatches between NACE configuration and the driver program cause incorrect spool output.",
         "realtimeExplanation": "Issue: Purchase order print wrong form aa raha hai. Check flow: NACE → output type ME9F → condition record → form assignment. Then check driver program MEDRUCK — form name match karta hai ya nahi.",
         "mistakes": "NACE check bina directly form code dekhne jaana. NACE configuration Functional team ka area hai — developer aur functional together debug karte hain.",
-        "codeExample": "\" Driver program calls form based on output type\nCALL FUNCTION 'OPEN_FORM'\n  EXPORTING\n    form    = 'ZMEDRUCK_CUSTOM'  \" Must match NACE assignment\n    device  = 'PRINTER'\n    OPTIONS = ls_options\n  EXCEPTIONS\n    OTHERS  = 1.\nIF sy-subrc <> 0.\n  MESSAGE 'Form open failed — check NACE output type' TYPE 'E'.\nENDIF."
+        "codeExample": "\" Driver program calls form based on output type\nCALL FUNCTION 'OPEN_FORM'\n  EXPORTING\n    form    = 'ZMEDRUCK_CUSTOM'  \" Must match NACE assignment\n    device  = 'PRINTER'\n    OPTIONS = ls_options\n  EXCEPTIONS\n    OTHERS  = 1.\nIF sy-subrc <> 0.\n  MESSAGE 'Form open failed — check NACE output type' TYPE 'E'.\nENDIF.",
+        "tier": "medium"
       },
       {
         "question": "How does SM37 help in diagnosing spool-related issues?",
-        "hinglishExplanation": "SM37 background job monitor hai. Yahan job ka status dekho — finished (F), cancelled (A), active (R). Job select karo phir Job Log dekho — specific error messages milenge. Spool button se directly us job ka spool open hota hai. Agar job cancelled hua hai toh log mein reason hoga — printer not available, memory issue, etc. SM37 spool troubleshooting ka starting point hai.",
+        "hinglishExplanation": "SM37 background job monitor hai jahan main job status, execution logs aur spool links check karta hoon. Spool issues ke liye, main pehle SM37 mein relevant job dhoondhta hoon, error messages ke liye job log review karta hoon, aur phir Spool button use karta hoon associated spool request ko directly SP01 mein open karne ke liye. Yeh end-to-end trace — job execution se spool output tak — production support mein standard diagnostic approach hai.",
         "interviewAnswer": "SM37 is the background job monitor where I check job status, execution logs, and spool links. For spool issues, I first find the relevant job in SM37, review the job log for error messages, and then use the Spool button to open the associated spool request directly in SP01. This end-to-end trace — from job execution to spool output — is the standard diagnostic approach in production support.",
         "realtimeExplanation": "SM37 flow: Job name + date search → Select job → Job Log → Look for errors → Spool button → SP01 view. Ek hi sequence mein sab information milti hai.",
         "mistakes": "SM37 mein job status 'Finished' dekh ke assume karna ki spool bhi sahi hai. Job finish ho sakta hai bina spool generate kiye — log carefully padna zaroori hai.",
-        "codeExample": "\" Submitting job with spool configuration from ABAP\nCALL FUNCTION 'JOB_SUBMIT'\n  EXPORTING\n    jobname     = 'ZMONTHLY_REPORT'\n    jobcount    = lv_jobcount\n    report      = 'ZMONTHLY_REPORT'\n    variant     = 'DEFAULT'          \" Variant must have printer set\n  EXCEPTIONS\n    OTHERS      = 1."
+        "codeExample": "\" Submitting job with spool configuration from ABAP\nCALL FUNCTION 'JOB_SUBMIT'\n  EXPORTING\n    jobname     = 'ZMONTHLY_REPORT'\n    jobcount    = lv_jobcount\n    report      = 'ZMONTHLY_REPORT'\n    variant     = 'DEFAULT'          \" Variant must have printer set\n  EXCEPTIONS\n    OTHERS      = 1.",
+        "tier": "advanced"
       },
       {
         "question": "What are best practices for spool management in ABAP programs?",
-        "hinglishExplanation": "Best practices: (1) Hamesha NEW-LIST-ID use karo batch programs mein. (2) Printer parameter obligatory rakho ya meaningful default do. (3) Reasonable expiration period set karo — critical reports ke liye 14-30 din. (4) Meaningful spool list name do — program name aur date include karo. (5) Variants save karo with printer settings taaki re-run easy ho. (6) Production mein spool test karo, sirf dialog mode mein nahi.",
+        "hinglishExplanation": "Best practices: hamesha NEW-LIST-ID use karo unique spool per run ke liye, ek meaningful LISTNAME set karo program name aur date include karke, report criticality ke based pe reasonable expiration configure karo, selection screen mein printer parameter ko mandatory banao, aur hamesha go-live se pehle background mode mein spool generation test karo — sirf dialog mode mein nahi. Technical specification mein spool parameters document karo.",
         "interviewAnswer": "Best practices: always use NEW-LIST-ID for unique spool per run, set a meaningful LISTNAME including program name and date, configure reasonable expiration based on report criticality, make the printer parameter mandatory in the selection screen, and always test spool generation in background mode before go-live — not just in dialog mode. Document the spool parameters in the technical specification.",
         "realtimeExplanation": "Go-live checklist for any report with print: NEW-LIST-ID present? Printer param in variant? Expiration set? Tested in SM36 background? Spool verified in SP01 post-test? Agar ye sab check hai toh production mein spool issue nahi aayega.",
         "mistakes": "Only testing in foreground (dialog) mode and assuming background spool will work the same. Background spool ki alag configuration hoti hai — always test with SM36 scheduled job before release.",
-        "codeExample": "\" Complete spool setup best practice\nNEW-LIST-ID.\nls_pri-pdest    = p_prntr.                     \" From selection screen\nls_pri-pimmed   = 'X'.                          \" Print immediately\nls_pri-pexpire  = 14.                           \" 14 day retention\nls_pri-listname = |{ sy-repid }_{ sy-datum }|.  \" Unique, identifiable name\nls_pri-paart    = 'X'.                          \" New spool at each new page"
+        "codeExample": "\" Complete spool setup best practice\nNEW-LIST-ID.\nls_pri-pdest    = p_prntr.                     \" From selection screen\nls_pri-pimmed   = 'X'.                          \" Print immediately\nls_pri-pexpire  = 14.                           \" 14 day retention\nls_pri-listname = |{ sy-repid }_{ sy-datum }|.  \" Unique, identifiable name\nls_pri-paart    = 'X'.                          \" New spool at each new page",
+        "tier": "advanced"
       }
     ]
   },
@@ -76,70 +155,137 @@
     "hinglishMasterExplanation": "ALV Excel export ke 4 main approaches hain, aur interview mein sab ka naam lena chahiye:\n\n1. Built-in ALV toolbar button: ALV grid mein 'Export to spreadsheet' (local file icon) already hota hai. User clicks karta hai aur CSV ya Excel download ho jaata hai. No developer code needed — ye end-user feature hai. OO ALV aur Function Module ALV dono mein available hai.\n\n2. GUI_DOWNLOAD: Simple, reliable function module. CSV ya tab-delimited text file export karta hai. Background jobs mein suitable nahi kyunki user interaction chahiye (file path dialog). Best for: dialog reports with simple tabular data. FILETYPE = 'ASC' for ASCII text.\n\n3. cl_fdt_xl_spreadsheet: SAP-provided ABAP class for native XLSX generation. Multiple worksheets, cell formatting (bold, colors, borders) support karta hai. S/4HANA compatible. Background jobs mein bhi use ho sakta hai — MIME repository ya file server pe save kar sakte hain.\n\n4. ABAP2XLSX (open source): Community-driven, feature-rich. Cell colors, formulas, charts, freeze panes — sab possible hai. Many SAP projects adopt it for complex Excel requirements. GitHub pe available hai, BASIS install karta hai.\n\nInterview tip: built-in button ke baare mein batao pehle — ye dikhata hai ki tum user perspective samajhte ho. Phir programmatic options explain karo with use cases.",
     "interviewMeKyaBolnaHai": "Interview Me Exact Bolna Hai:\n'ALV already has a built-in Excel export button in the toolbar — users can directly download data as a spreadsheet without any development. For programmatic export, I use GUI_DOWNLOAD for simple CSV in dialog-mode reports. For richer Excel output with formatting — cell colors, multiple sheets, or automatic export in background jobs — I use cl_fdt_xl_spreadsheet which is SAP's native XLSX class, or ABAP2XLSX for the most complex formatting needs.\n\nHinglish tip: interview mein dono options batao — built-in aur programmatic. Ek option bolne wale candidate generic lagte hain. Dono bolne wala candidate experienced lagta hai. Use-case based bolna: built-in for end-users, GUI_DOWNLOAD for simple batch, cl_fdt_xl_spreadsheet for XLSX in S/4HANA.'",
     "codeExamples": "REPORT zexcel_export_demo.\n\nDATA: lt_data  TYPE TABLE OF vbak,\n      lv_path  TYPE string VALUE 'C:\\TEMP\\ORDERS.CSV'.\n\n\" Fetch some data\nSELECT vbeln, erdat, netwr, vkorg\n  FROM vbak\n  INTO TABLE @lt_data\n  UP TO 50 ROWS.\n\n\" --- Approach 1: GUI_DOWNLOAD (CSV, dialog mode only) ---\nCALL FUNCTION 'GUI_DOWNLOAD'\n  EXPORTING\n    filename         = lv_path\n    filetype         = 'ASC'   \" ASC = text/CSV\n    write_field_separator = ','\n    codepage         = '4110'  \" UTF-8\n  TABLES\n    data_tab         = lt_data\n  EXCEPTIONS\n    file_write_error = 1\n    OTHERS           = 2.\nIF sy-subrc <> 0.\n  MESSAGE 'Export failed — check file path and permissions' TYPE 'E'.\nENDIF.\n\n\" --- Approach 2: OO ALV with automatic export trigger ---\n\" ALV toolbar provides built-in export — no additional code needed\n\" User clicks local-file button (Excel icon) in ALV grid toolbar",
+    "interviewScriptEnglish": "ALV already has a built-in Excel export button in the toolbar — users can directly download data as a spreadsheet without any development. For programmatic export, I use GUI_DOWNLOAD for simple CSV in dialog-mode reports. For richer Excel output with formatting — cell colors, multiple sheets, or automatic export in background jobs — I use cl_fdt_xl_spreadsheet which is SAP's native XLSX class, or ABAP2XLSX for the most complex formatting needs.",
+    "interviewScriptHinglish": "ALV mein already built-in Excel export button toolbar mein hota hai — users directly data ko spreadsheet ke roop mein download kar sakte hain bina kisi development ke. Programmatic export ke liye, main GUI_DOWNLOAD use karta hoon simple CSV ke liye dialog-mode reports mein. Richer Excel output ke liye formatting ke saath — cell colors, multiple sheets, ya background jobs mein automatic export — main cl_fdt_xl_spreadsheet use karta hoon jo SAP ka native XLSX class hai, ya ABAP2XLSX sabse complex formatting needs ke liye.",
+    "commonMistakesSection": [
+      {
+        "mistake": "GUI_DOWNLOAD background job mein use karna — user interaction ke bina file path dialog open nahi hoti, job fails.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Background ke liye always server-side generation use karo."
+      },
+      {
+        "mistake": "User ko baar baar Excel export manually karne bol dena jab automation possible hai.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Automation = business value — clients appreciate it."
+      },
+      {
+        "mistake": "ABAP2XLSX every project mein use karne ki koshish karna.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Overhead hai — BASIS approval, transport, maintenance. Simple requirements ke liye overkill hai."
+      },
+      {
+        "mistake": "CALL FUNCTION 'GUI_DOWNLOAD' in background program — it works in dialog but throws error or does nothing in background, causing silent failures or dumps.",
+        "whyWrong": "Production impact: runtime dump visible in ST22.",
+        "correctApproach": "Use the correct approach as described in the deep-dive section."
+      }
+    ],
+    "wordByWordSamjho": [
+      {
+        "keyword": "GUI_DOWNLOAD",
+        "meaning": "Frontend FM that writes an internal table to a local file in dialog mode"
+      },
+      {
+        "keyword": "filetype = 'ASC'",
+        "meaning": "Text or CSV file format for the download"
+      },
+      {
+        "keyword": "write_field_separator = ','",
+        "meaning": "Defines CSV column separator"
+      },
+      {
+        "keyword": "codepage = '4110'",
+        "meaning": "UTF-8 codepage so Excel opens the file with correct characters"
+      },
+      {
+        "keyword": "TABLES data_tab",
+        "meaning": "Internal table parameter holding the rows to write"
+      },
+      {
+        "keyword": "file_write_error",
+        "meaning": "Exception raised when the path is invalid or write fails"
+      },
+      {
+        "keyword": "OO ALV toolbar export",
+        "meaning": "Built-in local-file button on CL_GUI_ALV_GRID that exports without extra code"
+      },
+      {
+        "keyword": "Local file from ALV",
+        "meaning": "Standard menu path List then Export then Local File for Excel or CSV"
+      }
+    ],
+    "quickRevisionNotes": "What: Excel and CSV export options from ALV and classical ABAP reports.\n\nUsed for:\n- Dialog-mode downloads via GUI_DOWNLOAD\n- Letting users export from ALV toolbar without extra code\n- Choosing the right codepage so Excel renders correctly\n\nKey syntax / tables / Tcodes:\n- GUI_DOWNLOAD with filetype 'ASC', filename, write_field_separator, codepage '4110'\n- TABLES data_tab and EXCEPTIONS file_write_error\n- OO ALV toolbar local-file button on CL_GUI_ALV_GRID\n- SALV equivalent: CL_SALV_TABLE supports export through standard toolbar\n\nInterview keyword: GUI_DOWNLOAD in dialog, ALV toolbar for user-driven export",
     "followupAnswerBank": [
       {
         "question": "What is the difference between GUI_DOWNLOAD and cl_fdt_xl_spreadsheet?",
-        "hinglishExplanation": "GUI_DOWNLOAD simple file download karta hai — text, CSV, binary. Formatting nahi hoti. User ke machine pe file save hoti hai only when user is on dialog session. cl_fdt_xl_spreadsheet actual XLSX file generate karta hai SAP server pe — formatting, multiple sheets, cell styles sab possible. Background job mein bhi use ho sakta hai kyunki server-side generate hota hai.",
+        "hinglishExplanation": "GUI_DOWNLOAD ek function module hai files ko user ki local machine pe download karne ke liye — CSV/text exports ke liye sirf dialog mode mein suitable hai. cl_fdt_xl_spreadsheet ek ABAP class hai jo SAP server pe proper XLSX file generate karta hai full formatting support ke saath — cell colors, borders, multiple worksheets. Yeh background jobs mein work karta hai aur file ko MIME repository ya application server mein store kar sakta hai.",
         "interviewAnswer": "GUI_DOWNLOAD is a function module for downloading files to the user's local machine — suitable for CSV/text exports in dialog mode only. cl_fdt_xl_spreadsheet is an ABAP class that generates a proper XLSX file on the SAP server with full formatting support — cell colors, borders, multiple worksheets. It works in background jobs and can store the file in the MIME repository or application server.",
         "realtimeExplanation": "Project decision: if user ke machine pe simple CSV chahiye → GUI_DOWNLOAD. If management dashboard with colored cells and multiple sheets chahiye as automated email attachment → cl_fdt_xl_spreadsheet.",
         "mistakes": "GUI_DOWNLOAD background job mein use karna — user interaction ke bina file path dialog open nahi hoti, job fails. Background ke liye always server-side generation use karo.",
-        "codeExample": "\" cl_fdt_xl_spreadsheet basic usage\nDATA: lo_xl TYPE REF TO cl_fdt_xl_spreadsheet.\nCREATE OBJECT lo_xl.\nlo_xl->add_sheet( iv_sheet_name = 'Sales Orders' ).\nlo_xl->set_cell( iv_col = 'A' iv_row = 1 iv_value = 'Order No.' ).\nlo_xl->set_cell( iv_col = 'B' iv_row = 1 iv_value = 'Value' ).\nDATA(lv_xstr) = lo_xl->get_file( )."
+        "codeExample": "\" Correction: cl_fdt_xl_spreadsheet is a READER for XLSX files (used in BRFplus),\n\" NOT an XLSX generator. Methods like add_sheet/set_cell/get_file shown in older blogs do not exist.\n\" For XLSX generation use ABAP2XLSX (open-source) or CL_XLSX_DOCUMENT.\n\" Example (ABAP2XLSX):\n\" DATA(lo_excel) = NEW zcl_excel( ).\n\" DATA(lo_sheet) = lo_excel->get_active_worksheet( ).\n\" lo_sheet->set_cell( ip_column = 'A' ip_row = 1 ip_value = 'Order No.' ).",
+        "tier": "easy"
       },
       {
         "question": "Can ALV export data to Excel automatically without user clicking the button?",
-        "hinglishExplanation": "ALV toolbar button manual hai — user click karta hai. Automatic export ke liye programmatic approach chahiye: cl_fdt_xl_spreadsheet ya ABAP2XLSX se XLSX generate karo server pe, phir SO_NEW_DOCUMENT_ATT_SEND_API1 se email ke saath attach karo, ya FTP server pe upload karo. Background scheduled job mein ye full automation possible hai.",
+        "hinglishExplanation": "ALV toolbar export manual hai — user-driven. Background jobs mein automatic export ke liye, main XLSX file programmatically generate karta hoon cl_fdt_xl_spreadsheet ya ABAP2XLSX use karke, phir ya toh application server pe OPEN DATASET use karke save karta hoon, SO_NEW_DOCUMENT_ATT_SEND_API1 use karke email karta hoon, ya custom interface ke through ek SFTP server pe upload karta hoon. Yeh month-end scheduled reports ke liye common hai.",
         "interviewAnswer": "The ALV toolbar export is manual — user-driven. For automatic export in background jobs, I generate the XLSX file programmatically using cl_fdt_xl_spreadsheet or ABAP2XLSX, then either save it to the application server using OPEN DATASET, email it using SO_NEW_DOCUMENT_ATT_SEND_API1, or upload it to an SFTP server via a custom interface. This is common for month-end scheduled reports.",
         "realtimeExplanation": "Real scenario: month-end report automatically jaata hai CFO ke email pe as Excel attachment every 1st of month — SM36 se schedule, ABAP2XLSX se generate, SO_NEW_DOCUMENT_ATT_SEND_API1 se email. Fully automated.",
         "mistakes": "User ko baar baar Excel export manually karne bol dena jab automation possible hai. Automation = business value — clients appreciate it.",
-        "codeExample": "\" Save XLSX to application server then email\nDATA: lv_xstring TYPE xstring.\n\" ... generate lv_xstring using cl_fdt_xl_spreadsheet ...\nOPEN DATASET '/tmp/zreport_output.xlsx' FOR OUTPUT IN BINARY MODE.\nTRANSFER lv_xstring TO '/tmp/zreport_output.xlsx'.\nCLOSE DATASET '/tmp/zreport_output.xlsx'."
+        "codeExample": "\" Save XLSX to application server then email\nDATA: lv_xstring TYPE xstring.\n\" ... generate lv_xstring using cl_fdt_xl_spreadsheet ...\nOPEN DATASET '/tmp/zreport_output.xlsx' FOR OUTPUT IN BINARY MODE.\nTRANSFER lv_xstring TO '/tmp/zreport_output.xlsx'.\nCLOSE DATASET '/tmp/zreport_output.xlsx'.",
+        "tier": "easy"
       },
       {
         "question": "What is ABAP2XLSX and when should you use it?",
-        "hinglishExplanation": "ABAP2XLSX open-source community library hai SAP ke liye — GitHub pe available, BASIS install karta hai. Ye XLSX files create kar sakta hai with full Excel features: formulas, charts, frozen rows, conditional formatting, cell merging, images. Simple table export ke liye cl_fdt_xl_spreadsheet kaafi hai, but complex Excel workbook requirements ke liye ABAP2XLSX best choice hai.",
+        "hinglishExplanation": "ABAP2XLSX ek open-source ABAP library hai feature-rich Excel files generate karne ke liye. Main isse tab use karta hoon jab requirements mein complex formatting shamil ho jaise cell merging, conditional colors, Excel formulas, charts ya multiple worksheets cross-references ke saath. Simpler needs ke liye, cl_fdt_xl_spreadsheet sufficient hai. ABAP2XLSX ke liye BASIS ko GitHub se transport install karna padta hai, lekin install hone ke baad yeh ABAP mein sabse complete Excel generation capability provide karta hai.",
         "interviewAnswer": "ABAP2XLSX is an open-source ABAP library for generating feature-rich Excel files. I use it when requirements include complex formatting like cell merging, conditional colors, Excel formulas, charts, or multiple worksheets with cross-references. For simpler needs, cl_fdt_xl_spreadsheet is sufficient. ABAP2XLSX requires BASIS to install the transport from GitHub, but once installed it provides the most complete Excel generation capability in ABAP.",
         "realtimeExplanation": "Client requirement: 'Excel mein formula chahiye, total row automatically calculate honi chahiye, header bold aur blue hona chahiye.' → ABAP2XLSX. 'Bas data CSV mein chahiye' → GUI_DOWNLOAD ya ALV built-in.",
         "mistakes": "ABAP2XLSX every project mein use karne ki koshish karna. Overhead hai — BASIS approval, transport, maintenance. Simple requirements ke liye overkill hai.",
-        "codeExample": "\" ABAP2XLSX basic pattern\nDATA: lo_excel   TYPE REF TO zcl_excel,\n      lo_sheet   TYPE REF TO zcl_excel_worksheet.\nCREATE OBJECT lo_excel.\nlo_sheet = lo_excel->get_active_worksheet( ).\nlo_sheet->set_title( 'Monthly Sales' ).\nlo_sheet->set_cell( ip_column = 'A' ip_row = 1 ip_value = 'Order' ).\n\" ... populate data rows ...\nDATA(lv_xstring) = lo_excel->get_excel_workbook( )."
+        "codeExample": "\" ABAP2XLSX basic pattern\nDATA: lo_excel   TYPE REF TO zcl_excel,\n      lo_sheet   TYPE REF TO zcl_excel_worksheet.\nCREATE OBJECT lo_excel.\nlo_sheet = lo_excel->get_active_worksheet( ).\nlo_sheet->set_title( 'Monthly Sales' ).\nlo_sheet->set_cell( ip_column = 'A' ip_row = 1 ip_value = 'Order' ).\n\" ... populate data rows ...\nDATA(lv_xstring) = lo_excel->get_excel_workbook( ).",
+        "tier": "easy"
       },
       {
         "question": "How do you export ALV data in background without GUI interaction?",
-        "hinglishExplanation": "Background mein GUI nahi hoti — GUI_DOWNLOAD kaam nahi karta. Options: (1) OPEN DATASET se application server pe file likho (CSV ya binary). (2) cl_fdt_xl_spreadsheet se XLSX generate karo server pe. (3) File generate karke FTP se external server pe bhejo ya email karo. KEY RULE: background job = server-side file operations only, no GUI calls.",
+        "hinglishExplanation": "Background jobs mein, GUI functions available nahi hote. Main OPEN DATASET use karta hoon application server pe CSV data write karne ke liye, ya cl_fdt_xl_spreadsheet use karke XLSX generate karta hoon aur email ya FTP ke through transfer karta hoon. Application server path accessible hona chahiye aur program ko file open/write/close handle karna chahiye proper error handling ke saath har operation ke baad sy-subrc ke liye.",
         "interviewAnswer": "In background jobs, GUI functions are not available. I use OPEN DATASET to write CSV data to the application server, or generate XLSX using cl_fdt_xl_spreadsheet and transfer it via email or FTP. The application server path must be accessible and the program must handle file open/write/close with proper error handling for sy-subrc after each operation.",
         "realtimeExplanation": "Background export flow: SELECT data → format as CSV string → OPEN DATASET on /usr/sap/... path → TRANSFER data → CLOSE DATASET → optionally email the file path to user.",
         "mistakes": "CALL FUNCTION 'GUI_DOWNLOAD' in background program — it works in dialog but throws error or does nothing in background, causing silent failures or dumps.",
-        "codeExample": "\" Write CSV to application server in background\nDATA: lv_file TYPE string VALUE '/usr/sap/PRD/tmp/orders.csv',\n      lv_line TYPE string.\nOPEN DATASET lv_file FOR OUTPUT IN TEXT MODE ENCODING DEFAULT.\nIF sy-subrc <> 0.\n  MESSAGE 'Cannot open file on app server' TYPE 'E'.\nENDIF.\nLOOP AT lt_data ASSIGNING FIELD-SYMBOL(<row>).\n  lv_line = |{ <row>-vbeln },{ <row>-netwr },{ <row>-erdat }|.\n  TRANSFER lv_line TO lv_file.\nENDLOOP.\nCLOSE DATASET lv_file."
+        "codeExample": "\" Write CSV to application server in background\nDATA: lv_file TYPE string VALUE '/usr/sap/PRD/tmp/orders.csv',\n      lv_line TYPE string.\nOPEN DATASET lv_file FOR OUTPUT IN TEXT MODE ENCODING DEFAULT.\nIF sy-subrc <> 0.\n  MESSAGE 'Cannot open file on app server' TYPE 'E'.\nENDIF.\nLOOP AT lt_data ASSIGNING FIELD-SYMBOL(<row>).\n  lv_line = |{ <row>-vbeln },{ <row>-netwr },{ <row>-erdat }|.\n  TRANSFER lv_line TO lv_file.\nENDLOOP.\nCLOSE DATASET lv_file.",
+        "tier": "medium"
       },
       {
         "question": "What is the OLE2 automation approach and why is it deprecated?",
-        "hinglishExplanation": "OLE2 (Object Linking and Embedding) SAP ka purana method tha Excel files create karne ka — Excel application ko remote control karta tha. Problems: very slow (cell by cell write), Excel must be installed on presentation server, crashes frequent, background jobs mein kaam nahi karta. SAP ne newer XLSX classes introduce ki — OLE2 practically deprecated hai. New projects mein kabhi mat use karo.",
+        "hinglishExplanation": "OLE2 automation Excel application ko COM objects ke through directly control karta tha — extremely slow, cell-by-cell writing, presentation server pe Excel installed hona required tha, aur background jobs mein completely fail ho jaata tha. Yeh ab deprecated hai. Modern replacements cl_fdt_xl_spreadsheet hai SAP-native XLSX generation ke liye aur ABAP2XLSX feature-rich workbooks ke liye. Koi bhi new development inhi ko use karna chahiye.",
         "interviewAnswer": "OLE2 automation controlled the Excel application directly via COM objects — extremely slow, cell-by-cell writing, required Excel installed on the presentation server, and failed completely in background jobs. It is now deprecated. Modern replacements are cl_fdt_xl_spreadsheet for SAP-native XLSX generation and ABAP2XLSX for feature-rich workbooks. Any new development should use these instead.",
         "realtimeExplanation": "Legacy code mein OLE2 dikh sakta hai — agar performance issue hai kisi old report mein, OLE2 usually culprit hota hai. Refactor with cl_fdt_xl_spreadsheet or ABAP2XLSX.",
         "mistakes": "OLE2 code existing hai toh aise hi rehne dena. Modern approach pe migrate karo — performance drastically improve hogi and background compatibility milegi.",
-        "codeExample": "\" OLD - OLE2 approach (do NOT use in new code)\n\" DATA: lo_excel TYPE OLE2_OBJECT.\n\" CREATE OBJECT lo_excel 'Excel.Application'. \" Very slow!\n\n\" NEW - cl_fdt_xl_spreadsheet\nDATA: lo_xl TYPE REF TO cl_fdt_xl_spreadsheet.\nCREATE OBJECT lo_xl.  \" Instantiate and use server-side methods"
+        "codeExample": "\" OLD - OLE2 approach (do NOT use in new code)\n\" DATA: lo_excel TYPE OLE2_OBJECT.\n\" CREATE OBJECT lo_excel 'Excel.Application'. \" Very slow!\n\n\" NEW - cl_fdt_xl_spreadsheet\nDATA: lo_xl TYPE REF TO cl_fdt_xl_spreadsheet.\nCREATE OBJECT lo_xl.  \" Instantiate and use server-side methods",
+        "tier": "medium"
       },
       {
         "question": "How does the ALV built-in Excel export button work technically?",
-        "hinglishExplanation": "ALV grid toolbar mein 'Spreadsheet' ya 'Local file' button automatically hota hai — developer kuch nahi karta. Ye button ALV framework ka part hai. Click karte hi user ko format selection milti hai (spreadsheet, CSV, rich text), phir local machine pe save. Format 'Spreadsheet' XML-based Excel file generate karta hai. Developer isko disable bhi kar sakta hai using exclude_ledger in toolbar configuration.",
+        "hinglishExplanation": "ALV built-in export button ALV framework toolbar ka part hai aur isse koi developer code required nahi. Click hone par, yeh format options present karta hai — spreadsheet, local file, rich text. Spreadsheet option ALV data se directly ek XML-based Excel file generate karta hai. Developers isse customize kar sakte hain specific toolbar buttons exclude karke IT_TOOLBAR_EXCLUDING parameter ya cl_gui_alv_grid method SET_TOOLBAR_INTERACTIVE use karke.",
         "interviewAnswer": "The ALV built-in export button is part of the ALV framework toolbar and requires no developer code. When clicked, it presents format options — spreadsheet, local file, rich text. The spreadsheet option generates an XML-based Excel file directly from the ALV data. Developers can customize this by excluding specific toolbar buttons using the IT_TOOLBAR_EXCLUDING parameter or the cl_gui_alv_grid method SET_TOOLBAR_INTERACTIVE.",
         "realtimeExplanation": "Client says: 'Remove the export button for security reasons.' Developer solution: it_toolbar_excluding table mein '%EXP' function code add karo — button disappears.",
         "mistakes": "Assuming developers must code custom export when the built-in button already satisfies 90% of user requirements. Always demo the built-in first before building custom solution.",
-        "codeExample": "\" Disable ALV export button if needed\nDATA: lt_excl TYPE TABLE OF ui_func,\n      lv_excl TYPE ui_func.\nlv_excl = '%EXP'  .\n\" Export spreadsheet function code\nAPPEND lv_excl TO lt_excl.\nCALL METHOD go_alv->set_toolbar_interactive\n  EXCEPTIONS\n    OTHERS = 1.\n\" Pass lt_excl during ALV creation via it_toolbar_excluding"
+        "codeExample": "\" Disable ALV export button if needed\nDATA: lt_excl TYPE TABLE OF ui_func,\n      lv_excl TYPE ui_func.\nlv_excl = '%EXP'  .\n\" Export spreadsheet function code\nAPPEND lv_excl TO lt_excl.\nCALL METHOD go_alv->set_toolbar_interactive\n  EXCEPTIONS\n    OTHERS = 1.\n\" Pass lt_excl during ALV creation via it_toolbar_excluding",
+        "tier": "medium"
       },
       {
         "question": "How do you format specific cells when exporting to Excel from ABAP?",
-        "hinglishExplanation": "Cell-level formatting sirf programmatic approaches se possible hai — cl_fdt_xl_spreadsheet ya ABAP2XLSX. ALV built-in ya GUI_DOWNLOAD simple data export karte hain, formatting nahi. cl_fdt_xl_spreadsheet mein set_cell_style method se font bold, background color, alignment set kar sakte ho. ABAP2XLSX mein zcl_excel_style_font, zcl_excel_style_fill classes use hoti hain.",
+        "hinglishExplanation": "Cell-level formatting ke liye cl_fdt_xl_spreadsheet ya ABAP2XLSX required hai. cl_fdt_xl_spreadsheet ke saath, main set_cell_style use karta hoon bold, background color aur borders apply karne ke liye. ABAP2XLSX ke saath, main style objects create karta hoon — zcl_excel_style_font, zcl_excel_style_fill — aur unhe cell ranges ko assign karta hoon. Yeh typically management reports ke liye needed hota hai jahan totals rows highlight honi chahiye aur headers stand out karne chahiye.",
         "interviewAnswer": "Cell-level formatting requires cl_fdt_xl_spreadsheet or ABAP2XLSX. With cl_fdt_xl_spreadsheet, I use set_cell_style to apply bold, background color, and borders. With ABAP2XLSX, I create style objects — zcl_excel_style_font, zcl_excel_style_fill — and assign them to cell ranges. This is typically needed for management reports where totals rows must be highlighted and headers must stand out.",
         "realtimeExplanation": "Requirement: 'Total row should be bold and yellow.' → cl_fdt_xl_spreadsheet mein style define karo, total row ki cells pe apply karo. Business logic ke saath Excel formatting ek package delivery hoti hai.",
         "mistakes": "GUI_DOWNLOAD se export karne ke baad manually Excel mein format karna user ko bolna. Programmatic formatting = professional output = client satisfaction.",
-        "codeExample": "\" ABAP2XLSX cell style example\nDATA: lo_style TYPE REF TO zcl_excel_style,\n      lo_font  TYPE REF TO zcl_excel_style_font.\nlo_style = lo_excel->add_new_style( ).\nlo_font = lo_style->font.\nlo_font->bold = abap_true.\nlo_font->color-rgb = 'FF0000'.  \" Red text\nlo_sheet->set_cell_style( ip_column = 'A' ip_row = 1\n                           ip_style  = lo_style )."
+        "codeExample": "\" ABAP2XLSX cell style example\nDATA: lo_style TYPE REF TO zcl_excel_style,\n      lo_font  TYPE REF TO zcl_excel_style_font.\nlo_style = lo_excel->add_new_style( ).\nlo_font = lo_style->font.\nlo_font->bold = abap_true.\nlo_font->color-rgb = 'FF0000'.  \" Red text\nlo_sheet->set_cell_style( ip_column = 'A' ip_row = 1\n                           ip_style  = lo_style ).",
+        "tier": "advanced"
       },
       {
         "question": "What are common errors in ALV Excel export and how do you fix them?",
-        "hinglishExplanation": "Common errors: (1) GUI_DOWNLOAD in background — silent fail ya dump. Fix: server-side export use karo. (2) Special characters (like umlauts, rupee symbol) garbled in CSV — Fix: CODEPAGE = '4110' (UTF-8) set karo. (3) Date/Number format wrong in Excel — Fix: string formatting karo ABAP side se pehle export karo. (4) File path permission issue — Fix: BASIS se directory permission check karo. (5) XLSX too large — Fix: paginate ya compress data.",
+        "hinglishExplanation": "Common export errors: GUI_DOWNLOAD background mein silently fail hota hai — server-side generation use karo instead. Special character encoding issues — GUI_DOWNLOAD mein codepage UTF-8 (4110) pe set karo. Date aur number fields text ke roop mein export hote hain — ABAP mein export se pehle explicitly strings ke roop mein format karo. Application server file access errors ke liye, BASIS se directory permissions verify karo. Large file issues ke liye pagination ya data compression strategies required hote hain.",
         "interviewAnswer": "Common export errors: GUI_DOWNLOAD fails silently in background — use server-side generation instead. Special character encoding issues — set codepage to UTF-8 (4110) in GUI_DOWNLOAD. Date and number fields export as text — format them explicitly as strings in ABAP before export. For application server file access errors, verify directory permissions with BASIS. Large file issues require pagination or data compression strategies.",
         "realtimeExplanation": "Production issue: user complains 'Excel mein rupee symbol nahi aa raha.' Root cause: codepage mismatch. Fix: GUI_DOWNLOAD mein CODEPAGE = '4110' add karo. Test: export again, verify symbol appears correctly.",
         "mistakes": "File path hard-coding in GUI_DOWNLOAD — different users have different drive structures. Always use file open dialog or make path configurable.",
-        "codeExample": "\" GUI_DOWNLOAD with UTF-8 to handle special characters\nCALL FUNCTION 'GUI_DOWNLOAD'\n  EXPORTING\n    filename              = lv_path\n    filetype              = 'ASC'\n    write_field_separator = ';'\n    codepage              = '4110'   \" UTF-8 encoding — handles ₹, ü, etc.\n    confirm_overwrite     = abap_true\n  TABLES\n    data_tab              = lt_data\n  EXCEPTIONS\n    file_write_error      = 1\n    OTHERS                = 2."
+        "codeExample": "\" GUI_DOWNLOAD with UTF-8 to handle special characters\nCALL FUNCTION 'GUI_DOWNLOAD'\n  EXPORTING\n    filename              = lv_path\n    filetype              = 'ASC'\n    write_field_separator = ';'\n    codepage              = '4110'   \" UTF-8 encoding — handles ₹, ü, etc.\n    confirm_overwrite     = abap_true\n  TABLES\n    data_tab              = lt_data\n  EXCEPTIONS\n    file_write_error      = 1\n    OTHERS                = 2.",
+        "tier": "advanced"
       }
     ]
   },
@@ -148,70 +294,137 @@
     "hinglishMasterExplanation": "Editable ALV banana step-by-step:\n\nStep 1 — Full table editable: is_layout-edit = 'X' set karo. Ye saari rows aur columns editable bana deta hai. Agar specific column hi editable chahiye toh fieldcat-edit = 'X' sirf us column ke fieldcat entry ke liye.\n\nStep 2 — DATA_CHANGED event register karo: SET HANDLER lo_handler->data_changed FOR go_alv. Ye event fire hota hai jab user koi cell edit karta hai aur Enter ya Save dabata hai.\n\nStep 3 — DATA_CHANGED handler mein logic: er_data_changed->mt_mod_cells mein changed cells ki list hoti hai. Loop karo, naya value lo, validate karo. Agar invalid: er_data_changed->add_protocol_entry( ) se error message add karo — cell red ho jaata hai.\n\nStep 4 — Validation trigger: go_alv->check_changed_data( ) call karo — ye DATA_CHANGED fire karta hai on Save.\n\nStep 5 — Database update: validate hone ke baad, changed rows identify karo get_selected_rows( ) se ya internal table se, phir BAPI call karo ya UPDATE statement.\n\nStep 6 — Confirmation: MESSAGE 'Data saved successfully' TYPE 'S'. ALV refresh karo.\n\nInterview tip: real project example zaroor batao — jaise 'mass price update feature banaya tha jahan business users directly ALV mein prices edit karte the.'",
     "interviewMeKyaBolnaHai": "Interview Me Exact Bolna Hai:\n'To create an editable ALV, I set is_layout-edit = 'X' for full-table editing, or fieldcat-edit = 'X' for specific columns only. I register the DATA_CHANGED event to capture user modifications — in the handler, I loop through mt_mod_cells to get each changed cell's row and new value, then validate the input. Invalid entries are flagged with add_protocol_entry so the cell turns red. After validation passes, I update the database using a BAPI and show a confirmation message.\n\nHinglish tip: real project example bolna bahut impact deta hai — 'Maine ek editable ALV banaya tha mass price update ke liye jahan users 500 materials ke prices ek screen pe change kar sakte the — save pe BAPI_MATERIAL_SAVEDATA call hoti thi.' Ye specific answer interviewer ko impress karta hai.'",
     "codeExamples": "REPORT zeditable_alv_demo.\n\nCLASS lcl_handler DEFINITION.\n  PUBLIC SECTION.\n    METHODS: data_changed\n      FOR EVENT data_changed OF cl_gui_alv_grid\n      IMPORTING er_data_changed.\nENDCLASS.\n\nCLASS lcl_handler IMPLEMENTATION.\n  METHOD data_changed.\n    DATA: ls_cell  TYPE lvc_s_modi.\n    LOOP AT er_data_changed->mt_mod_cells INTO ls_cell.\n      \" Validate changed value\n      IF ls_cell-fieldname = 'NETWR' AND ls_cell-value < 0.\n        er_data_changed->add_protocol_entry(\n          iv_msgid   = '00'\n          iv_msgno   = '001'\n          iv_msgty   = 'E'\n          iv_msgv1   = 'Price cannot be negative'\n          iv_row_id  = ls_cell-row_id\n          iv_fieldname = ls_cell-fieldname ).\n      ENDIF.\n    ENDLOOP.\n  ENDMETHOD.\nENDCLASS.\n\n\" In main program:\n\" is_layout-edit = 'X'  => full table editable\n\" fieldcat-edit  = 'X'  => specific column editable\n\" go_alv->check_changed_data( ) on Save button",
+    "interviewScriptEnglish": "To create an editable ALV, I set is_layout-edit = 'X' for full-table editing, or fieldcat-edit = 'X' for specific columns only. I register the DATA_CHANGED event to capture user modifications — in the handler, I loop through mt_mod_cells to get each changed cell's row and new value, then validate the input. Invalid entries are flagged with add_protocol_entry so the cell turns red. After validation passes, I update the database using a BAPI and show a confirmation message.",
+    "interviewScriptHinglish": "editable ALV banane ke liye, main is_layout-edit = 'X' set karta hoon full-table editing ke liye, ya fieldcat-edit = 'X' specific columns only ke liye. Main DATA_CHANGED event register karta hoon user modifications capture karne ke liye — handler mein, main mt_mod_cells loop karta hoon har changed cell ka row aur new value lene ke liye, phir input validate karta hoon. Invalid entries add_protocol_entry se flag hote hain taaki cell red ho jaaye. Validation pass hone ke baad, main database update karta hoon BAPI use karke aur confirmation message dikhata hoon.",
+    "commonMistakesSection": [
+      {
+        "mistake": "is_layout-edit = 'X' aur fieldcat-edit = 'X' dono set karna — redundant hai aur sometimes unexpected behavior ho sakta hai.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Choose one approach: layout-level ya field-level."
+      },
+      {
+        "mistake": "Not registering DATA_CHANGED event and trying to read changes directly from the internal table — the internal table does not update until data_changed processes and confirms the changes.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Use the correct approach as described in the deep-dive section."
+      },
+      {
+        "mistake": "Using MESSAGE 'Error' TYPE 'E' inside DATA_CHANGED — this aborts the program flow and shows a generic popup.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Always use add_protocol_entry for cell-specific inline errors in editable ALV."
+      },
+      {
+        "mistake": "Calling UPDATE on SAP standard tables directly without using BAPIs.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "This bypasses business logic, validations, and change documents — causing data inconsistency and audit failures."
+      }
+    ],
+    "wordByWordSamjho": [
+      {
+        "keyword": "CL_GUI_ALV_GRID",
+        "meaning": "Container ALV class that supports editable cells and inline events"
+      },
+      {
+        "keyword": "EVENT data_changed OF cl_gui_alv_grid",
+        "meaning": "Event raised after the user changes a cell, used for inline validation"
+      },
+      {
+        "keyword": "er_data_changed",
+        "meaning": "Event parameter object exposing modified cells via mt_mod_cells"
+      },
+      {
+        "keyword": "LVC_S_MODI",
+        "meaning": "Structure describing a modified ALV cell with fieldname, value and row_id"
+      },
+      {
+        "keyword": "add_protocol_entry",
+        "meaning": "Method that posts a message into the ALV change protocol shown to the user"
+      },
+      {
+        "keyword": "is_layout-edit = 'X'",
+        "meaning": "Makes the whole ALV table editable"
+      },
+      {
+        "keyword": "fieldcat-edit = 'X'",
+        "meaning": "Makes only the specific field editable"
+      },
+      {
+        "keyword": "check_changed_data",
+        "meaning": "ALV grid method that forces collection of pending edits before save"
+      }
+    ],
+    "quickRevisionNotes": "What: Editable ALV grid using CL_GUI_ALV_GRID for inline data maintenance.\n\nUsed for:\n- Letting users change values directly in the grid\n- Running inline validation in the data_changed event\n- Collecting edits with check_changed_data before posting to DB\n\nKey syntax / tables / Tcodes:\n- CL_GUI_ALV_GRID with EVENT data_changed and LVC_S_MODI rows\n- is_layout-edit = 'X' for full table; fieldcat-edit = 'X' for column\n- add_protocol_entry( iv_msgty, iv_row_id, iv_fieldname ) for errors\n- check_changed_data( ) on save before INSERT or UPDATE\n\nInterview keyword: data_changed event plus add_protocol_entry plus check_changed_data",
     "followupAnswerBank": [
       {
         "question": "How do you make only specific columns editable in ALV?",
-        "hinglishExplanation": "is_layout-edit = 'X' se saari columns editable ho jaati hain — kyunki ye layout-level setting hai. Specific column editable karna ke liye: field catalog mein us column ki entry dhundho, aur sirf uski fieldcat-edit = 'X' set karo. Baaki columns ke liye edit flag empty rakho — wo read-only rahenge. Ek column editable, baaki locked — precise control milta hai.",
+        "hinglishExplanation": "Sirf specific columns ko editable banane ke liye, main field catalog mein un columns ke liye fieldcat-edit = 'X' set karta hoon jabki dusre columns ko edit blank ke saath chhod deta hoon. Main is_layout-edit = 'X' layout level pe NAHI set karta, kyunki wo saare columns ko editable banata hai. Yeh approach precise column-level editability deta hai — example, editable quantity aur unit price columns rakhte hue order number aur material read-only.",
         "interviewAnswer": "To make only specific columns editable, I set fieldcat-edit = 'X' for those columns in the field catalog while leaving other columns with edit blank. I do NOT set is_layout-edit = 'X' at the layout level, as that makes all columns editable. This approach gives precise column-level editability — for example, editable quantity and unit price columns while keeping order number and material read-only.",
         "realtimeExplanation": "Requirement: 'Only delivery date column should be editable, rest locked.' → fieldcat loop mein delivery date column ki entry ke liye alone fieldcat-edit = 'X' set karo, is_layout-edit blank rakho.",
         "mistakes": "is_layout-edit = 'X' aur fieldcat-edit = 'X' dono set karna — redundant hai aur sometimes unexpected behavior ho sakta hai. Choose one approach: layout-level ya field-level.",
-        "codeExample": "LOOP AT lt_fieldcat ASSIGNING FIELD-SYMBOL(<fc>).\n  IF <fc>-fieldname = 'NETWR'.  \" Only price column editable\n    <fc>-edit = 'X'.\n  ELSE.\n    CLEAR <fc>-edit.             \" All others read-only\n  ENDIF.\nENDLOOP.\n\" Do NOT set is_layout-edit = 'X' when using field-level edit"
+        "codeExample": "LOOP AT lt_fieldcat ASSIGNING FIELD-SYMBOL(<fc>).\n  IF <fc>-fieldname = 'NETWR'.  \" Only price column editable\n    <fc>-edit = 'X'.\n  ELSE.\n    CLEAR <fc>-edit.             \" All others read-only\n  ENDIF.\nENDLOOP.\n\" Do NOT set is_layout-edit = 'X' when using field-level edit",
+        "tier": "easy"
       },
       {
         "question": "What is the DATA_CHANGED event and how does it work?",
-        "hinglishExplanation": "DATA_CHANGED ek ALV event hai jo fire hota hai jab user kisi editable cell mein value change karke Enter dabata hai ya Save button click karta hai. Event handler mein er_data_changed object milta hai jiske mt_mod_cells table mein sab changed cells ki information hoti hai — row number, field name, purana value, naya value. Yahan validation logic likhte hain.",
+        "hinglishExplanation": "DATA_CHANGED tab fire hota hai jab user editable ALV mein ek cell modify karta hai aur Enter press karta hai ya save trigger karta hai. Handler ko er_data_changed object milta hai jisme mt_mod_cells hota hai — ek table jisme har modified cell ki row ID, field name, old value aur new value hoti hai. Main is table mein loop karke har change validate karta hoon, aur agar invalid hai, add_protocol_entry call karta hoon cell ko erroneous mark karne ke liye ek user-visible message ke saath.",
         "interviewAnswer": "DATA_CHANGED fires when a user modifies a cell in editable ALV and presses Enter or triggers a save. The handler receives the er_data_changed object containing mt_mod_cells — a table with every modified cell's row ID, field name, old value, and new value. I loop through this table to validate each change, and if invalid, call add_protocol_entry to mark the cell as erroneous with a user-visible message.",
         "realtimeExplanation": "Flow: user changes quantity from 100 to -5 → Enter → DATA_CHANGED fires → handler checks: quantity < 0 → add_protocol_entry → cell turns red, error message shown → user cannot save until corrected.",
         "mistakes": "Not registering DATA_CHANGED event and trying to read changes directly from the internal table — the internal table does not update until data_changed processes and confirms the changes.",
-        "codeExample": "\" Register event\nDATA: lo_handler TYPE REF TO lcl_handler.\nCREATE OBJECT lo_handler.\nSET HANDLER lo_handler->data_changed FOR go_alv.\n\" Force validation on toolbar Save\nCALL METHOD go_alv->check_changed_data\n  IMPORTING\n    e_valid = lv_valid.\nIF lv_valid = abap_true.\n  \" Proceed with database update\nENDIF."
+        "codeExample": "\" Register event\nDATA: lo_handler TYPE REF TO lcl_handler.\nCREATE OBJECT lo_handler.\nSET HANDLER lo_handler->data_changed FOR go_alv.\n\" Force validation on toolbar Save\nCALL METHOD go_alv->check_changed_data\n  IMPORTING\n    e_valid = lv_valid.\nIF lv_valid = abap_true.\n  \" Proceed with database update\nENDIF.",
+        "tier": "easy"
       },
       {
         "question": "How do you show validation errors in editable ALV?",
-        "hinglishExplanation": "Validation error dikhane ke liye DATA_CHANGED handler mein add_protocol_entry method call karo. Isme message ID, number, type (E=error, W=warning), message variables, row ID aur fieldname pass karo. SAP automatically us cell ko red highlight karta hai aur status bar mein error message dikhata hai. User tab tak save nahi kar sakta jab tak errors resolve na hoon.",
+        "hinglishExplanation": "Validation errors dikhane ke liye, main er_data_changed->add_protocol_entry call karta hoon message type (E error ke liye, W warning ke liye), ek message class se message ID aur number, affected row ID aur field name ke saath. ALV framework automatically erroneous cell ko red mein highlight karta hai aur message status bar mein display karta hai. User tab tak save nahi kar sakta jab tak saare errors resolve nahi ho jaate aur protocol clean nahi hota.",
         "interviewAnswer": "To show validation errors, I call er_data_changed->add_protocol_entry with the message type (E for error, W for warning), message ID and number from a message class, the affected row ID and field name. The ALV framework automatically highlights the erroneous cell in red and displays the message in the status bar. The user cannot save until all errors are resolved and the protocol is clean.",
         "realtimeExplanation": "Good UX: jab user galat data enter kare, cell instantly red ho jaaye aur clear error message aaye — user ko pata chale exactly kya wrong hai. This is what add_protocol_entry delivers.",
         "mistakes": "Using MESSAGE 'Error' TYPE 'E' inside DATA_CHANGED — this aborts the program flow and shows a generic popup. Always use add_protocol_entry for cell-specific inline errors in editable ALV.",
-        "codeExample": "\" Inside DATA_CHANGED handler\ner_data_changed->add_protocol_entry(\n  iv_msgid     = 'ZMM_MSGS'    \" Custom message class\n  iv_msgno     = '001'          \" Message number\n  iv_msgty     = 'E'            \" E=Error, W=Warning, I=Info\n  iv_msgv1     = ls_cell-value  \" Pass bad value as variable\n  iv_row_id    = ls_cell-row_id\n  iv_fieldname = ls_cell-fieldname )."
+        "codeExample": "\" Inside DATA_CHANGED handler\ner_data_changed->add_protocol_entry(\n  iv_msgid     = 'ZMM_MSGS'    \" Custom message class\n  iv_msgno     = '001'          \" Message number\n  iv_msgty     = 'E'            \" E=Error, W=Warning, I=Info\n  iv_msgv1     = ls_cell-value  \" Pass bad value as variable\n  iv_row_id    = ls_cell-row_id\n  iv_fieldname = ls_cell-fieldname ).",
+        "tier": "easy"
       },
       {
         "question": "How do you save edited ALV data to the database?",
-        "hinglishExplanation": "Save flow: (1) check_changed_data( ) call karo — DATA_CHANGED fire hogi, validation hogi. (2) Return value e_valid check karo — 'X' matlab sab valid. (3) Internal table mein changed rows identify karo — alag field CHANGED = 'X' mark karo DATA_CHANGED mein. (4) Valid rows ke liye BAPI call karo ya UPDATE statement. (5) COMMIT WORK karo. (6) Success message dikhao aur ALV refresh karo.",
+        "hinglishExplanation": "check_changed_data e_valid = abap_true return karne ke baad, main internal table se changed rows identify karta hoon (DATA_CHANGED processing ke dauran marked), appropriate BAPI ko new values ke saath call karta hoon, phir COMMIT WORK karta hoon. Main standard SAP objects ke liye hamesha BAPIs use karta hoon data consistency ensure karne aur standard update paths follow karne ke liye. Commit ke baad, main refresh_table_display use karke ALV refresh karta hoon aur ek success message dikhata hoon.",
         "interviewAnswer": "After check_changed_data returns e_valid = abap_true, I identify changed rows from the internal table (marked during DATA_CHANGED processing), call the appropriate BAPI with the new values, then COMMIT WORK. I always use BAPIs for standard SAP objects to ensure data consistency and follow standard update paths. After commit, I refresh the ALV using refresh_table_display and show a success message.",
         "realtimeExplanation": "Save button logic: validate → BAPI call per changed row → check BAPI return table for errors → COMMIT if all success, ROLLBACK if any error → refresh ALV → message.",
         "mistakes": "Calling UPDATE on SAP standard tables directly without using BAPIs. This bypasses business logic, validations, and change documents — causing data inconsistency and audit failures.",
-        "codeExample": "\" Save changed rows using BAPI\nLOOP AT lt_display INTO ls_row WHERE changed = 'X'.\n  CALL FUNCTION 'BAPI_SALESORDER_CHANGE'\n    EXPORTING\n      salesdocument = ls_row-vbeln\n    TABLES\n      return        = lt_return.\n  READ TABLE lt_return WITH KEY type = 'E' TRANSPORTING NO FIELDS.\n  IF sy-subrc <> 0.\n    COMMIT WORK AND WAIT.\n  ELSE.\n    ROLLBACK WORK.\n    MESSAGE 'Update failed' TYPE 'E'.\n  ENDIF.\nENDLOOP."
+        "codeExample": "\" Save changed rows using BAPI\nLOOP AT lt_display INTO ls_row WHERE changed = 'X'.\n  CALL FUNCTION 'BAPI_SALESORDER_CHANGE'\n    EXPORTING\n      salesdocument = ls_row-vbeln\n    TABLES\n      return        = lt_return.\n  READ TABLE lt_return WITH KEY type = 'E' TRANSPORTING NO FIELDS.\n  IF sy-subrc <> 0.\n    COMMIT WORK AND WAIT.\n  ELSE.\n    ROLLBACK WORK.\n    MESSAGE 'Update failed' TYPE 'E'.\n  ENDIF.\nENDLOOP.",
+        "tier": "medium"
       },
       {
         "question": "What is get_selected_rows used for in editable ALV?",
-        "hinglishExplanation": "get_selected_rows( ) se ALV mein user-selected rows ki index list milti hai. Editable ALV mein iska use: jab user 'Delete selected rows' ya 'Save only selected rows' feature chahta ho. User checkboxes se rows select karta hai, developer get_selected_rows( ) se select rows ki list leta hai, phir sirf un rows pe operation karta hai. SELECT_ROWS table mein selected row indices aate hain.",
+        "hinglishExplanation": "get_selected_rows un rows ke indices return karta hai jinhe user ne ALV mein row selection checkboxes use karke select kiya hai. Editable ALV mein, main isse identify karne ke liye use karta hoon ki user konsi rows save ya delete karna chahta hai — bajaaye saari changed rows process karne ke. Yeh users ko selective control deta hai: woh multiple rows edit kar sakte hain lekin sirf selected rows save kar sakte hain, jo large datasets ke liye important hai jahan partial saves needed hote hain.",
         "interviewAnswer": "get_selected_rows returns the indices of rows the user has selected using the row selection checkboxes in ALV. In editable ALV, I use it to identify which rows the user wants to save or delete — rather than processing all changed rows. This gives users selective control: they can edit multiple rows but save only the ones they select, which is important for large datasets where partial saves are needed.",
         "realtimeExplanation": "Feature: 'User 200 rows edit kare, lekin sirf 10 rows select karke save kare baaki baad mein.' → get_selected_rows( ) se select row indices, sirf unhe BAPI mein pass karo.",
         "mistakes": "Looping entire internal table for save instead of using get_selected_rows — saves all changed rows even if user wanted to save only selected ones. This leads to unintended mass updates.",
-        "codeExample": "DATA: lt_sel_rows TYPE lvc_t_row,\n      ls_sel_row  TYPE lvc_s_row.\nCALL METHOD go_alv->get_selected_rows\n  IMPORTING\n    et_index_rows = lt_sel_rows.\nLOOP AT lt_sel_rows INTO ls_sel_row.\n  READ TABLE lt_display INDEX ls_sel_row-index INTO ls_row.\n  \" Process only this selected row\nENDLOOP."
+        "codeExample": "DATA: lt_sel_rows TYPE lvc_t_row,\n      ls_sel_row  TYPE lvc_s_row.\nCALL METHOD go_alv->get_selected_rows\n  IMPORTING\n    et_index_rows = lt_sel_rows.\nLOOP AT lt_sel_rows INTO ls_sel_row.\n  READ TABLE lt_display INDEX ls_sel_row-index INTO ls_row.\n  \" Process only this selected row\nENDLOOP.",
+        "tier": "medium"
       },
       {
         "question": "How do you add a custom Save button to editable ALV?",
-        "hinglishExplanation": "Default ALV toolbar mein Save button nahi hota editable ALV ke liye — developer add karta hai. Two approaches: (1) SET PF-STATUS se custom GUI status banao SE41 mein apna button add karo. (2) cl_gui_toolbar ya ALV's SET_TOOLBAR_INTERACTIVE. AT USER-COMMAND event mein button click handle karo — sy-ucomm check karo. 'SAVE' function code pe save logic call karo.",
+        "hinglishExplanation": "Main SE41 mein ek custom GUI status create karta hoon Save button ke saath ek custom function code jaise 'ZSAVE' use karke. Main is status ko SET PF-STATUS use karke set karta hoon aur AT USER-COMMAND event mein ya ALV ke TOOLBAR event mein handle karta hoon. Jab Save function code triggered hota hai, main pehle validation ke liye check_changed_data call karta hoon, phir save logic process karta hoon. Yeh users ko ek clear, named Save button deta hai bajaaye generic system save pe rely karne ke.",
         "interviewAnswer": "I create a custom GUI status in SE41 with a Save button using a custom function code like 'ZSAVE'. I set this status using SET PF-STATUS and handle it in the AT USER-COMMAND event or in the ALV's TOOLBAR event. When the Save function code is triggered, I call check_changed_data first for validation, then process the save logic. This gives users a clear, named Save button rather than relying on the generic system save.",
         "realtimeExplanation": "SE41 mein custom GUI status banao, toolbar mein 'Save Data' button add karo with function code 'ZSAV'. AT USER-COMMAND mein WHEN 'ZSAV' → save logic call karo. User clearly samajhta hai kahan Save karna hai.",
         "mistakes": "Relying on F11 or standard system save — users don't know it saves ALV data. Explicit custom Save button improves usability and reduces support tickets.",
-        "codeExample": "\" AT USER-COMMAND — handle custom Save\nAT USER-COMMAND.\n  CASE sy-ucomm.\n    WHEN 'ZSAV'.  \" Custom Save button function code\n      CALL METHOD go_alv->check_changed_data\n        IMPORTING e_valid = lv_valid.\n      IF lv_valid = abap_true.\n        PERFORM save_to_database.\n        MESSAGE 'Saved successfully' TYPE 'S'.\n      ENDIF.\n  ENDCASE."
+        "codeExample": "\" AT USER-COMMAND — handle custom Save\nAT USER-COMMAND.\n  CASE sy-ucomm.\n    WHEN 'ZSAV'.  \" Custom Save button function code\n      CALL METHOD go_alv->check_changed_data\n        IMPORTING e_valid = lv_valid.\n      IF lv_valid = abap_true.\n        PERFORM save_to_database.\n        MESSAGE 'Saved successfully' TYPE 'S'.\n      ENDIF.\n  ENDCASE.",
+        "tier": "medium"
       },
       {
         "question": "What are common issues with editable ALV in production?",
-        "hinglishExplanation": "Common issues: (1) User changes data but save nahi karta aur screen close kar deta hai — data lost. Fix: unsaved changes warning lagao. (2) DATA_CHANGED baar baar fire hoti hai — infinite loop ya performance issue. (3) Concurrent editing — do users same data edit karte hain same time. Fix: lock object (ENQUEUE) use karo before edit enable karo. (4) Large datasets pe editable ALV slow — consider pagination ya limiting editable rows.",
+        "hinglishExplanation": "Common production issues: users accidentally unsaved edits lose karte hain back/cancel pe — back/cancel pe ek confirmation popup add karke mitigate karo. Concurrent editing conflicts — edit enable karne se pehle SAP enqueue lock objects use karo records lock karne ke liye aur save ke baad release karo. Large editable datasets ke saath performance issues — LINFO-MAXSEL use karke editable rows ki number limit karo ya pagination implement karo. Hamesha success aur error dono paths mein locks release karo.",
         "interviewAnswer": "Common production issues: users accidentally losing unsaved edits by navigating away — mitigate by adding a confirmation popup on back/cancel. Concurrent editing conflicts — use SAP enqueue lock objects to lock records before enabling edit and release after save. Performance issues with large editable datasets — limit the number of editable rows using LINFO-MAXSEL or implement pagination. Always release locks in both success and error paths.",
         "realtimeExplanation": "Production escalation: two users editing same PO quantities simultaneously — one user's save overwrites the other's. Fix: enqueue lock on the document before enabling edit, release on save or cancel. Document this in technical spec.",
         "mistakes": "Not implementing lock objects for editable ALV — in production with multiple users, data corruption from concurrent edits is a real risk. Enqueue/dequeue is mandatory for editable scenarios.",
-        "codeExample": "\" Lock object before enabling edit\nCALL FUNCTION 'ENQUEUE_EVBSEG'\n  EXPORTING\n    mode_bkpf = 'E'     \" E = Exclusive lock\n    bukrs     = lv_bukrs\n    belnr     = lv_belnr\n  EXCEPTIONS\n    foreign_lock = 1    \" Another user holds lock\n    OTHERS       = 2.\nIF sy-subrc = 1.\n  MESSAGE 'Document locked by another user' TYPE 'W'.\n  is_layout-edit = ' '.  \" Keep read-only\nENDIF."
+        "codeExample": "\" Lock object before enabling edit\nCALL FUNCTION 'ENQUEUE_EVBSEG'\n  EXPORTING\n    mode_bkpf = 'E'     \" E = Exclusive lock\n    bukrs     = lv_bukrs\n    belnr     = lv_belnr\n  EXCEPTIONS\n    foreign_lock = 1    \" Another user holds lock\n    OTHERS       = 2.\nIF sy-subrc = 1.\n  MESSAGE 'Document locked by another user' TYPE 'W'.\n  is_layout-edit = ' '.  \" Keep read-only\nENDIF.",
+        "tier": "advanced"
       },
       {
         "question": "How do you refresh ALV display after saving editable data?",
-        "hinglishExplanation": "Database pe save karne ke baad ALV refresh karna zaroori hai — taaki user ko updated data dikhe. Two methods: (1) refresh_table_display( ) — ALV ko current internal table se redisplay karta hai bina data re-fetch kiye. (2) Complete re-fetch: SELECT phir se karo database se, internal table update karo, phir refresh_table_display( ). Agar save ke baad calculated fields change hote hain toh re-fetch better hai.",
+        "hinglishExplanation": "Saving ke baad, main go_alv->refresh_table_display call karta hoon ALV ko current internal table se redisplay karne ke liye. Agar save server-side calculations trigger karta hai jo other fields change karta hai — jaise updated totals ya derived values — main refresh call karne se pehle database se internal table mein data re-fetch karta hoon, taaki user fully updated state dekhe. Main successful save ke baad internal table mein koi bhi change markers bhi clear karta hoon.",
         "interviewAnswer": "After saving, I call go_alv->refresh_table_display to redisplay the ALV from the current internal table. If the save triggers server-side calculations that change other fields — like updated totals or derived values — I re-fetch data from the database into the internal table before calling refresh, so the user sees the fully updated state. I also clear any change markers in the internal table after a successful save.",
         "realtimeExplanation": "After save: COMMIT WORK → re-SELECT updated data → update internal table → go_alv->refresh_table_display. User sees fresh data with confirmation message. Edit markers cleared — clean state.",
         "mistakes": "Not calling refresh after save — user sees old data and thinks save didn't work, then tries saving again causing duplicate processing. Always refresh after any data change.",
-        "codeExample": "\" After successful save\nCOMMIT WORK AND WAIT.\n\" Re-fetch updated data\nSELECT * FROM ztable INTO TABLE @lt_display WHERE ... .\n\" Refresh ALV\nCALL METHOD go_alv->refresh_table_display\n  EXPORTING\n    is_stable = VALUE lvc_s_stbl( row = 'X' col = 'X' ).\n\" Stable refresh keeps scroll position\nMESSAGE 'Data saved and refreshed' TYPE 'S'."
+        "codeExample": "\" After successful save\nCOMMIT WORK AND WAIT.\n\" Re-fetch updated data\nSELECT * FROM ztable INTO TABLE @lt_display WHERE ... .\n\" Refresh ALV\nCALL METHOD go_alv->refresh_table_display\n  EXPORTING\n    is_stable = VALUE lvc_s_stbl( row = 'X' col = 'X' ).\n\" Stable refresh keeps scroll position\nMESSAGE 'Data saved and refreshed' TYPE 'S'.",
+        "tier": "advanced"
       }
     ]
   },
@@ -220,70 +433,141 @@
     "hinglishMasterExplanation": "ALV layout variants ko samajhna — interview aur production support dono ke liye important:\n\nVariant types:\n- User-specific: sirf us user ke liye saved hota hai. Personal customization ke liye.\n- Global: sab users ke liye available hota hai. Admin-defined standard view.\n- Default: wo variant jo program start hone pe automatically load hoti hai.\n\nWhere stored: LTDX table mein stored hoti hain variants — key fields: RELID (object type), SRTF2 (report name), HANDLE (ALV handle), VARIANT name.\n\nCommon issues aur solutions:\n\n1. Old variant mein column hai jo field catalog se remove ho gaya: variant mismatch error aata hai. Fix: SM30 → LTDX mein conflicting entry delete karo, ya ALV → Change Layout → Manage → Delete stale variant.\n\n2. Wrong default variant apply hoti hai: user ko unexpected columns dikhte hain. Fix: ABAP code mein is_variant-variant = 'DEFAULT' confirm karo, ya '/DEFAULT' convention check karo.\n\n3. Variant transported but program changed: source system mein variant sahi, target mein program naya — mismatch. Fix: variant ko dobara transport karo after program transport, ya recreate karo target system mein.\n\nABAP coding: is_variant structure mein REPORT (sy-repid), HANDLE (unique ALV handle name), VARIANT (variant name) set karo. DEFAULT_VARIANT mein '/DEFAULT' pass karo for automatic default loading.",
     "interviewMeKyaBolnaHai": "Interview Me Exact Bolna Hai:\n'ALV layout variants are stored in the LTDX table. Variants save user preferences — column order, widths, visible columns, sort criteria. If a variant becomes invalid — for example, because a field was removed from the field catalog in the program — the variant causes errors or loads incorrectly. I troubleshoot by first verifying the variant name in the ABAP code, then checking LTDX for the variant entry. If the variant is stale, I delete it either through ALV's Change Layout — Manage — Delete option or directly from LTDX via SM30.\n\nHinglish tip: Interview mein LTDX table ka naam lena aur variant mismatch scenario explain karna dikhata hai ki tum production issues solve kar chuke ho. Generic 'I check the code' se zyada impactful hai specific table name.'",
     "codeExamples": "REPORT zvariant_alv_demo.\n\nDATA: is_variant  TYPE disvariant,\n      is_layout   TYPE lvc_s_layo,\n      go_alv      TYPE REF TO cl_gui_alv_grid.\n\n\" Set up variant structure — must match exactly for LTDX lookup\nis_variant-report  = sy-repid.         \" Current program name\nis_variant-handle  = 'MAIN_ALV'.       \" Unique handle per ALV on screen\nis_variant-variant = p_vari.           \" From selection screen input\n\n\" Allow users to save variants (global and user-specific)\nis_variant-save    = 'A'.  \" A = allow all, U = user-specific only, X = global only\n\n\" Set default variant — '/DEFAULT' is SAP convention for default\nDATA: lv_default TYPE disvariant-variant VALUE '/DEFAULT'.\n\nCALL METHOD go_alv->set_table_for_first_display\n  EXPORTING\n    is_variant           = is_variant\n    i_default            = lv_default   \" Apply this variant on initial load\n    i_save               = 'A'          \" Save permission\n  CHANGING\n    it_outtab            = lt_data\n    it_fieldcatalog      = lt_fieldcat.",
+    "interviewScriptEnglish": "ALV layout variants are stored in the LTDX table. Variants save user preferences — column order, widths, visible columns, sort criteria. If a variant becomes invalid — for example, because a field was removed from the field catalog in the program — the variant causes errors or loads incorrectly. I troubleshoot by first verifying the variant name in the ABAP code, then checking LTDX for the variant entry. If the variant is stale, I delete it either through ALV's Change Layout — Manage — Delete option or directly from LTDX via SM30.",
+    "interviewScriptHinglish": "ALV layout variants LTDX table mein store hote hain. Variants user preferences save karte hain — column order, widths, visible columns, sort criteria. Agar variant invalid ho jaaye — for example, ABAP code mein field catalog se field remove ho gaya — toh variant errors cause karta hai ya incorrectly load hota hai. Main troubleshoot karta hoon pehle ABAP code mein variant name verify karke, phir LTDX mein variant entry check karke. Agar variant stale hai, main usse ALV ke Change Layout — Manage — Delete option se delete karta hoon ya directly LTDX se SM30 via.",
+    "commonMistakesSection": [
+      {
+        "mistake": "Trying to manually edit LTDX data — it stores binary serialized data, direct editing will corrupt the variant.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Only delete entries from LTDX, never try to modify the layout data directly."
+      },
+      {
+        "mistake": "Allowing all users to save global variants — any user can overwrite the standard layout.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Restrict global variant save to admin role using authorization object S_ALV_LAYO."
+      },
+      {
+        "mistake": "Hard-coding a variant name other than '/DEFAULT' as the default — if the variant doesn't exist in the target system, ALV loads without any layout which can confuse users.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Use the correct approach as described in the deep-dive section."
+      },
+      {
+        "mistake": "Keeping old variants without cleanup after field catalog changes.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Always communicate to users that existing variants may need to be recreated after significant program changes."
+      }
+    ],
+    "wordByWordSamjho": [
+      {
+        "keyword": "DISVARIANT",
+        "meaning": "Structure carrying ALV variant identifier including report, handle and variant name"
+      },
+      {
+        "keyword": "is_variant-report = sy-repid",
+        "meaning": "Scopes the variant to the current report program"
+      },
+      {
+        "keyword": "is_variant-handle",
+        "meaning": "Unique handle per ALV instance when multiple grids appear on one screen"
+      },
+      {
+        "keyword": "is_variant-save = 'A'",
+        "meaning": "Allows user-specific and global variants to be saved"
+      },
+      {
+        "keyword": "save = 'U'",
+        "meaning": "Allows user-specific layouts only"
+      },
+      {
+        "keyword": "save = 'X'",
+        "meaning": "Allows global layouts only"
+      },
+      {
+        "keyword": "/DEFAULT",
+        "meaning": "SAP convention for the default layout variant name"
+      },
+      {
+        "keyword": "set_table_for_first_display",
+        "meaning": "CL_GUI_ALV_GRID method that renders the grid with variant, layout and fieldcat"
+      },
+      {
+        "keyword": "LTDX",
+        "meaning": "Backend table storing ALV layout variant definitions"
+      }
+    ],
+    "quickRevisionNotes": "What: ALV layout variants for column order, width and visibility settings.\n\nUsed for:\n- Persisting user-specific or global layouts across sessions\n- Applying a default variant on first display\n- Driving variant choice from a selection-screen parameter\n\nKey syntax / tables / Tcodes:\n- DISVARIANT structure with report, handle, variant and save\n- save = 'A' all, 'U' user only, 'X' global only\n- i_default and i_save on set_table_for_first_display\n- Default variant convention /DEFAULT\n- Variants persisted in table LTDX\n\nInterview keyword: DISVARIANT plus save = 'A' plus /DEFAULT variant",
     "followupAnswerBank": [
       {
         "question": "What is the LTDX table and what does it store?",
-        "hinglishExplanation": "LTDX SAP ka internal table hai jahan ALV layout variants store hote hain. Key fields: RELID (object type — 'LT' for ALV), SRTF2 (program/report name), HANDLE (ALV handle — multiple ALVs on one screen ko distinguish karta hai), VARIANT (variant name). Jab tum SM30 se LTDX open karo toh sab saved variants dikhenhe — user-specific aur global dono.",
+        "hinglishExplanation": "LTDX wo SAP database table hai jahan ALV layout variants persist hote hain. Key fields mein RELID shamil hai jo object type identify karta hai, program name, ALV handle name, variant name aur serialized layout data. Variant issues troubleshoot karte waqt, main SM30 use karta hoon LTDX browse karne ke liye — program name aur handle se filter karke — stale ya conflicting variant entries identify karne ke liye jinhe delete karna hai.",
         "interviewAnswer": "LTDX is the SAP database table where ALV layout variants are persisted. Key fields include RELID identifying the object type, the program name, ALV handle name, variant name, and the serialized layout data. When troubleshooting variant issues, I use SM30 to browse LTDX — filtering by program name and handle — to identify stale or conflicting variant entries that need to be deleted.",
         "realtimeExplanation": "Ticket: 'ALV layout error after program change.' → SM30 → LTDX → filter by report name → find variant → check if field references match current fieldcat → delete if stale → user recreates variant.",
         "mistakes": "Trying to manually edit LTDX data — it stores binary serialized data, direct editing will corrupt the variant. Only delete entries from LTDX, never try to modify the layout data directly.",
-        "codeExample": "\" Delete stale variant from LTDX programmatically (use with caution)\nDATA: ls_variant TYPE disvariant.\nls_variant-report  = 'ZOLD_REPORT'.\nls_variant-handle  = 'MAIN'.\nls_variant-variant = 'STALE_VAR'.\nCALL FUNCTION 'LT_VARIANT_DELETE'\n  EXPORTING\n    is_variant = ls_variant\n  EXCEPTIONS\n    OTHERS     = 1."
+        "codeExample": "\" Delete stale variant from LTDX programmatically (use with caution)\nDATA: ls_variant TYPE disvariant.\nls_variant-report  = 'ZOLD_REPORT'.\nls_variant-handle  = 'MAIN'.\nls_variant-variant = 'STALE_VAR'.\nCALL FUNCTION 'LT_VARIANT_DELETE'\n  EXPORTING\n    is_variant = ls_variant\n  EXCEPTIONS\n    OTHERS     = 1.",
+        "tier": "easy"
       },
       {
         "question": "What is the difference between user-specific and global variants?",
-        "hinglishExplanation": "User-specific variant sirf us user ke liye visible hota hai jisne banaya — dusra user use nahi kar sakta. Global variant sab users ke liye available hota hai — standard view define karne ke liye. ABAP mein is_variant-save = 'U' se sirf user-specific variants save hone dete hain, 'A' se dono. Production mein common: BASIS ya senior developer ek global standard variant banate hain, baaki users apne user-specific variants bana sakte hain.",
+        "hinglishExplanation": "User-specific variants private hote hain — sirf banane wale user ko visible, LTDX mein unke user ID ke saath store hote hain. Global variants saare users ke across shared hote hain aur typically standard business view represent karte hain jo admin ya functional team configure karta hai. ABAP mein, main isse is_variant-save use karke control karta hoon: 'U' sirf user-specific saves allow karta hai, 'X' sirf global saves allow karta hai, 'A' dono allow karta hai. Global variants transported hote hain; user-specific nahi.",
         "interviewAnswer": "User-specific variants are private — only visible to the user who created them, stored with their user ID in LTDX. Global variants are shared across all users and typically represent the standard business view configured by an admin or functional team. In ABAP, I control this using is_variant-save: 'U' allows only user-specific saves, 'X' allows only global saves, 'A' allows both. Global variants are transported; user-specific ones are not.",
         "realtimeExplanation": "Go-live: functional team creates global variant '/STANDARD' with agreed-upon column layout. Users can additionally save their own user-specific preferences. This separation keeps the standard view stable.",
         "mistakes": "Allowing all users to save global variants — any user can overwrite the standard layout. Restrict global variant save to admin role using authorization object S_ALV_LAYO.",
-        "codeExample": "\" Restricting who can save global variants\n\" Check authorization before allowing global save\nAUTHORITY-CHECK OBJECT 'S_ALV_LAYO'\n  ID 'ACTVT' FIELD '02'.  \" 02 = change/save\nIF sy-subrc <> 0.\n  is_variant-save = 'U'.  \" Only user-specific save allowed\nELSE.\n  is_variant-save = 'A'.  \" Admin: allow global save too\nENDIF."
+        "codeExample": "\" Restricting who can save global variants\n\" Check authorization before allowing global save\nAUTHORITY-CHECK OBJECT 'S_ALV_LAYO'\n  ID 'ACTVT' FIELD '02'.  \" 02 = change/save\nIF sy-subrc <> 0.\n  is_variant-save = 'U'.  \" Only user-specific save allowed\nELSE.\n  is_variant-save = 'A'.  \" Admin: allow global save too\nENDIF.",
+        "tier": "easy"
       },
       {
         "question": "How do you set a default variant in ALV?",
-        "hinglishExplanation": "Default variant wo hota hai jo program start hone pe automatically apply hota hai bina user ke manually select kiye. SAP convention: variant name '/DEFAULT' default variant hota hai. ABAP mein: i_default parameter mein '/DEFAULT' pass karo — agar ye variant LTDX mein hai toh automatically load hoga. Agar nahi hai toh ALV bina layout ke load hoga — koi error nahi. Functional team ya BASIS default variant banate hain go-live ke pehle.",
+        "hinglishExplanation": "Ek default variant automatically apply hota hai jab ALV explicit user selection ke bina load hoti hai. SAP ka convention hai default variant ko '/DEFAULT' name karna. Code mein, main '/DEFAULT' ko set_table_for_first_display ke i_default parameter mein pass karta hoon. Agar yeh variant LTDX mein exist karta hai, yeh automatically load hota hai; nahi toh, ALV standard field catalog layout ke saath load hoti hai. Default variant typically UAT ke dauran functional team banata hai aur program ke saath transported hota hai.",
         "interviewAnswer": "A default variant is automatically applied when the ALV loads without explicit user selection. SAP's convention is to name the default variant '/DEFAULT'. In code, I pass '/DEFAULT' in the i_default parameter of set_table_for_first_display. If this variant exists in LTDX, it loads automatically; if not, the ALV loads with the standard field catalog layout. The default variant is typically created by the functional team during UAT and transported with the program.",
         "realtimeExplanation": "Requirement: 'ALV should always open with first 5 columns visible, sorted by date.' → Functional team sets up layout → saves as global variant '/DEFAULT' → tested in QA → transported to production.",
         "mistakes": "Hard-coding a variant name other than '/DEFAULT' as the default — if the variant doesn't exist in the target system, ALV loads without any layout which can confuse users.",
-        "codeExample": "\" Apply default variant automatically on load\nCALL METHOD go_alv->set_table_for_first_display\n  EXPORTING\n    is_variant  = is_variant     \" report + handle filled\n    i_default   = '/DEFAULT'     \" SAP standard default variant name\n    i_save      = 'A'"
+        "codeExample": "\" Apply default variant automatically on load\nCALL METHOD go_alv->set_table_for_first_display\n  EXPORTING\n    is_variant  = is_variant     \" report + handle filled\n    i_default   = '/DEFAULT'     \" SAP standard default variant name\n    i_save      = 'A'",
+        "tier": "easy"
       },
       {
         "question": "What happens when a variant has fields not in the current field catalog?",
-        "hinglishExplanation": "Ye classic mismatch scenario hai. Developer ne ZORDER_COL field program se remove kar diya, lekin saved variant mein ZORDER_COL ka reference hai. Jab ALV load hota hai aur variant apply karna chaahta hai, wo field dhundta hai field catalog mein — nahi milta — variant invalid ho jaata hai. ALV ya error throw karta hai ya silently default layout pe fall back karta hai depending on version.",
+        "hinglishExplanation": "Jab ek saved variant kisi field ko reference karta hai jo ab field catalog mein exist nahi karta — program change ki wajah se — variant invalid ho jaata hai. Behavior ALV version pe depend karta hai: yeh error dikha sakta hai, missing field ko silently ignore kar sakta hai, ya default layout pe fall back ho sakta hai. Fix hai LTDX se ya ALV ke Manage Layout option se stale variant delete karna, aur updated field catalog ke based pe usse recreate karna. Yeh scenario production mein program enhancements ke baad common hai.",
         "interviewAnswer": "When a saved variant references a field that no longer exists in the field catalog — due to a program change — the variant becomes invalid. Behavior depends on ALV version: it may show an error, silently ignore the missing field, or fall back to the default layout. The fix is to delete the stale variant from LTDX or through ALV's Manage Layout option, and recreate it based on the updated field catalog. This scenario is common after program enhancements in production.",
         "realtimeExplanation": "Post-transport issue: 'After today's transport, ALV is not loading correctly.' Root cause: field removed from fieldcat, old variant still references it. Fix: delete variant in production via ALV UI or LTDX, recreate and re-transport if needed.",
         "mistakes": "Keeping old variants without cleanup after field catalog changes. Always communicate to users that existing variants may need to be recreated after significant program changes.",
-        "codeExample": "\" Safe approach: catch variant load errors\nTRY.\n  CALL METHOD go_alv->set_table_for_first_display\n    EXPORTING\n      is_variant = is_variant.\nCATCH cx_salv_msg INTO DATA(lo_ex).\n  MESSAGE lo_ex->get_text( ) TYPE 'W'.\n  \" Fall back: load without variant\n  CLEAR is_variant-variant.\n  CALL METHOD go_alv->set_table_for_first_display\n    EXPORTING is_variant = is_variant.\nENDTRY."
+        "codeExample": "\" Safe approach: catch variant load errors\nTRY.\n  CALL METHOD go_alv->set_table_for_first_display\n    EXPORTING\n      is_variant = is_variant.\nCATCH cx_salv_msg INTO DATA(lo_ex).\n  MESSAGE lo_ex->get_text( ) TYPE 'W'.\n  \" Fall back: load without variant\n  CLEAR is_variant-variant.\n  CALL METHOD go_alv->set_table_for_first_display\n    EXPORTING is_variant = is_variant.\nENDTRY.",
+        "tier": "medium"
       },
       {
         "question": "How do you troubleshoot a variant that is not loading correctly?",
-        "hinglishExplanation": "Step-by-step troubleshoot: (1) ABAP code mein is_variant structure check karo — report name, handle, variant name correctly filled hain? (2) SM30 → LTDX mein variant entry hai? (3) Entry hai lekin layout wrong load ho rahi hai — ALV mein Change Layout → Manage dekho. (4) Variant reference fields jo fieldcat mein nahi hain — delete variant. (5) Different systems mein variant hai ya nahi — transport check karo.",
+        "hinglishExplanation": "Troubleshooting steps: pehle verify karo ki ABAP code mein variant name, report name aur handle exactly wahi hain jo LTDX mein hain. Phir LTDX pe SM30 check karo confirm karne ke liye ki variant entry exist karti hai. Agar variant exist karta hai lekin incorrectly load hota hai, ALV ke Change Layout — Manage use karo problematic variants inspect aur delete karne ke liye. Mismatches identify karne ke liye variant ke column references ko current field catalog ke against compare karo. Agar issue transport-related hai, verify karo ki latest program change ke baad variant transported hua tha.",
         "interviewAnswer": "Troubleshooting steps: first verify the variant name, report name, and handle in the ABAP code match exactly what's in LTDX. Then check SM30 on LTDX to confirm the variant entry exists. If the variant exists but loads incorrectly, use ALV's Change Layout — Manage to inspect and delete problematic variants. Compare the variant's column references against the current field catalog to identify mismatches. If the issue is transport-related, verify the variant was transported after the latest program change.",
         "realtimeExplanation": "Troubleshoot checklist: code correct? → LTDX entry exists? → fieldcat match? → correct system? → transport sequence correct? Go through each systematically rather than guessing.",
         "mistakes": "Assuming variant issue is always a code bug. Half the time it is a configuration issue — variant not transported, wrong handle name, or user saved a personal variant that overrides the global one.",
-        "codeExample": "\" Debug: print variant being used\nWRITE: / 'Variant report:', is_variant-report.\nWRITE: / 'Variant handle:', is_variant-handle.\nWRITE: / 'Variant name:', is_variant-variant.\n\" Then check SM30 LTDX with these exact values to confirm entry exists"
+        "codeExample": "\" Debug: print variant being used\nWRITE: / 'Variant report:', is_variant-report.\nWRITE: / 'Variant handle:', is_variant-handle.\nWRITE: / 'Variant name:', is_variant-variant.\n\" Then check SM30 LTDX with these exact values to confirm entry exists",
+        "tier": "medium"
       },
       {
         "question": "What is the HANDLE parameter in ALV variant configuration?",
-        "hinglishExplanation": "HANDLE ek unique identifier hai ALV instance ke liye. Ek hi screen pe multiple ALV grids ho sakte hain — jaise top ALV orders dikhata hai, bottom ALV items dikhata hai. Agar dono ke liye same HANDLE use karo toh LTDX mein collision hoga — dono same variant share karte hain jo wrong hai. Isliye har ALV ka alag meaningful HANDLE hona chahiye: 'ORDERS', 'ITEMS' etc.",
+        "hinglishExplanation": "HANDLE parameter ek program ke andar har ALV instance ko uniquely identify karta hai, jo tab important hota hai jab ek single program ke screen pe multiple ALV grids hote hain. Yeh LTDX mein key ka part use hota hai har ALV ke liye variants separately store aur retrieve karne ke liye. Agar do ALVs same handle share karte hain, unke variants collide ho jaate hain. Best practice: meaningful handle names use karo jaise 'HEADER_ALV' aur 'ITEM_ALV' variant storage separate aur LTDX mein clearly identifiable rakhne ke liye.",
         "interviewAnswer": "The HANDLE parameter uniquely identifies each ALV instance within a program, which is important when a single program has multiple ALV grids on screen. It is used as part of the key in LTDX to store and retrieve variants separately for each ALV. If two ALVs share the same handle, their variants collide. Best practice: use meaningful handle names like 'HEADER_ALV' and 'ITEM_ALV' to keep variant storage separate and clearly identifiable in LTDX.",
         "realtimeExplanation": "Screen with two ALVs: header data on top, line items below. Handle for first: 'HDR'. Handle for second: 'ITM'. LTDX stores two separate variant sets — no collision, each ALV remembers its own layout independently.",
         "mistakes": "Using the same handle or leaving it blank for multiple ALVs on one screen — variants overwrite each other and users get wrong layouts on one or both grids.",
-        "codeExample": "\" Two ALVs on same screen — different handles\nDATA: is_var_hdr TYPE disvariant,\n      is_var_itm TYPE disvariant.\nis_var_hdr-report = sy-repid.\nis_var_hdr-handle = 'HDR_ALV'.   \" Unique handle for header ALV\nis_var_itm-report = sy-repid.\nis_var_itm-handle = 'ITM_ALV'.   \" Unique handle for item ALV\n\" LTDX stores separately: ZREPORT/HDR_ALV and ZREPORT/ITM_ALV"
+        "codeExample": "\" Two ALVs on same screen — different handles\nDATA: is_var_hdr TYPE disvariant,\n      is_var_itm TYPE disvariant.\nis_var_hdr-report = sy-repid.\nis_var_hdr-handle = 'HDR_ALV'.   \" Unique handle for header ALV\nis_var_itm-report = sy-repid.\nis_var_itm-handle = 'ITM_ALV'.   \" Unique handle for item ALV\n\" LTDX stores separately: ZREPORT/HDR_ALV and ZREPORT/ITM_ALV",
+        "tier": "medium"
       },
       {
         "question": "How are ALV variants transported between systems?",
-        "hinglishExplanation": "ALV variants LTDX table ke through transport hote hain. SE10 mein transport request mein LTDX entries include karo — table entries as customizing request (workbench nahi). Important: variant ko program transport ke BAAD transport karo — agar pehle variant transport ho gaya aur baad mein program aaya with changed fieldcat, variant phir mismatch hoga. Sequence: Program TR → Release → Variant TR → Release. Target system mein dono import karo.",
+        "hinglishExplanation": "ALV variants ek Customizing transport request mein LTDX ki table entries ke roop mein transport hote hain — Workbench request nahi. Critical best practice yeh hai ki variant ko program transport hone aur target system mein verify hone ke BAAD transport karo. Variant ko program se pehle transport karne se mismatch ho sakta hai agar fieldcat change ho gaya ho. Main task description mein transport sequence document karta hoon ensure karne ke liye ki BASIS unhe correct order mein import kare.",
         "interviewAnswer": "ALV variants are transported as table entries from LTDX in a Customizing transport request — not a Workbench request. The critical best practice is to transport the variant AFTER the program has been transported and verified in the target system. Transporting the variant before the program can result in a mismatch if the fieldcat changed. I document the transport sequence in the task description to ensure BASIS imports them in the correct order.",
         "realtimeExplanation": "Transport sequence mistake: variant TR imported before program TR in production → variant references old fieldcat → ALV error next day. Lesson: always specify transport sequence in release notes.",
         "mistakes": "Not specifying transport order — BASIS may import variant before program, causing mismatch. Always write explicit import sequence instructions: 'Program TR first, then Variant TR.'",
-        "codeExample": "\" Variant transport: add LTDX entries to Customizing TR\n\" In SE10: New request → Customizing → Add table entries\n\" Table: LTDX\n\" Key: RELID='LT', SRTF2='ZPROGRAM', HANDLE='MAIN', VARIANT='ZDEFAULT'\n\" Release variant TR only AFTER program TR is confirmed in target"
+        "codeExample": "\" Variant transport: add LTDX entries to Customizing TR\n\" In SE10: New request → Customizing → Add table entries\n\" Table: LTDX\n\" Key: RELID='LT', SRTF2='ZPROGRAM', HANDLE='MAIN', VARIANT='ZDEFAULT'\n\" Release variant TR only AFTER program TR is confirmed in target",
+        "tier": "advanced"
       },
       {
         "question": "What are best practices for ALV variant management in projects?",
-        "hinglishExplanation": "Best practices: (1) Meaningful variant names use karo — 'STANDARD', 'FINANCE_VIEW', 'SALES_VIEW' — not 'VAR1', 'TEST'. (2) Program stable hone ke baad hi variants transport karo. (3) Global variants sirf authorized users banaye — S_ALV_LAYO authorization. (4) Document karo which variants are expected in production. (5) Post-transport validation: production mein variants load ho rahe hain confirm karo. (6) User training: variants kaise banate hain aur manage karte hain — end user documentation.",
+        "hinglishExplanation": "Best practices: meaningful, business-oriented variant names use karo jaise '/FINANCE' ya '/STANDARD_VIEW'. Sirf program stable hone ke baad variants transport karo fieldcat mismatches avoid karne ke liye. Global variant creation ko S_ALV_LAYO use karke authorized roles tak restrict karo. Expected variants ko technical spec mein document karo aur post-transport production mein validate karo. End users ko variant management pe train karo — personal variants kaise create, change aur delete karein — support tickets reduce karne ke liye.",
         "interviewAnswer": "Best practices: use meaningful, business-oriented variant names like '/FINANCE' or '/STANDARD_VIEW'. Only transport variants after the program is stable to avoid fieldcat mismatches. Restrict global variant creation to authorized roles using S_ALV_LAYO. Document expected variants in the technical spec and validate them in production post-transport. Train end users on variant management — how to create, change, and delete personal variants — to reduce support tickets.",
         "realtimeExplanation": "Project go-live checklist for variants: meaningful names defined? → global variants created in QA? → authorization tested? → transported after program? → validated in production? → users trained? All 6 checked = smooth go-live.",
         "mistakes": "Not documenting variants — after go-live when support team handles tickets they don't know which variants are expected, leading to confusion and wrong deletions.",
-        "codeExample": "\" Variant naming convention in code\nis_variant-variant = '/STANDARD'.    \" Global default for all users\n\" User-specific: created interactively by users\n\" Convention: global variants start with '/' (SAP standard practice)\n\" is_variant-save = 'A' allows both global and user variants\n\" is_variant-save = 'U' allows only user-specific variants"
+        "codeExample": "\" Variant naming convention in code\nis_variant-variant = '/STANDARD'.    \" Global default for all users\n\" User-specific: created interactively by users\n\" Convention: global variants start with '/' (SAP standard practice)\n\" is_variant-save = 'A' allows both global and user variants\n\" is_variant-save = 'U' allows only user-specific variants",
+        "tier": "advanced"
       }
     ]
   }

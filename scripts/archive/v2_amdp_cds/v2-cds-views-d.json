@@ -1,0 +1,145 @@
+{
+  "cds-views-012": {
+    "interviewScriptHinglish": "Sir, S/4HANA mein CDS Views first-class development paradigm hain — VDM architecture, embedded analytics, Fiori Elements, RAP, sab CDS pe based hain. Naming conventions strict hain — I_, C_, A_, P_, E_ prefixes. ABAP CDS aur HANA CDS dono coexist karte hain — ABAP CDS DDIC ke through manage hota hai, HANA CDS native HANA mein. @Environment.systemField, @Analytics.dataCategory annotations modern features unlock karte hain. Practically, mere project mein finance dashboard ke liye analytical CDS view banayi with @Analytics.query: true — Fiori Elements ne automatically chart aur table generate ki. Iska benefit yeh hai ki S/4HANA modernisation ki har layer mein CDS use hota hai aur productivity dramatically improve hoti hai.",
+    "interviewScriptEnglish": "S/4HANA treats CDS Views as the foundation for data modelling, embedded analytics, Fiori Elements, and the RESTful ABAP Programming model. The Virtual Data Model defines naming conventions and layering, while annotations such as @Analytics.dataCategory, @Environment.systemField, and @OData.publish drive Fiori and analytical scenarios. ABAP CDS coexists with HANA CDS: ABAP CDS is managed via DDIC and supports DCL, while HANA CDS runs natively on HANA without ABAP integration. SAP delivers thousands of standard CDS views that custom development should reuse and extend. Input parameters enable dynamic filtering and reusability. The business value is rapid Fiori development, real-time analytics, and consistent semantics across consumers.",
+    "wordByWordSamjho": [
+      { "keyword": "VDM", "meaning": "Virtual Data Model defining CDS layering and naming" },
+      { "keyword": "I_ / C_ / A_ / P_ / E_", "meaning": "Standard prefixes for VDM view layers" },
+      { "keyword": "@Environment.systemField", "meaning": "Annotation exposing system fields like sy-uname in CDS" },
+      { "keyword": "@Analytics.query: true", "meaning": "Annotation marking the view as an analytical query" },
+      { "keyword": "@OData.publish: true", "meaning": "Annotation auto-publishing the CDS view as an OData V2 service" },
+      { "keyword": "ABAP CDS", "meaning": "CDS managed via DDIC inside the ABAP stack" },
+      { "keyword": "HANA CDS", "meaning": "CDS managed natively in HANA, outside the ABAP stack" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Mixing ABAP CDS and HANA CDS without architectural reason",
+        "whyWrong": "Confuses transport, authorization, and lifecycle management",
+        "correctApproach": "Use ABAP CDS for SAP-integrated scenarios; HANA CDS only for HANA-native applications"
+      },
+      {
+        "mistake": "Recreating standard SAP CDS views in custom space",
+        "whyWrong": "Wastes effort and breaks upgrade safety",
+        "correctApproach": "Reuse SAP I_/C_ views or extend them via @VDM.viewType #EXTENSION"
+      },
+      {
+        "mistake": "Skipping input parameters when views need dynamic filtering",
+        "whyWrong": "Application server filters large datasets, hurting performance",
+        "correctApproach": "Add parameters for company code, plant, or period filters used by consumers"
+      },
+      {
+        "mistake": "Using deprecated annotations such as legacy @ObjectModel.semanticKey",
+        "whyWrong": "Future S/4HANA upgrades may drop support and break the view",
+        "correctApproach": "Use the current SAP-recommended annotations and review SAP simplification list"
+      }
+    ],
+    "quickRevisionNotes": "What: How CDS views serve as the foundation of S/4HANA development.\n\nUsed for:\n- Fiori Elements apps and embedded analytics\n- RAP business objects and services\n- Reusable semantic data layer across consumers\n\nKey syntax / tables / Tcodes:\n- VDM prefixes I_, C_, A_, P_, E_\n- @Environment.systemField, @Analytics, @OData.publish, @UI\n- ABAP CDS vs HANA CDS distinction\n- Input parameters WITH PARAMETERS\n\nInterview keyword: CDS as the S/4HANA modernization backbone",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "cds-views-013": {
+    "interviewScriptHinglish": "Sir, CDS Views mein common galtiyan jo developers karte hain — woh syntactically valid hoti hain lekin production mein bahut bada damage karti hain. @AccessControl.authorizationCheck: #NOT_REQUIRED bina justification se security gap; CDS mein heavy business logic stuff karna jo ABAP mein hona chahiye; DCL transport bhoolna; non-indexed fields pe WHERE; wrong association cardinality; nested view chains. Practically, mere project mein code review mein pakda — junior ne ek CDS mein 5 layers ki nesting ki thi taaki har consumer apna view reuse kar sake — ST05 mein query bahut bhari thi. Refactor kiya — flatten kiya. Iska benefit yeh hai ki common pitfalls ko proactively identify karke production-grade CDS design banta hai.",
+    "interviewScriptEnglish": "Several recurring mistakes in CDS view development compile and even pass unit tests but cause problems in production. Examples include @AccessControl.authorizationCheck: #NOT_REQUIRED applied without justification, business logic that belongs in ABAP forced into the CDS, missing DCL transports, WHERE clauses on non-indexed columns, wrong cardinality on associations, unnecessary deeply nested view chains, conflicting annotation combinations, and missed activation dependencies. Each appears small individually but undermines security, performance, or maintainability. Senior reviewers actively check for these patterns. The business value is fewer audit findings, faster Fiori apps, smoother transports, and lower production incident rate.",
+    "wordByWordSamjho": [
+      { "keyword": "#NOT_REQUIRED", "meaning": "Authorization check value disabling DCL enforcement on the view" },
+      { "keyword": "DCL transport", "meaning": "Transport request including the DCLS access control object" },
+      { "keyword": "Indexed field", "meaning": "Column with a database index allowing efficient WHERE pruning" },
+      { "keyword": "Cardinality", "meaning": "Relationship counts on associations; wrong value breaks navigation" },
+      { "keyword": "Nested view chain", "meaning": "View built on view stacked deeply, complicating optimizer plans" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Setting #NOT_REQUIRED without documented justification",
+        "whyWrong": "Opens the view to every user and creates an audit finding",
+        "correctApproach": "Keep #CHECK by default; document any deliberate exemption in TS"
+      },
+      {
+        "mistake": "Embedding heavy business logic inside CDS",
+        "whyWrong": "Mixes data layer with business rules, hurting reuse and maintainability",
+        "correctApproach": "Keep CDS focused on data; place business logic in ABAP service or RAP behaviour"
+      },
+      {
+        "mistake": "Transporting CDS view without its DCL",
+        "whyWrong": "Target system enforces no rules; data is exposed in QA or prod",
+        "correctApproach": "Include both DDLS and DCLS objects in the same transport request"
+      },
+      {
+        "mistake": "Building deep nested view chains for reuse",
+        "whyWrong": "Optimizer generates huge SQL, slowing HANA execution",
+        "correctApproach": "Flatten nesting unless reuse is critical; consider parameterized views instead"
+      }
+    ],
+    "quickRevisionNotes": "What: Common mistakes in CDS view development that pass tests but hurt production.\n\nUsed for:\n- Code review checklists\n- Onboarding new CDS developers\n- Hardening views before transport\n\nKey syntax / tables / Tcodes:\n- @AccessControl.authorizationCheck: #CHECK by default\n- DDLS + DCLS in same transport\n- WHERE on indexed fields; correct cardinality on associations\n- Limited nesting; business logic outside CDS\n\nInterview keyword: secure, focused, indexed, shallow",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "cds-views-014": {
+    "interviewScriptHinglish": "Sir, CDS views ko production mein bhejne se pehle multiple layers pe test karte hain. ABAP Unit framework mein CL_OSQL_TEST_ENVIRONMENT se test doubles use karke unit tests likhte hain. DCL authorization different user IDs se test karte hain ADT data preview mein. OData service ko /IWFND/GW_CLIENT se test karte hain — $metadata, $filter, $expand sab. ST05 SQL trace se pushdown verify karte hain. Practically, mere project mein new CDS view ke liye test class banayi jo 12 scenarios cover karti thi — empty data, NULL handling, authorization restriction, association expansion. QA mein ek bhi defect nahi mila. Iska benefit yeh hai ki production deployment confident hota hai aur regression catch ho jaate hain pehle.",
+    "interviewScriptEnglish": "Testing CDS views before production covers multiple layers. ABAP Unit with CL_OSQL_TEST_ENVIRONMENT mocks the underlying tables for fast, deterministic unit tests. DCL authorization is verified by previewing the view in ADT under different user profiles. OData services generated from CDS are tested with /IWFND/GW_CLIENT, exercising $metadata, $filter, $expand, and error scenarios. ST05 SQL trace confirms that pushdown happens as expected. Parameterized views need tests with different parameter values, edge cases, and missing inputs. Transport testing ensures the DDLS and DCLS arrive together. The business value is high quality deployments, fewer regressions, and confidence in upgrade safety.",
+    "wordByWordSamjho": [
+      { "keyword": "CL_OSQL_TEST_ENVIRONMENT", "meaning": "ABAP Unit helper for mocking tables used by CDS view tests" },
+      { "keyword": "ADT Data Preview", "meaning": "Eclipse function rendering CDS view data under current user authorization" },
+      { "keyword": "/IWFND/GW_CLIENT", "meaning": "Gateway client transaction for testing OData services" },
+      { "keyword": "/IWFND/MAINT_SERVICE", "meaning": "Transaction to register and maintain OData services" },
+      { "keyword": "ST05", "meaning": "SQL trace transaction verifying CDS pushdown behaviour" },
+      { "keyword": "Parameterized test", "meaning": "Unit test exercising a view with multiple input parameter combinations" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Testing only the happy path",
+        "whyWrong": "Edge cases like empty data or invalid authorization slip through",
+        "correctApproach": "Include negative tests, parameter boundary tests, and authorization variations"
+      },
+      {
+        "mistake": "Skipping DCL verification before production",
+        "whyWrong": "Row-level security defects surface in production audits",
+        "correctApproach": "Test DCL with multiple user IDs across role combinations in ADT preview"
+      },
+      {
+        "mistake": "Ignoring OData test cases",
+        "whyWrong": "$filter or $expand may fail at runtime even if SQL works in ADT",
+        "correctApproach": "Run scenarios in /IWFND/GW_CLIENT to validate OData behaviour"
+      },
+      {
+        "mistake": "Forgetting to confirm pushdown via ST05",
+        "whyWrong": "Some changes accidentally pull data to application server",
+        "correctApproach": "Capture an ST05 trace and verify generated SQL pushes WHERE, JOIN, and aggregates"
+      }
+    ],
+    "quickRevisionNotes": "What: Multi-layer testing approach for CDS views before production.\n\nUsed for:\n- Catching defects in unit, integration, and authorization layers\n- Validating OData behaviour for Fiori consumers\n- Confirming HANA pushdown stays intact\n\nKey syntax / tables / Tcodes:\n- ABAP Unit + CL_OSQL_TEST_ENVIRONMENT\n- ADT Data Preview under different user IDs\n- /IWFND/GW_CLIENT for OData, /IWFND/MAINT_SERVICE for activation\n- ST05 trace and /IWFND/ERROR_LOG\n\nInterview keyword: unit + auth + OData + pushdown verification",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "cds-views-015": {
+    "interviewScriptHinglish": "Sir, interviews mein CDS Views ke kuch tricky questions aate hain jo confuse karte hain. 'CDS view aur ALV mein difference?' — ek data model hai, doosra UI hai. 'CDS view ABAP report ko replace kar sakta hai?' — read pe haan, business logic ke liye nahi. '@AccessControl ki exact values?' — #CHECK, #NOT_REQUIRED, #NOT_ALLOWED, #PRIVILEGED_ONLY. 'Association JOIN hai ya nahi?' — lazy JOIN hai. 'CDS view aur CDS view entity?' — entity modern syntax hai DEFINE VIEW ENTITY se. Practically, mere project mein interviewer ne function module call about poochha — answer hai nahi, CDS pure declarative hai. Iska benefit yeh hai ki trap questions confidently handle karne se experienced impression banta hai.",
+    "interviewScriptEnglish": "Interview trap questions on CDS views test deep understanding. CDS view versus ALV: one is a data model, the other a UI control. CDS replacing ABAP reports: yes for read scenarios, no for transactional or process logic. Exact @AccessControl values are #CHECK, #NOT_REQUIRED, #NOT_ALLOWED, and #PRIVILEGED_ONLY. Associations are lazy joins, not eager ones. CDS view versus CDS view entity: the entity form uses the modern DEFINE VIEW ENTITY syntax with built-in features and no separate SQL view name. Two CDS views cannot share an sqlViewName. Function modules and methods cannot be called inside CDS because it is declarative. EXTEND VIEW differs from OO inheritance. The business value is signalling senior-level understanding that goes beyond surface theory.",
+    "wordByWordSamjho": [
+      { "keyword": "CDS view entity", "meaning": "Modern DEFINE VIEW ENTITY syntax with native features, no SQL view" },
+      { "keyword": "EXTEND VIEW", "meaning": "Statement adding fields to an existing CDS view without modifying it" },
+      { "keyword": "#PRIVILEGED_ONLY", "meaning": "Authorization value allowing only privileged callers to access the view" },
+      { "keyword": "@AbapCatalog.sqlViewName", "meaning": "Must be unique; conflicts cause activation failures" },
+      { "keyword": "Declarative", "meaning": "Describes what data is needed without procedural logic" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Equating CDS view with ALV control",
+        "whyWrong": "Mixes data layer with presentation; shows shallow understanding",
+        "correctApproach": "Position CDS as data model and ALV as UI for displaying that data"
+      },
+      {
+        "mistake": "Claiming CDS replaces ABAP entirely",
+        "whyWrong": "Ignores transactional logic and complex processes still needing ABAP",
+        "correctApproach": "Position CDS as read layer; ABAP and RAP for business logic"
+      },
+      {
+        "mistake": "Listing wrong @AccessControl values",
+        "whyWrong": "Reveals lack of hands-on experience",
+        "correctApproach": "Memorize #CHECK, #NOT_REQUIRED, #NOT_ALLOWED, #PRIVILEGED_ONLY"
+      },
+      {
+        "mistake": "Confusing association with eager JOIN",
+        "whyWrong": "Misses the lazy nature that powers OData $expand efficiency",
+        "correctApproach": "Describe associations as lazy joins resolved on navigation"
+      }
+    ],
+    "quickRevisionNotes": "What: Trap interview questions designed to expose surface knowledge of CDS views.\n\nUsed for:\n- Senior interview preparation\n- Demonstrating mature understanding of CDS\n- Avoiding wrong-confidence answers\n\nKey syntax / tables / Tcodes:\n- DEFINE VIEW vs DEFINE VIEW ENTITY\n- @AccessControl values: #CHECK | #NOT_REQUIRED | #NOT_ALLOWED | #PRIVILEGED_ONLY\n- Association = lazy JOIN, $expand triggered\n- EXTEND VIEW vs OO inheritance\n\nInterview keyword: precise definitions, no overclaiming",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  }
+}

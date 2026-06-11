@@ -4,70 +4,150 @@
     "hinglishMasterExplanation": "Interview mein 'What is ALV?' poochha jaaye toh sirf 'display framework hai' bolna kafi nahi. Structured answer do:\n\n1. Full Form aur Definition: ALV = ABAP List Viewer. SAP ka standard framework hai tabular data display karne ke liye — built-in sorting, filtering, column resize, Excel export, print, aur layout save sab kuch aata hai.\n\n2. Classical WRITE vs ALV: Purane reports mein WRITE statement use hota tha — tum manually column positions define karte the, sorting ke liye custom code likhte the, export ke liye kuch nahi tha. ALV mein yeh sab out-of-the-box milta hai bina extra code ke.\n\n3. Do Approaches:\n   - REUSE_ALV_GRID_DISPLAY: Function module approach, ek call se grid display ho jaata hai, simple reports ke liye best, callbacks FORM routines se handle hote hain.\n   - CL_GUI_ALV_GRID (OO ALV): Class-based approach, manual container setup karna padta hai, full event handling milti hai, custom toolbar, cell coloring, multiple grids possible.\n\n4. Real Project Experience: 'In my project, I used REUSE_ALV_GRID_DISPLAY for quick MIS reports, and OO ALV for interactive reports where I needed custom toolbar buttons for drill-down and cell coloring to highlight exceptions.'\n\n5. S/4HANA Angle: SAP recommends Fiori apps and CDS-based analytical reports for new development. Lekin existing ALV-based reports abhi bhi migrate nahi hue hain — support aur enhancement ke liye ALV knowledge must hai.",
     "interviewMeKyaBolnaHai": "Interview Me Exact Bolna Hai:\n'ALV stands for ABAP List Viewer. It is a standard SAP framework for displaying tabular data with built-in features like sorting, filtering, grouping, Excel export, and print. There are two approaches: REUSE_ALV_GRID_DISPLAY, which is a function module approach — simpler and good for straightforward reports; and OO ALV using CL_GUI_ALV_GRID, which is the modern approach offering full event handling, custom toolbar buttons, and cell-level coloring.'\n\nAgar interviewer poocha 'Why ALV over classical WRITE?' toh bolo:\n'ALV provides a consistent SAP standard UI, allows user-controlled layout variants saved per user, and delivers sorting, filtering, and export capabilities without any extra development effort.'\n\nHinglish Tips:\n- Hamesha dono approaches ka naam lo — REUSE aur OO ALV.\n- Ek real example zaroor do: 'I used OO ALV for a sales exception report with cell coloring for overdue items.'\n- S/4HANA mention karo: 'In S/4HANA, SAP recommends Fiori, but ALV is still widely used for custom reports.'",
     "codeExamples": "REPORT zdemo_alv_simple.\n\nTYPES: BEGIN OF ty_output,\n         matnr TYPE mara-matnr,\n         mtart TYPE mara-mtart,\n         maktx TYPE makt-maktx,\n         meins TYPE mara-meins,\n       END OF ty_output.\n\nDATA: lt_output  TYPE TABLE OF ty_output,\n      lt_fcat    TYPE slis_t_fieldcat_alv,\n      ls_fcat    TYPE slis_fieldcat_alv,\n      ls_layout  TYPE slis_layout_alv.\n\n\" Step 1: Fetch data\nSELECT a~matnr, a~mtart, a~meins, b~maktx\n  FROM mara AS a\n  LEFT JOIN makt AS b ON b~matnr = a~matnr AND b~spras = @sy-langu\n  INTO TABLE @lt_output\n  WHERE a~mtart = 'FERT'\n  UP TO 100 ROWS.\n\n\" Step 2: Build Field Catalog\nCLEAR ls_fcat.\nls_fcat-fieldname = 'MATNR'.\nls_fcat-coltext   = 'Material'.\nls_fcat-key       = abap_true.\nAPPEND ls_fcat TO lt_fcat.\n\nCLEAR ls_fcat.\nls_fcat-fieldname = 'MTART'.\nls_fcat-coltext   = 'Type'.\nAPPEND ls_fcat TO lt_fcat.\n\nCLEAR ls_fcat.\nls_fcat-fieldname = 'MAKTX'.\nls_fcat-coltext   = 'Description'.\nAPPEND ls_fcat TO lt_fcat.\n\n\" Step 3: Layout\nls_layout-zebra       = abap_true.  \" Alternating row colors\nls_layout-colwidth_optimize = abap_true.\n\n\" Step 4: Display\nCALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'\n  EXPORTING\n    i_structure_name = 'TY_OUTPUT'\n    it_fieldcat      = lt_fcat\n    is_layout        = ls_layout\n  TABLES\n    t_outtab         = lt_output\n  EXCEPTIONS\n    program_error    = 1\n    OTHERS           = 2.\nIF sy-subrc <> 0.\n  MESSAGE 'ALV display error' TYPE 'E'.\nENDIF.",
+    "interviewScriptHinglish": "ALV, yaani ABAP List Viewer, SAP ka standard framework hai tabular data display karne ke liye, jisme sorting, filtering, grouping, Excel export aur persistent layout variants jaisi capabilities built-in milti hain. Do approaches hain: REUSE_ALV_GRID_DISPLAY ek function module call hai jo straightforward reports ke liye ideal hai, aur CL_GUI_ALV_GRID object-oriented approach hai jo custom toolbar events, cell-level coloring aur ek screen pe multiple grids offer karta hai. Production mein maine dono styles use kiye hain — REUSE rapid MIS extraction reports ke liye aur OO ALV interactive exception reports ke liye jisme drill-down aur conditional formatting chahiye thi. Business value significant hai: users khud apni analysis self-service karte hain bina developer involve kiye, jisse support load kam hota hai aur consistent SAP standard user experience milta hai.",
+    "interviewScriptEnglish": "ALV, the ABAP List Viewer, is SAP's standard framework for displaying tabular data with built-in capabilities such as sorting, filtering, grouping, Excel export, and persistent layout variants. Two approaches exist: REUSE_ALV_GRID_DISPLAY, a function module call ideal for straightforward reports, and CL_GUI_ALV_GRID, the object-oriented approach offering custom toolbar events, cell-level coloring, and multiple grids on one screen. In production usage I have built both styles — REUSE for rapid MIS extraction reports and OO ALV for interactive exception reports requiring drill-down and conditional formatting. The business value is significant: users self-service their analysis without developer involvement, reducing support load while delivering a consistent SAP standard user experience.",
+    "wordByWordSamjho": [
+      {
+        "keyword": "REPORT",
+        "meaning": "ABAP statement that declares an executable report program"
+      },
+      {
+        "keyword": "TYPES",
+        "meaning": "Defines a local structure or table type for use in DATA declarations"
+      },
+      {
+        "keyword": "SELECT",
+        "meaning": "ABAP SQL statement that fetches rows from database tables into internal tables"
+      },
+      {
+        "keyword": "LEFT JOIN",
+        "meaning": "Joins two tables returning all left-table rows even when right table has no match"
+      },
+      {
+        "keyword": "INTO TABLE",
+        "meaning": "Reads multiple rows from a SELECT into an internal table in one call"
+      },
+      {
+        "keyword": "APPEND",
+        "meaning": "Adds a single row to the end of an internal table"
+      },
+      {
+        "keyword": "slis_t_fieldcat_alv",
+        "meaning": "SLIS table type used as the field catalog for REUSE ALV function modules"
+      },
+      {
+        "keyword": "slis_layout_alv",
+        "meaning": "SLIS layout structure controlling zebra, column width, totals and other ALV display options"
+      },
+      {
+        "keyword": "REUSE_ALV_GRID_DISPLAY",
+        "meaning": "Standard SAP function module that displays an internal table as an interactive ALV grid"
+      },
+      {
+        "keyword": "EXCEPTIONS",
+        "meaning": "Clause that maps raised exceptions in a CALL FUNCTION to a sy-subrc value"
+      }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Treating ALV Grid and ALV List as the same display",
+        "whyWrong": "Grid is interactive GUI, List is older spool-based output suited for printing",
+        "correctApproach": "Use REUSE_ALV_GRID_DISPLAY for dialog and REUSE_ALV_LIST_DISPLAY when output must go to spool"
+      },
+      {
+        "mistake": "Forgetting the layout structure and tuning every field manually",
+        "whyWrong": "Layout controls global behaviors like zebra and column optimization in one place",
+        "correctApproach": "Always populate IS_LAYOUT with zebra, colwidth_optimize and required selection mode flags"
+      },
+      {
+        "mistake": "Reading sy-ucomm directly in the user command FORM",
+        "whyWrong": "Some scenarios overwrite sy-ucomm so the value can be wrong",
+        "correctApproach": "Use the E_UCOMM parameter passed into the user command callback FORM"
+      },
+      {
+        "mistake": "Leaving IS_VARIANT-report blank when enabling layout variants",
+        "whyWrong": "Without the program name, layout variants cannot be saved or reloaded",
+        "correctApproach": "Always set IS_VARIANT-report = sy-repid and I_SAVE = 'A' before calling REUSE ALV"
+      },
+      {
+        "mistake": "Expecting subtotals from DO_SUM alone",
+        "whyWrong": "DO_SUM only enables the grand total, not group-level breaks",
+        "correctApproach": "Combine DO_SUM in the field catalog with a sort table entry having SUBTOT = abap_true"
+      }
+    ],
+    "quickRevisionNotes": "What: ALV (ABAP List Viewer) is SAP's standard framework for displaying tabular data with built-in sort, filter, Excel export and layout variants.\n\nUsed for:\n- Interactive operational reports inside SAP GUI\n- Excel-style review of database records by functional users\n- Quick MIS reports and complex drill-down reports with custom toolbars\n\nKey syntax / tables / Tcodes:\n- REUSE_ALV_GRID_DISPLAY, REUSE_ALV_LIST_DISPLAY, REUSE_ALV_FIELDCATALOG_MERGE\n- CL_GUI_ALV_GRID, CL_SALV_TABLE, IS_LAYOUT, IT_FIELDCATALOG, IT_SORT\n- SE38 / SA38 to run, SE41 for GUI status, SP01 for spool output\n\nInterview keyword: SAP's standard tabular display framework with REUSE function module and OO class flavors",
     "followupAnswerBank": [
       {
         "question": "What is the difference between ALV Grid and ALV List?",
-        "hinglishExplanation": "ALV Grid ek graphical grid control hai jo GUI container mein display hota hai — column resize, drag-drop, Excel export sab milta hai. ALV List older list-based display hai jo SAP spool mein print ke liye better tha. Aaj ke projects mein ALV Grid hi use hota hai.",
+        "hinglishExplanation": "ALV Grid (REUSE_ALV_GRID_DISPLAY ya CL_GUI_ALV_GRID) ek graphical control hai full interactivity ke saath — sorting, filtering, Excel export aur cell editing milta hai. ALV List (REUSE_ALV_LIST_DISPLAY) purana list-based output hai jo spool printing ke liye better suited hai. Modern projects mein ALV Grid hi standard choice hai.",
         "interviewAnswer": "ALV Grid (REUSE_ALV_GRID_DISPLAY or CL_GUI_ALV_GRID) is a graphical control with full interactivity — sorting, filtering, Excel export, cell editing. ALV List (REUSE_ALV_LIST_DISPLAY) is an older list-based output better suited for spool printing. In modern projects, ALV Grid is the standard choice.",
         "realtimeExplanation": "Production mein mostly Grid use hota hai. List tab use karo jab output background job mein spool pe jaana ho aur pagination chahiye ho.",
         "mistakes": "Dono ko same bolna galat hai. Grid = interactive GUI. List = printable spool output. Always differentiate.",
-        "codeExample": "\" ALV Grid Display\nCALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'\n  TABLES t_outtab = lt_data.\n\n\" ALV List Display (for spool/print)\nCALL FUNCTION 'REUSE_ALV_LIST_DISPLAY'\n  TABLES t_outtab = lt_data."
+        "codeExample": "\" ALV Grid Display\nCALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'\n  TABLES t_outtab = lt_data.\n\n\" ALV List Display (for spool/print)\nCALL FUNCTION 'REUSE_ALV_LIST_DISPLAY'\n  TABLES t_outtab = lt_data.",
+        "tier": "easy"
       },
       {
         "question": "What are layout settings in ALV and which ones do you commonly use?",
-        "hinglishExplanation": "Layout structure (slis_layout_alv ya lvc_s_layo) mein tum ALV ke display behavior control karte ho. Commonly use hone wali settings: zebra (alternating row color), colwidth_optimize (auto column width), edit (editable ALV ke liye), sel_mode (single/multiple row selection), totals_before_items (subtotals upar ya neeche).",
+        "hinglishExplanation": "Layout structure ALV ke display behavior ko control karti hai. Main commonly zebra use karta hoon alternate row shading ke liye readability badhane hetu, colwidth_optimize columns auto-fit karne ke liye, edit flag editable ALV reports ke liye, aur sel_mode users ke single ya multiple row selection control karne ke liye. Yeh settings user experience significantly improve karte hain bina extra coding ke.",
         "interviewAnswer": "The layout structure controls ALV display behavior. I commonly use zebra for alternate row shading for readability, colwidth_optimize to auto-fit columns, edit flag for editable ALV reports, and sel_mode for controlling whether users can select single or multiple rows. These settings significantly improve user experience without extra coding.",
         "realtimeExplanation": "Ek common requirement: 'Report mein total row dikhaao aur columns auto-fit karein.' Layout mein no_totline = ' ' aur colwidth_optimize = 'X' set karo — done.",
         "mistakes": "Layout structure bhoolna aur fir manually har cheez field catalog mein set karna — unnecessary effort hai. Layout se global settings ek jagah milti hain.",
-        "codeExample": "DATA ls_layout TYPE slis_layout_alv.\nls_layout-zebra             = abap_true.  \" Row shading\nls_layout-colwidth_optimize = abap_true.  \" Auto column width\nls_layout-edit              = abap_false. \" Read-only\nls_layout-sel_mode          = 'D'.        \" Multiple row select"
+        "codeExample": "DATA ls_layout TYPE slis_layout_alv.\nls_layout-zebra             = abap_true.  \" Row shading\nls_layout-colwidth_optimize = abap_true.  \" Auto column width\nls_layout-edit              = abap_false. \" Read-only\nls_layout-sel_mode          = 'D'.        \" Multiple row select",
+        "tier": "easy"
       },
       {
         "question": "How do you handle ALV user commands like button clicks?",
-        "hinglishExplanation": "REUSE ALV mein user_command callback use hota hai — I_CALLBACK_USER_COMMAND parameter se ek FORM routine point karte ho. Jab user toolbar button press karta hai ya row double-click karta hai, woh FORM call hoti hai. OO ALV mein event handler class banate ho aur ON_USER_COMMAND event ko handle karte ho.",
+        "hinglishExplanation": "REUSE ALV mein main I_CALLBACK_USER_COMMAND pass karta hoon ek FORM routine ko point karte hue, jo function code receive karta hai jab user toolbar buttons click karta hai ya Enter press karta hai. OO ALV mein main ek event handler class register karta hoon CL_GUI_ALV_GRID ke ON_USER_COMMAND event ke liye, jo more flexibility deta hai including selected row data directly access karna.",
         "interviewAnswer": "In REUSE ALV, I pass I_CALLBACK_USER_COMMAND pointing to a FORM routine that receives the function code when user clicks toolbar buttons or presses Enter. In OO ALV, I register an event handler class for the ON_USER_COMMAND event of CL_GUI_ALV_GRID, which gives more flexibility including accessing the selected row data directly.",
         "realtimeExplanation": "Common use case: user ALV mein row select kare aur 'Details' button click kare — new screen pe detail dikhao. User command FORM mein OKCODE check karo, selected row GET_SELECTED_ROWS se nikalo, popup ya new screen launch karo.",
         "mistakes": "User command FORM mein sy-ucomm directly read karna instead of the passed E_UCOMM parameter — can give wrong function code in some cases.",
-        "codeExample": "FORM user_command USING r_ucomm TYPE sy-ucomm\n                       rs_selfield TYPE slis_selfield.\n  CASE r_ucomm.\n    WHEN 'DETAIL'.\n      READ TABLE lt_output INTO DATA(ls_row)\n           INDEX rs_selfield-tabindex.\n      \" Open detail popup\n    WHEN 'BACK' OR 'EXIT'.\n      LEAVE TO SCREEN 0.\n  ENDCASE.\nENDFORM."
+        "codeExample": "FORM user_command USING r_ucomm TYPE sy-ucomm\n                       rs_selfield TYPE slis_selfield.\n  CASE r_ucomm.\n    WHEN 'DETAIL'.\n      READ TABLE lt_output INTO DATA(ls_row)\n           INDEX rs_selfield-tabindex.\n      \" Open detail popup\n    WHEN 'BACK' OR 'EXIT'.\n      LEAVE TO SCREEN 0.\n  ENDCASE.\nENDFORM.",
+        "tier": "medium"
       },
       {
         "question": "What is a layout variant in ALV and how do you save/load it?",
-        "hinglishExplanation": "Layout variant matlab user ALV ki column arrangement — konse column hide hain, width kya hai, sort order kya hai — yeh sab save kar sakta hai as a named variant. Next time same variant load ho jaati hai. REUSE ALV mein I_SAVE = 'A' (allow saving) set karo aur IS_VARIANT mein program name aur variant name do.",
+        "hinglishExplanation": "ALV layout variants users ko apne personal column arrangements, sort orders aur filters save karne dete hain. Yeh enable karne ke liye main I_SAVE = 'A' set karta hoon aur IS_VARIANT mein report program name populate karta hoon. SAP save/load SALV/ALV framework ke through automatically handle karta hai. Kuch reports mein main I_DEFAULT se ek default variant bhi set karta hoon consistent first display ke liye.",
         "interviewAnswer": "ALV layout variants allow users to save their personal column arrangements, sort orders, and filters. To enable this, I set I_SAVE = 'A' and populate IS_VARIANT with the report program name. SAP handles the save/load via SALV/ALV framework automatically. I also set a default variant using I_DEFAULT in some reports for consistent first display.",
         "realtimeExplanation": "Client ne bola 'har user ka apna layout hona chahiye.' Simply IS_VARIANT-report = sy-repid set karo aur I_SAVE = 'U' (user-specific) — SAP automatically per-user variants save karta hai.",
         "mistakes": "IS_VARIANT-report field blank chhod dena — variants save nahi honge aur user ko error aayegi. Always sy-repid assign karo.",
-        "codeExample": "DATA ls_variant TYPE disvariant.\nls_variant-report = sy-repid.   \" Must set program name\nls_variant-variant = '/DEFAULT'. \" Optional default variant\n\nCALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'\n  EXPORTING\n    i_save      = 'A'          \" Allow save: A=all, U=user only\n    is_variant  = ls_variant\n  TABLES\n    t_outtab    = lt_output."
+        "codeExample": "DATA ls_variant TYPE disvariant.\nls_variant-report = sy-repid.   \" Must set program name\nls_variant-variant = '/DEFAULT'. \" Optional default variant\n\nCALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'\n  EXPORTING\n    i_save      = 'A'          \" Allow save: A=all, U=user only\n    is_variant  = ls_variant\n  TABLES\n    t_outtab    = lt_output.",
+        "tier": "medium"
       },
       {
         "question": "How do you add subtotals and totals in ALV?",
-        "hinglishExplanation": "Totals ke liye field catalog mein do_sum = abap_true set karo numeric fields pe. Subtotals ke liye sort table (slis_t_sortinfo_alv ya lvc_t_sort) mein group field add karo aur subtot = abap_true set karo. ALV automatically subtotal rows insert karta hai jab value change hoti hai us group field ki.",
+        "hinglishExplanation": "Grand totals ke liye main field catalog mein numeric fields pe do_sum = abap_true set karta hoon. Group-wise subtotals ke liye main sort table (IT_SORT) populate karta hoon grouping field ke saath, SUBTOT = abap_true set karke. ALV automatically subtotal rows insert karta hai har group break pe. Main IS_LAYOUT-totals_before_items bhi use karta hoon control karne ke liye ki totals group ke upar aaye ya neeche.",
         "interviewAnswer": "For grand totals, I set do_sum = abap_true in the field catalog for numeric fields. For subtotals by group, I populate the sort table (IT_SORT) with the grouping field, setting SUBTOT = abap_true. ALV automatically inserts subtotal rows at each group break. I also use IS_LAYOUT-totals_before_items to control whether totals appear above or below the group.",
         "realtimeExplanation": "Requirement: 'Company code wise total amount dikhao.' Sort table mein BUKRS field add karo, SUBTOT = 'X'. Amount field mein do_sum = 'X'. Run karo — automatic subtotals per company code.",
         "mistakes": "Sirf do_sum set karna aur subtotals expect karna — without sort table ke grouping field, sirf grand total aayega, subtotals nahi.",
-        "codeExample": "\" Enable total for amount field\nls_fcat-fieldname = 'AMOUNT'.\nls_fcat-do_sum    = abap_true.\nAPPEND ls_fcat TO lt_fcat.\n\n\" Sort table for subtotals\nDATA ls_sort TYPE slis_sortinfo_alv.\nls_sort-fieldname = 'BUKRS'.   \" Group by company code\nls_sort-subtot    = abap_true. \" Show subtotal at each break\nls_sort-up        = abap_true. \" Ascending sort\nAPPEND ls_sort TO lt_sort."
+        "codeExample": "\" Enable total for amount field\nls_fcat-fieldname = 'AMOUNT'.\nls_fcat-do_sum    = abap_true.\nAPPEND ls_fcat TO lt_fcat.\n\n\" Sort table for subtotals\nDATA ls_sort TYPE slis_sortinfo_alv.\nls_sort-fieldname = 'BUKRS'.   \" Group by company code\nls_sort-subtot    = abap_true. \" Show subtotal at each break\nls_sort-up        = abap_true. \" Ascending sort\nAPPEND ls_sort TO lt_sort.",
+        "tier": "medium"
       },
       {
         "question": "Can ALV be used for editable reports? How?",
-        "hinglishExplanation": "Haan, ALV editable mode mein chala sakte ho. REUSE ALV mein layout-edit = abap_true set karo aur specific fields ko no_out ya edit_mask se control karo. OO ALV mein set_ready_for_input method call karo. User data edit kare, phir 'Save' button pe user_command event mein modified data internal table se read karo aur database update karo.",
+        "hinglishExplanation": "Haan, ALV inline editing support karta hai. REUSE ALV mein main is_layout-edit = abap_true set karta hoon poori grid editable banane ke liye, aur specific fields ko read-only mark karta hoon field catalog properties se. OO ALV mein main gr_grid->set_ready_for_input(1) call karta hoon. User edit aur save karne ke baad, main modified internal table read karta hoon aur database update karta hoon — internal table hamesha ALV ke through in place update hoti hai.",
         "interviewAnswer": "Yes, ALV supports inline editing. In REUSE ALV, I set is_layout-edit = abap_true to make the entire grid editable, and mark specific fields as read-only using field catalog properties. In OO ALV, I call gr_grid->set_ready_for_input(1). After the user edits and saves, I read the modified internal table and update the database — the internal table is always updated in place by ALV.",
         "realtimeExplanation": "Common use case: stock adjustment screen jahan warehouse user quantities edit kare. ALV editable banao, Save button add karo GUI Status mein, user_command mein modified lt_data se MODIFY database statement chalaao.",
         "mistakes": "Editable ALV mein after save, data re-fetch karna bhoolna — internal table already updated hota hai, sirf DB update karo aur optional re-display.",
-        "codeExample": "\" Make full grid editable\nls_layout-edit = abap_true.\n\n\" Make specific field read-only in fieldcat\nls_fcat-fieldname = 'MATNR'.\nls_fcat-no_out    = abap_false.\nls_fcat-edit      = abap_false. \" This field not editable\nAPPEND ls_fcat TO lt_fcat.\n\n\" After save button click in user_command:\nLOOP AT lt_output ASSIGNING FIELD-SYMBOL(<row>) WHERE changed = abap_true.\n  UPDATE ztable SET qty = <row>-qty WHERE id = <row>-id.\nENDLOOP."
+        "codeExample": "\" Make full grid editable\nls_layout-edit = abap_true.\n\n\" Make specific field read-only in fieldcat\nls_fcat-fieldname = 'MATNR'.\nls_fcat-no_out    = abap_false.\nls_fcat-edit      = abap_false. \" This field not editable\nAPPEND ls_fcat TO lt_fcat.\n\n\" After save button click in user_command:\nLOOP AT lt_output ASSIGNING FIELD-SYMBOL(<row>) WHERE changed = abap_true.\n  UPDATE ztable SET qty = <row>-qty WHERE id = <row>-id.\nENDLOOP.",
+        "tier": "advanced"
       },
       {
         "question": "What is the role of events in ALV like TOP_OF_PAGE or END_OF_PAGE?",
-        "hinglishExplanation": "ALV events jaise TOP_OF_PAGE aur END_OF_PAGE special FORM routines hote hain jo ALV automatically call karta hai page start aur end pe. TOP_OF_PAGE use hota hai header information daalne ke liye — company logo, report title, date/time. END_OF_PAGE footer ke liye. Yeh events slis_t_event table mein register karte hain.",
+        "hinglishExplanation": "TOP_OF_PAGE aur END_OF_PAGE jaise ALV events custom headers aur footers inject karne dete hain. Main events table (slis_t_event) ko event name aur corresponding FORM routine name se populate karta hoon, phir IT_EVENTS REUSE_ALV_GRID_DISPLAY mein pass karta hoon. TOP_OF_PAGE commonly use hota hai report title, company name, selection parameters summary aur run date/time ke liye.",
         "interviewAnswer": "ALV events like TOP_OF_PAGE and END_OF_PAGE let you inject custom headers and footers. I populate the events table (slis_t_event) with the event name and corresponding FORM routine name, then pass IT_EVENTS to REUSE_ALV_GRID_DISPLAY. TOP_OF_PAGE is commonly used for report title, company name, selection parameters summary, and run date/time.",
         "realtimeExplanation": "Client ne bola 'Report ke upar company name aur selected date range dikhao.' TOP_OF_PAGE event mein REUSE_ALV_COMMENTARY_WRITE call karo list_commentary table ke saath — formatted header ready.",
         "mistakes": "Event FORM routine ka exact naam slis_alv_event-form field mein same spelling dena bhoolna — typo hone pe event silently ignore hoga.",
-        "codeExample": "DATA: lt_events TYPE slis_t_event,\n      ls_event  TYPE slis_alv_event.\n\nls_event-name = slis_ev_top_of_page.  \" Constant\nls_event-form = 'TOP_OF_PAGE'.         \" FORM routine name\nAPPEND ls_event TO lt_events.\n\nFORM top_of_page.\n  DATA lt_header TYPE slis_t_listheader.\n  DATA ls_header TYPE slis_listheader.\n  ls_header-typ  = 'H'.  \" H=header, S=selection, A=action\n  ls_header-info = 'Material Report - CodeGurukul Demo'.\n  APPEND ls_header TO lt_header.\n  CALL FUNCTION 'REUSE_ALV_COMMENTARY_WRITE'\n    EXPORTING it_list_commentary = lt_header.\nENDFORM."
+        "codeExample": "DATA: lt_events TYPE slis_t_event,\n      ls_event  TYPE slis_alv_event.\n\nls_event-name = slis_ev_top_of_page.  \" Constant\nls_event-form = 'TOP_OF_PAGE'.         \" FORM routine name\nAPPEND ls_event TO lt_events.\n\nFORM top_of_page.\n  DATA lt_header TYPE slis_t_listheader.\n  DATA ls_header TYPE slis_listheader.\n  ls_header-typ  = 'H'.  \" H=header, S=selection, A=action\n  ls_header-info = 'Material Report - CodeGurukul Demo'.\n  APPEND ls_header TO lt_header.\n  CALL FUNCTION 'REUSE_ALV_COMMENTARY_WRITE'\n    EXPORTING it_list_commentary = lt_header.\nENDFORM.",
+        "tier": "advanced"
       },
       {
         "question": "When should you use ALV vs a Fiori app in S/4HANA?",
-        "hinglishExplanation": "ALV use karo jab: existing SAP GUI-based users ke liye report hai, quick development chahiye, backend-only team hai (no UI5 skills). Fiori use karo jab: mobile/browser access chahiye, modern UX requirement hai, end users SAP GUI nahi use karte, aur ABAP CDS + OData backend available hai. Most S/4HANA greenfield projects Fiori prefer karte hain, brownfield mein ALV mixed hota hai.",
+        "hinglishExplanation": "ALV appropriate hai SAP GUI-based internal users ke liye jinhe quick operational reports chahiye, especially brownfield S/4HANA mein jahan existing ALV reports abhi bhi maintain ho rahi hain. Fiori apps modern UX, mobile access, role-based launchpad experience aur non-SAP-GUI audience ke liye preferred hain. Mere current project mein hum legacy reports ke liye ALV maintain karte hain aur new analytical dashboards ke liye Fiori build karte hain.",
         "interviewAnswer": "ALV is appropriate for SAP GUI-based internal users needing quick operational reports, especially in brownfield S/4HANA where existing ALV reports are still maintained. Fiori apps are preferred for modern UX, mobile access, role-based launchpad experience, and when the audience includes non-SAP-GUI users. In my current project, we maintain ALV for legacy reports and build Fiori for new analytical dashboards.",
         "realtimeExplanation": "Interview mein S/4HANA question aaye toh hamesha both know karo — ALV for SAP GUI context, Fiori/CDS for modern web context. Dono ka use case alag hai, ek doosre ko fully replace nahi karta abhi.",
         "mistakes": "Bolna 'ALV is outdated, only Fiori now' — wrong. Millions of ALV reports in production hain. Support aur enhancement ke liye ALV knowledge essential hai even in S/4HANA.",
-        "codeExample": "\" S/4HANA: Use CDS view as ALV data source\nSELECT * FROM zi_sales_order_view  \" CDS view\n  WHERE company_code = @p_bukrs\n  INTO TABLE @DATA(lt_orders).\n\n\" Then display via REUSE or OO ALV\n\" CDS provides the business logic; ALV provides the UI"
+        "codeExample": "\" S/4HANA: Use CDS view as ALV data source\nSELECT * FROM zi_sales_order_view  \" CDS view\n  WHERE company_code = @p_bukrs\n  INTO TABLE @DATA(lt_orders).\n\n\" Then display via REUSE or OO ALV\n\" CDS provides the business logic; ALV provides the UI",
+        "tier": "advanced"
       }
     ]
   },
@@ -76,70 +156,146 @@
     "hinglishMasterExplanation": "Interview mein difference clearly batao — table format mein bolna best hai:\n\n1. Approach:\n   - REUSE_ALV_GRID_DISPLAY: Ek function module call karo, sab SAP handle karta hai.\n   - OO ALV (CL_GUI_ALV_GRID): Class instantiate karo, container manually create karo, methods call karo.\n\n2. Event Handling:\n   - REUSE: FORM routines use hoti hain — I_CALLBACK_USER_COMMAND se FORM ka naam pass karo.\n   - OO ALV: Event handler class banate hain — SET HANDLER statement se event register karte hain.\n\n3. Custom Toolbar:\n   - REUSE: SE41 mein GUI Status banao, program ko assign karo.\n   - OO ALV: TOOLBAR event handle karo, ET_TOOLBAR parameter mein custom buttons add karo.\n\n4. Cell Coloring:\n   - REUSE: Limited support — row-level coloring possible via special field.\n   - OO ALV: Cell-level coloring full support — special column CELLCOLORS_FIELDNAME se individual cell color.\n\n5. Container:\n   - REUSE: Automatically full-screen display karta hai.\n   - OO ALV: CL_GUI_CUSTOM_CONTAINER ya CL_GUI_DOCKING_CONTAINER manually create karo — multiple ALV grids ek screen pe possible.\n\n6. SAP Recommendation:\n   - REUSE: Older, still supported but not for new development.\n   - OO ALV: Modern, preferred for all new reports in SAP standard as well.\n\nReal Project Angle: 'I use REUSE for quick MIS reports under time pressure, and OO ALV whenever the requirement involves interactivity, multiple grids, or custom UI logic.'",
     "interviewMeKyaBolnaHai": "Interview Me Exact Bolna Hai:\n'REUSE_ALV_GRID_DISPLAY is a function module-based approach — you pass your data table, field catalog, and layout to a single function module call. It is simpler and faster to code but offers limited customization. OO ALV using CL_GUI_ALV_GRID is the modern class-based approach. You manually create a container, instantiate the grid object, register event handlers, and call set_table_for_first_display. It provides full control over toolbar, cell coloring, multiple grids in one screen, and interactive events.'\n\nAgar interviewer poocha 'Which do you prefer and why?' toh bolo:\n'For new development, I prefer OO ALV because it follows OOABAP principles, integrates better with class-based architectures, and offers more flexibility. For quick reports with tight deadlines, REUSE_ALV_GRID_DISPLAY is still a valid choice.'\n\nHinglish Tips:\n- Event handling difference clearly bolo: FORM routines vs event handler class.\n- Container ka mention important hai — REUSE automatic, OO ALV manual.\n- Agar senior role ke liye interview hai, OO ALV pe confidence dikhao.",
     "codeExamples": "REPORT zdemo_oo_alv.\n\nDATA: go_container TYPE REF TO cl_gui_custom_container,\n      go_grid      TYPE REF TO cl_gui_alv_grid,\n      lt_fcat      TYPE lvc_t_fcat,\n      ls_fcat      TYPE lvc_s_fcat,\n      ls_layout    TYPE lvc_s_layo.\n\n\" Internal table to display\nDATA: lt_output TYPE TABLE OF zsales_order.\n\n\" Event handler class\nCLASS lcl_event_handler DEFINITION.\n  PUBLIC SECTION.\n    METHODS: on_user_command FOR EVENT user_command\n               OF cl_gui_alv_grid\n               IMPORTING e_ucomm.\nENDCLASS.\n\nCLASS lcl_event_handler IMPLEMENTATION.\n  METHOD on_user_command.\n    CASE e_ucomm.\n      WHEN 'MYBUTTON'.\n        MESSAGE 'Custom button clicked!' TYPE 'I'.\n    ENDCASE.\n  ENDMETHOD.\nENDCLASS.\n\nDATA go_handler TYPE REF TO lcl_event_handler.\n\nSTART-OF-SELECTION.\n  \" Fetch data\n  SELECT vbeln, netwr, erdat\n    FROM vbak\n    INTO TABLE @lt_output\n    WHERE vkorg = '1000'\n    UP TO 50 ROWS.\n\n  \" Field catalog (OO ALV uses lvc_t_fcat)\n  CLEAR ls_fcat.\n  ls_fcat-fieldname = 'VBELN'.\n  ls_fcat-coltext   = 'Sales Order'.\n  ls_fcat-key       = abap_true.\n  APPEND ls_fcat TO lt_fcat.\n\n  CLEAR ls_fcat.\n  ls_fcat-fieldname = 'NETWR'.\n  ls_fcat-coltext   = 'Net Value'.\n  ls_fcat-do_sum    = abap_true.\n  APPEND ls_fcat TO lt_fcat.\n\n  \" Layout\n  ls_layout-zebra    = abap_true.\n  ls_layout-cwidth_opt = abap_true.\n\n  \" Create container (must match custom container on screen 100)\n  CREATE OBJECT go_container\n    EXPORTING container_name = 'MAIN_CONTAINER'.\n\n  \" Create ALV grid inside container\n  CREATE OBJECT go_grid\n    EXPORTING i_parent = go_container.\n\n  \" Register event handler\n  CREATE OBJECT go_handler.\n  SET HANDLER go_handler->on_user_command FOR go_grid.\n\n  \" Display\n  go_grid->set_table_for_first_display(\n    EXPORTING\n      is_layout       = ls_layout\n    CHANGING\n      it_outtab       = lt_output\n      it_fieldcatalog = lt_fcat\n  ).\n\n  CALL SCREEN 100.  \" Screen with custom container control",
+    "interviewScriptHinglish": "REUSE_ALV_GRID_DISPLAY ek single function module call hai jisme aap internal table, field catalog aur layout pass karte ho — quick MIS reports ke liye ideal hai with minimum boilerplate. CL_GUI_ALV_GRID object-oriented approach hai: aap custom container create karte ho, grid object instantiate karte ho, SET HANDLER se event handlers register karte ho, aur SET_TABLE_FOR_FIRST_DISPLAY call karte ho. OO ALV cell-level coloring CELLCOLORS_FIELDNAME se unlock karta hai, custom toolbar buttons TOOLBAR event se, ek screen pe multiple grids aur full type-safe event handling. Main OO ALV prefer karta hoon naye interactive development ke liye kyunki yeh OOABAP architectures ke saath cleanly integrate hota hai, aur REUSE ko straightforward extraction reports ke liye reserve karta hoon jahan delivery speed matter karti hai. Business value yeh hai ki complex requirements ke liye precise UI control milta hai bina REUSE limitations inherit kiye.",
+    "interviewScriptEnglish": "REUSE_ALV_GRID_DISPLAY is a single function module call where you pass the internal table, field catalog and layout — ideal for quick MIS reports with minimum boilerplate. CL_GUI_ALV_GRID is the object-oriented approach: you create a custom container, instantiate the grid object, register event handlers via SET HANDLER, and call SET_TABLE_FOR_FIRST_DISPLAY. OO ALV unlocks cell-level coloring through CELLCOLORS_FIELDNAME, custom toolbar buttons via the TOOLBAR event, multiple grids on one screen, and full type-safe event handling. I prefer OO ALV for new interactive development because it integrates cleanly with OOABAP architectures, and reserve REUSE for straightforward extraction reports where speed of delivery matters. The business value is precise UI control for complex requirements without inheriting REUSE limitations.",
+    "wordByWordSamjho": [
+      {
+        "keyword": "CL_GUI_ALV_GRID",
+        "meaning": "Standard SAP class providing object-oriented ALV grid display with full event support"
+      },
+      {
+        "keyword": "CL_GUI_CUSTOM_CONTAINER",
+        "meaning": "Container class that hosts GUI controls on a custom container element of a dynpro"
+      },
+      {
+        "keyword": "CREATE OBJECT",
+        "meaning": "Instantiates a class reference variable in classical ABAP OO syntax"
+      },
+      {
+        "keyword": "SET HANDLER",
+        "meaning": "Binds an event handler method to events raised by a specific object instance"
+      },
+      {
+        "keyword": "set_table_for_first_display",
+        "meaning": "Initial method that binds the internal table, field catalog and layout to the ALV grid"
+      },
+      {
+        "keyword": "lvc_t_fcat",
+        "meaning": "Modern field catalog table type used by CL_GUI_ALV_GRID for column definitions"
+      },
+      {
+        "keyword": "lvc_s_layo",
+        "meaning": "Modern layout structure controlling zebra, optimized column width and other OO ALV display flags"
+      },
+      {
+        "keyword": "FOR EVENT",
+        "meaning": "Method declaration clause that marks a method as a handler for a specific class event"
+      },
+      {
+        "keyword": "CALL SCREEN",
+        "meaning": "ABAP statement that invokes a dynpro screen containing the custom container control"
+      }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Forgetting to register the TOOLBAR event in OO ALV",
+        "whyWrong": "Custom buttons rely on the TOOLBAR event being raised so the GUI status alone is insufficient",
+        "correctApproach": "Register the TOOLBAR event with SET HANDLER and append ZBUTTON entries to ET_TOOLBAR"
+      },
+      {
+        "mistake": "Setting CELLCOLORS_FIELDNAME to a name that does not exist in the output structure",
+        "whyWrong": "ALV cannot resolve the color table reference so coloring is silently ignored",
+        "correctApproach": "Add an LVC_T_SCOL component to the output type and reference it exactly in the layout"
+      },
+      {
+        "mistake": "Calling SET_TABLE_FOR_FIRST_DISPLAY repeatedly to show new data",
+        "whyWrong": "Re-initializes the grid each time, causing flicker and performance issues",
+        "correctApproach": "Call set_table_for_first_display once, then use REFRESH_TABLE_DISPLAY for subsequent updates"
+      },
+      {
+        "mistake": "Trying multiple ALV grids using REUSE_ALV_GRID_DISPLAY on one screen",
+        "whyWrong": "REUSE function modules occupy the full screen and do not support multi-container layouts",
+        "correctApproach": "Use OO ALV with separate CL_GUI_CUSTOM_CONTAINER and CL_GUI_ALV_GRID instances per area"
+      },
+      {
+        "mistake": "Mixing SLIS field catalog with the LVC OO ALV interface",
+        "whyWrong": "OO ALV expects LVC_T_FCAT and rejects SLIS structures with a type mismatch",
+        "correctApproach": "Use LVC_T_FCAT with OO ALV and SLIS_T_FIELDCAT_ALV with REUSE function modules"
+      }
+    ],
+    "quickRevisionNotes": "What: CL_GUI_ALV_GRID is the OO ALV class for full-featured interactive grids; REUSE_ALV_GRID_DISPLAY is the legacy function module shortcut.\n\nUsed for:\n- Complex interactive reports needing toolbar, cell coloring or editable cells\n- Multi-grid screens such as master/detail layouts\n- Modern S/4HANA custom development aligned with OOABAP\n\nKey syntax / tables / Tcodes:\n- CL_GUI_ALV_GRID, CL_GUI_CUSTOM_CONTAINER, CL_GUI_DOCKING_CONTAINER\n- SET HANDLER, FOR EVENT, SET_TABLE_FOR_FIRST_DISPLAY, REFRESH_TABLE_DISPLAY\n- SE80 / SE38 for development, SE41 only when GUI status is still used\n\nInterview keyword: OOABAP-friendly ALV class with type-safe events and multi-grid support",
     "followupAnswerBank": [
       {
         "question": "How do you add a custom toolbar button in OO ALV?",
-        "hinglishExplanation": "OO ALV mein TOOLBAR event handle karo. Event ke ET_TOOLBAR parameter mein apna button entry add karo — function code, icon, tooltip set karo. Phir user click kare toh USER_COMMAND event fire hoti hai ussi function code ke saath.",
+        "hinglishExplanation": "Main CL_GUI_ALV_GRID ke TOOLBAR event ko event handler class mein register karta hoon. Event method mein main ET_TOOLBAR mein ek new entry append karta hoon apne custom function code, button text aur icon ke saath. Jab user button click karta hai, USER_COMMAND event mere function code ke saath fire hoti hai, jise main on_user_command method mein handle karta hoon.",
         "interviewAnswer": "I register the TOOLBAR event of CL_GUI_ALV_GRID in the event handler class. In the event method, I append a new entry to ET_TOOLBAR with my custom function code, button text, and icon. When the user clicks the button, the USER_COMMAND event fires with my function code, which I handle in the on_user_command method.",
         "realtimeExplanation": "Common toolbar buttons: 'DETAIL' for drill-down, 'EXPORT' for custom Excel, 'APPROVE' for workflow trigger. Hamesha separators add karo custom buttons ke pehle taaki standard buttons se visually alag dikhein.",
         "mistakes": "Toolbar event register karna bhoolna aur sirf GUI Status pe depend karna — OO ALV mein GUI Status optional hai, toolbar event preferred hai.",
-        "codeExample": "METHOD on_toolbar.\n  DATA ls_btn TYPE stb_button.\n  \" Add separator first\n  ls_btn-butn_type = 3.  \" Separator\n  APPEND ls_btn TO e_object->mt_toolbar.\n  \" Add custom button\n  CLEAR ls_btn.\n  ls_btn-function  = 'ZDETAIL'.\n  ls_btn-icon      = icon_detail.\n  ls_btn-quickinfo = 'Show Details'.\n  ls_btn-butn_type = 0.\n  APPEND ls_btn TO e_object->mt_toolbar.\nENDMETHOD."
+        "codeExample": "METHOD on_toolbar.\n  DATA ls_btn TYPE stb_button.\n  \" Add separator first\n  ls_btn-butn_type = 3.  \" Separator\n  APPEND ls_btn TO e_object->mt_toolbar.\n  \" Add custom button\n  CLEAR ls_btn.\n  ls_btn-function  = 'ZDETAIL'.\n  ls_btn-icon      = icon_detail.\n  ls_btn-quickinfo = 'Show Details'.\n  ls_btn-butn_type = 0.\n  APPEND ls_btn TO e_object->mt_toolbar.\nENDMETHOD.",
+        "tier": "medium"
       },
       {
         "question": "How do you implement cell-level coloring in OO ALV?",
-        "hinglishExplanation": "Cell coloring ke liye internal table mein ek special field add karo type LVC_T_SCOL. Field catalog mein CELLCOLORS fieldname point karo us field pe. Phir data populate karte waqt har row ke liye color table fill karo — fieldname batao aur SAP color code batao (C100 red, C200 yellow, C500 green).",
+        "hinglishExplanation": "Main apne output internal table mein LVC_T_SCOL type ka ek special component add karta hoon, phir usse LVC_S_LAYO-CELLCOLORS_FIELDNAME field ke through reference karta hoon. Data populate karte waqt main yeh color table har row ke liye fieldname aur color code se fill karta hoon — example, overdue amount fields pe C100 red ke liye. Yeh precise cell-level color control enable karta hai row-level coloring ke unlike.",
         "interviewAnswer": "I add a special component of type LVC_T_SCOL to my output internal table, then reference it via the LVC_S_LAYO-CELLCOLORS_FIELDNAME field. When populating data, I fill this color table for each row with the fieldname and color code — for example, C100 for red on overdue amount fields. This enables precise cell-level color control unlike row-level coloring.",
         "realtimeExplanation": "Classic use case: aging report jahan 60+ days overdue cells red honein, 30-60 days yellow honein, within terms green. Color table ko business logic ke basis pe populate karo during data processing loop.",
         "mistakes": "LVC_S_LAYO-CELLCOLORS_FIELDNAME mein field ka naam exact match nahi karna internal table component se — coloring silently ignored hogi.",
-        "codeExample": "TYPES: BEGIN OF ty_out,\n         vbeln   TYPE vbak-vbeln,\n         netwr   TYPE vbak-netwr,\n         t_color TYPE lvc_t_scol,  \" Special color field\n       END OF ty_out.\n\n\" In layout:\nls_layout-cellcolors_fname = 'T_COLOR'.\n\n\" When populating data:\nDATA ls_color TYPE lvc_s_scol.\nls_color-fname     = 'NETWR'.\nls_color-color-col = 6.  \" Red = 6, Yellow = 5, Green = 4\nls_color-color-int = 1.  \" Intensified\nAPPEND ls_color TO ls_out-t_color."
+        "codeExample": "TYPES: BEGIN OF ty_out,\n         vbeln   TYPE vbak-vbeln,\n         netwr   TYPE vbak-netwr,\n         t_color TYPE lvc_t_scol,  \" Special color field\n       END OF ty_out.\n\n\" In layout:\nls_layout-cellcolors_fname = 'T_COLOR'.\n\n\" When populating data:\nDATA ls_color TYPE lvc_s_scol.\nls_color-fname     = 'NETWR'.\nls_color-color-col = 6.  \" Red = 6, Yellow = 5, Green = 4\nls_color-color-int = 1.  \" Intensified\nAPPEND ls_color TO ls_out-t_color.",
+        "tier": "advanced"
       },
       {
         "question": "What is SET_TABLE_FOR_FIRST_DISPLAY and when do you call it?",
-        "hinglishExplanation": "SET_TABLE_FOR_FIRST_DISPLAY OO ALV ka main method hai jo pehli baar data display karta hai. Ismein layout, field catalog, aur output table pass karte ho. Ek baar call hone ke baad, agar data refresh karna ho toh REFRESH_TABLE_DISPLAY method use karo — SET method dobara mat call karo.",
+        "hinglishExplanation": "SET_TABLE_FOR_FIRST_DISPLAY OO ALV ka method hai jo output internal table ko grid se bind karta hai aur pehli baar render karta hai, field catalog aur layout pass karte hue. Yeh initialization ke dauran exactly ek baar call hona chahiye. Subsequent data refreshes ke liye main REFRESH_TABLE_DISPLAY call karta hoon — jo already-bound internal table ko re-render karta hai bina grid configuration re-initialize kiye.",
         "interviewAnswer": "SET_TABLE_FOR_FIRST_DISPLAY is the OO ALV method that binds the output internal table to the grid and renders it for the first time, passing field catalog and layout. It should be called exactly once during initialization. For subsequent data refreshes, I call REFRESH_TABLE_DISPLAY — which re-renders the already-bound internal table without re-initializing the grid configuration.",
         "realtimeExplanation": "Common mistake: data change hone pe dobara SET_TABLE_FOR_FIRST_DISPLAY call karna — performance hit aur sometimes grid flicker. Always SET once, REFRESH many times.",
         "mistakes": "After data update, SET_TABLE_FOR_FIRST_DISPLAY ko loop mein call karna — grid re-initializes every time. Only REFRESH_TABLE_DISPLAY call karo for updates.",
-        "codeExample": "\" Initial display - call ONCE\ngo_grid->set_table_for_first_display(\n  EXPORTING  is_layout       = ls_layout\n  CHANGING   it_outtab       = lt_output\n             it_fieldcatalog = lt_fcat\n).\n\n\" Later, when data changes:\nSELECT ... INTO TABLE @lt_output ...  \" Re-fetch\ngo_grid->refresh_table_display( ).    \" Just refresh, no re-init"
+        "codeExample": "\" Initial display - call ONCE\ngo_grid->set_table_for_first_display(\n  EXPORTING  is_layout       = ls_layout\n  CHANGING   it_outtab       = lt_output\n             it_fieldcatalog = lt_fcat\n).\n\n\" Later, when data changes:\nSELECT ... INTO TABLE @lt_output ...  \" Re-fetch\ngo_grid->refresh_table_display( ).    \" Just refresh, no re-init",
+        "tier": "easy"
       },
       {
         "question": "How do you display multiple ALV grids on one screen?",
-        "hinglishExplanation": "Multiple ALV grids ke liye screen pe multiple custom container controls banao (SAP Screen Painter mein). Phir har container ke liye alag CL_GUI_CUSTOM_CONTAINER aur CL_GUI_ALV_GRID objects create karo. Har grid apne container mein independently display hota hai. Commonly used for master-detail layouts.",
+        "hinglishExplanation": "Main screen pe multiple custom container controls Screen Painter use karke create karta hoon, phir har ek ke liye alag CL_GUI_CUSTOM_CONTAINER aur CL_GUI_ALV_GRID instantiate karta hoon. Har grid independently configure hoti hai apne field catalog aur layout ke saath. Yeh master-detail reports ke liye standard approach hai — example, sales order header grid upar aur line items grid neeche.",
         "interviewAnswer": "I create multiple custom container controls on the screen using Screen Painter, then instantiate a separate CL_GUI_CUSTOM_CONTAINER and CL_GUI_ALV_GRID for each. Each grid is independently configured with its own field catalog and layout. This is the standard approach for master-detail reports — for example, a sales order header grid on top and line items grid below.",
         "realtimeExplanation": "Master-detail layout: user order header click kare upper grid mein, lower grid mein automatically items load ho jaayein. USER_COMMAND event mein selected header ke item data fetch karo aur doosra grid refresh karo.",
         "mistakes": "REUSE_ALV_GRID_DISPLAY se multiple grids try karna — nahi hoga. Multiple grids ke liye OO ALV mandatory hai.",
-        "codeExample": "\" Two containers on screen 100\nCREATE OBJECT go_cont_header\n  EXPORTING container_name = 'HEADER_CONTAINER'.\nCREATE OBJECT go_cont_items\n  EXPORTING container_name = 'ITEMS_CONTAINER'.\n\n\" Two separate grids\nCREATE OBJECT go_grid_header\n  EXPORTING i_parent = go_cont_header.\nCREATE OBJECT go_grid_items\n  EXPORTING i_parent = go_cont_items.\n\n\" Display both independently\ngo_grid_header->set_table_for_first_display( ... ).\ngo_grid_items->set_table_for_first_display( ... )."
+        "codeExample": "\" Two containers on screen 100\nCREATE OBJECT go_cont_header\n  EXPORTING container_name = 'HEADER_CONTAINER'.\nCREATE OBJECT go_cont_items\n  EXPORTING container_name = 'ITEMS_CONTAINER'.\n\n\" Two separate grids\nCREATE OBJECT go_grid_header\n  EXPORTING i_parent = go_cont_header.\nCREATE OBJECT go_grid_items\n  EXPORTING i_parent = go_cont_items.\n\n\" Display both independently\ngo_grid_header->set_table_for_first_display( ... ).\ngo_grid_items->set_table_for_first_display( ... ).",
+        "tier": "advanced"
       },
       {
         "question": "How do you get the selected rows in OO ALV after user selection?",
-        "hinglishExplanation": "OO ALV mein GET_SELECTED_ROWS method call karo jo selected row indices return karta hai. Usse apni internal table mein READ TABLE karo index se. Agar cell-level selection chahiye toh GET_SELECTED_CELLS use karo. Selection mode layout mein set karo: 'A' = single row, 'D' = multiple rows.",
+        "hinglishExplanation": "Main go_grid->get_selected_rows(IMPORTING et_index_rows = lt_rows) call karta hoon selected rows ke indices paane ke liye. Phir main lt_rows pe loop karta hoon aur READ TABLE lt_output INDEX ls_row-index use karta hoon har selected record paane ke liye. Selection work karne ke liye main ls_layout-sel_mode = 'D' set karta hoon multiple selection ke liye ya 'A' single row ke liye.",
         "interviewAnswer": "I call go_grid->get_selected_rows(IMPORTING et_index_rows = lt_rows) to get the indices of selected rows. Then I loop over lt_rows and use READ TABLE lt_output INDEX ls_row-index to get each selected record. For the selection to work, I set ls_layout-sel_mode = 'D' for multiple selection or 'A' for single row.",
         "realtimeExplanation": "User ne multiple rows select kiye aur 'Approve' button click kiya — GET_SELECTED_ROWS call karo, loop karo, har selected record ke liye status update karo aur DB save karo.",
         "mistakes": "GET_SELECTED_ROWS ke baad LOOP AT lt_rows ke bina directly lt_output process karna — tumhe index-based READ TABLE karna padega, direct loop nahi.",
-        "codeExample": "DATA lt_rows TYPE lvc_t_row.\nDATA ls_row  TYPE lvc_s_row.\n\ngo_grid->get_selected_rows(\n  IMPORTING et_index_rows = lt_rows\n).\n\nIF lt_rows IS INITIAL.\n  MESSAGE 'Please select at least one row' TYPE 'W'.\n  RETURN.\nENDIF.\n\nLOOP AT lt_rows INTO ls_row.\n  READ TABLE lt_output INTO DATA(ls_selected)\n       INDEX ls_row-index.\n  IF sy-subrc = 0.\n    \" Process ls_selected\n  ENDIF.\nENDLOOP."
+        "codeExample": "DATA lt_rows TYPE lvc_t_row.\nDATA ls_row  TYPE lvc_s_row.\n\ngo_grid->get_selected_rows(\n  IMPORTING et_index_rows = lt_rows\n).\n\nIF lt_rows IS INITIAL.\n  MESSAGE 'Please select at least one row' TYPE 'W'.\n  RETURN.\nENDIF.\n\nLOOP AT lt_rows INTO ls_row.\n  READ TABLE lt_output INTO DATA(ls_selected)\n       INDEX ls_row-index.\n  IF sy-subrc = 0.\n    \" Process ls_selected\n  ENDIF.\nENDLOOP.",
+        "tier": "medium"
       },
       {
         "question": "What is the difference between lvc_t_fcat and slis_t_fieldcat_alv?",
-        "hinglishExplanation": "slis_t_fieldcat_alv REUSE function module ke liye use hoti hai — purani structure hai. lvc_t_fcat OO ALV (CL_GUI_ALV_GRID) ke liye use hoti hai — modern structure hai aur zyada fields support karti hai. Dono mein field names bhi slightly different hain — example: REUSE mein col_pos, OO mein col_id. Wrong structure use karo toh type mismatch error aayegi.",
+        "hinglishExplanation": "slis_t_fieldcat_alv REUSE_ALV_GRID_DISPLAY ke saath use hoti hai — yeh older SLIS-based structure hai. lvc_t_fcat OO ALV (CL_GUI_ALV_GRID) ke saath use hoti hai — yeh modern LVC-based structure hai additional fields ke saath cell coloring, tooltips aur optimized column width ke liye. Dono mein field names slightly differ karte hain, isliye tum mix nahi kar sakte. Main hamesha lvc_t_fcat use karta hoon new OO ALV development ke liye.",
         "interviewAnswer": "slis_t_fieldcat_alv is used with REUSE_ALV_GRID_DISPLAY — it is the older SLIS-based structure. lvc_t_fcat is used with OO ALV (CL_GUI_ALV_GRID) — it is the modern LVC-based structure with additional fields for cell coloring, tooltips, and optimized column width. The field names differ slightly between the two, so you cannot mix them. I always use lvc_t_fcat for new OO ALV development.",
         "realtimeExplanation": "Ek common confusion: developer OO ALV mein slis_t_fieldcat_alv pass karne ki koshish karta hai — type mismatch syntax error aata hai. Hamesha check karo: REUSE = slis, OO ALV = lvc.",
         "mistakes": "Wrong type pass karna — slis structures OO ALV mein nahi chalti. If migrating from REUSE to OO ALV, field catalog bhi convert karna padega.",
-        "codeExample": "\" REUSE ALV field catalog type\nDATA lt_fcat_reuse TYPE slis_t_fieldcat_alv.\nDATA ls_fcat_reuse TYPE slis_fieldcat_alv.\nls_fcat_reuse-fieldname = 'VBELN'.\nls_fcat_reuse-col_pos   = 1.  \" REUSE uses col_pos\n\n\" OO ALV field catalog type\nDATA lt_fcat_oo TYPE lvc_t_fcat.\nDATA ls_fcat_oo TYPE lvc_s_fcat.\nls_fcat_oo-fieldname = 'VBELN'.\nls_fcat_oo-col_id    = 1.  \" OO ALV uses col_id"
+        "codeExample": "\" REUSE ALV field catalog type\nDATA lt_fcat_reuse TYPE slis_t_fieldcat_alv.\nDATA ls_fcat_reuse TYPE slis_fieldcat_alv.\nls_fcat_reuse-fieldname = 'VBELN'.\nls_fcat_reuse-col_pos   = 1.  \" REUSE uses col_pos\n\n\" OO ALV field catalog type\nDATA lt_fcat_oo TYPE lvc_t_fcat.\nDATA ls_fcat_oo TYPE lvc_s_fcat.\nls_fcat_oo-fieldname = 'VBELN'.\nls_fcat_oo-col_id    = 1.  \" OO ALV uses col_id",
+        "tier": "easy"
       },
       {
         "question": "How do you refresh ALV data after a background update?",
-        "hinglishExplanation": "Data internally update hone ke baad (jaise user ne form fill kiya aur save kiya), REFRESH_TABLE_DISPLAY method call karo. OO ALV internally bound internal table ka reference rakhta hai — tum internal table update karo aur refresh call karo, grid automatically new data dikhata hai. REUSE ALV mein dobara REUSE function call karna padta hai.",
+        "hinglishExplanation": "OO ALV mein, since grid set_table_for_first_display mein pass kiye internal table ka reference rakhta hai, main simply internal table modify karta hoon — rows add, delete ya modify karke — aur phir go_grid->refresh_table_display() call karta hoon. Grid updated data ke saath re-render hoti hai. REUSE ALV mein function module dobara call karna padta, jo ek reason hai ki OO ALV interactive reports ke liye preferred hai.",
         "interviewAnswer": "In OO ALV, since the grid holds a reference to the internal table passed in set_table_for_first_display, I simply modify the internal table — add, delete, or modify rows — and then call go_grid->refresh_table_display(). The grid re-renders with the updated data. In REUSE ALV, I would need to call the function module again, which is one of the reasons OO ALV is preferred for interactive reports.",
         "realtimeExplanation": "Interactive report flow: user selects row, clicks 'Delete', confirmation popup, DELETE lt_output INDEX selected_index, REFRESH_TABLE_DISPLAY — row disappears instantly without screen reload.",
         "mistakes": "Internal table modify karne ke baad refresh call karna bhoolna — screen purana data dikhata rahega. REFRESH call mandatory hai after any data change.",
-        "codeExample": "\" Modify internal table\nDELETE lt_output INDEX ls_selected_row-index.\n\n\" OR modify a field\nREAD TABLE lt_output ASSIGNING FIELD-SYMBOL(<row>)\n     INDEX ls_selected_row-index.\nIF sy-subrc = 0.\n  <row>-status = 'APPROVED'.\nENDIF.\n\n\" Refresh grid to show updated data\ngo_grid->refresh_table_display(\n  EXPORTING i_soft_refresh = abap_true  \" Keep sort/filter state\n)."
+        "codeExample": "\" Modify internal table\nDELETE lt_output INDEX ls_selected_row-index.\n\n\" OR modify a field\nREAD TABLE lt_output ASSIGNING FIELD-SYMBOL(<row>)\n     INDEX ls_selected_row-index.\nIF sy-subrc = 0.\n  <row>-status = 'APPROVED'.\nENDIF.\n\n\" Refresh grid to show updated data\ngo_grid->refresh_table_display(\n  EXPORTING i_soft_refresh = abap_true  \" Keep sort/filter state\n).",
+        "tier": "medium"
       },
       {
         "question": "What happens if you call REUSE_ALV_GRID_DISPLAY without a field catalog?",
-        "hinglishExplanation": "Agar field catalog pass nahi karo, toh SAP automatically structure ke basis pe generate karta hai — ya toh I_STRUCTURE_NAME parameter se ya internal table ke RTTI se. Yeh convenient hai rapid development ke liye, lekin column headers technical field names se aate hain, column widths unoptimized hoti hain, aur tum custom coltext set nahi kar sakte. Production reports ke liye hamesha explicit field catalog banana better hai.",
+        "hinglishExplanation": "Agar tum IT_FIELDCAT pass nahi karte, toh REUSE_ALV_GRID_DISPLAY field catalog ko I_STRUCTURE_NAME parameter ya internal table type se auto-generate karta hai. Quick prototyping ke liye convenient hai, lekin column headers technical field names honge, widths suboptimal ho sakti hain, aur tumhara koi control nahi hota ki konse columns visible hain ya unka order kya hai. Production reports ke liye main hamesha ek explicit field catalog build karta hoon user-facing column labels aur layout pe full control ke liye.",
         "interviewAnswer": "If you do not pass IT_FIELDCAT, REUSE_ALV_GRID_DISPLAY auto-generates the field catalog from the I_STRUCTURE_NAME parameter or internal table type. While convenient for quick prototyping, the column headers will be technical field names, widths may be suboptimal, and you have no control over which columns are visible or their order. For production reports, I always build an explicit field catalog for full control over user-facing column labels and layout.",
         "realtimeExplanation": "Quick prototype ke liye auto field catalog okay hai — unit test ya tech demo ke liye. UAT ke pehle explicit field catalog banana mandatory hai taaki user-friendly column names ho.",
         "mistakes": "Production report mein auto field catalog use karna — users confusing technical names dekhenge jaise NETWR instead of 'Net Order Value'.",
-        "codeExample": "\" Quick prototype - auto field catalog from structure\nCALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'\n  EXPORTING\n    i_structure_name = 'VBAK'  \" Auto generates fcat from DDIC\n  TABLES\n    t_outtab = lt_vbak.\n\n\" Production - explicit field catalog\n\" (Build lt_fcat manually with coltext, outputlen etc.)\nCALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'\n  EXPORTING\n    it_fieldcat = lt_fcat  \" Full control\n  TABLES\n    t_outtab    = lt_vbak."
+        "codeExample": "\" Quick prototype - auto field catalog from structure\nCALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'\n  EXPORTING\n    i_structure_name = 'VBAK'  \" Auto generates fcat from DDIC\n  TABLES\n    t_outtab = lt_vbak.\n\n\" Production - explicit field catalog\n\" (Build lt_fcat manually with coltext, outputlen etc.)\nCALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'\n  EXPORTING\n    it_fieldcat = lt_fcat  \" Full control\n  TABLES\n    t_outtab    = lt_vbak.",
+        "tier": "easy"
       }
     ]
   },
@@ -148,70 +304,150 @@
     "hinglishMasterExplanation": "Interview mein field catalog question poochha jaaye toh structured answer do:\n\n1. Definition: Field catalog ek internal table hai jo ALV ke har column ki definition rakhti hai — fieldname, header text, width, data type behaviors.\n\n2. Two Types:\n   - slis_t_fieldcat_alv: REUSE_ALV_GRID_DISPLAY ke liye\n   - lvc_t_fcat: OO ALV (CL_GUI_ALV_GRID) ke liye — preferred\n\n3. Key Fields Har Entry Mein:\n   - fieldname: Internal table ka component name (MUST match exactly)\n   - ref_table / ref_field: DDIC table/field reference for F1 help aur type info\n   - coltext / reptext: Column header jo user dekhega\n   - outputlen: Column width in characters\n   - key: Primary key column hai kya (bold display)\n   - no_out: Column hide karo by default\n   - do_sum: Numeric column ka total chahiye\n   - checkbox: Boolean field checkbox se display karo\n   - edit: Column editable hai ya nahi\n\n4. Two Ways to Build:\n   - Manual: LOOP se har field ke liye ls_fcat fill karo aur APPEND karo — full control, recommended for production\n   - REUSE_ALV_FIELDCATALOG_MERGE: DDIC table name pass karo, automatic field catalog — quick but you lose control over coltext aur other customizations\n\n5. Common Trap: fieldname mismatch — ALV blank column silently dikhata hai, koi error nahi aata. Hamesha internal table structure se copy karo fieldname.\n\n6. Real Project: 'I always build field catalogs manually. I use ref_table and ref_field for F1 help support, set no_out for technical key fields users don't need to see, and do_sum for all amount fields.'",
     "interviewMeKyaBolnaHai": "Interview Me Exact Bolna Hai:\n'A field catalog is an internal table where each row defines one column in the ALV output. Key properties include fieldname — which must exactly match the internal table component name — coltext for the user-visible column header, outputlen for column width, do_sum for numeric totals, key to mark primary key columns, and no_out to hide columns by default. I build field catalogs manually for production reports because it gives full control. I also set ref_table and ref_field to enable F1 help from the DDIC definition.'\n\nAgar interviewer poocha 'What is the most common field catalog mistake?' toh bolo:\n'Fieldname mismatch — if the fieldname in the field catalog does not exactly match the internal table component name, ALV shows a blank column without any error message. I always copy field names directly from the TYPE definition to avoid this.'\n\nHinglish Tips:\n- REUSE vs OO ALV ka type difference bolo: slis_t_fieldcat_alv vs lvc_t_fcat.\n- Manual vs REUSE_ALV_FIELDCATALOG_MERGE dono jaano.\n- Common trap explicitly mention karo — shows real experience.",
     "codeExamples": "REPORT zdemo_field_catalog.\n\n\" Internal table structure\nTYPES: BEGIN OF ty_sales,\n         vbeln  TYPE vbak-vbeln,   \" Sales order number\n         erdat  TYPE vbak-erdat,   \" Creation date\n         kunnr  TYPE vbak-kunnr,   \" Customer number\n         netwr  TYPE vbak-netwr,   \" Net order value\n         waerk  TYPE vbak-waerk,   \" Currency\n       END OF ty_sales.\n\nDATA: lt_sales  TYPE TABLE OF ty_sales,\n      lt_fcat   TYPE lvc_t_fcat,\n      ls_fcat   TYPE lvc_s_fcat,\n      ls_layout TYPE lvc_s_layo.\n\n\" Fetch data\nSELECT vbeln, erdat, kunnr, netwr, waerk\n  FROM vbak\n  INTO TABLE @lt_sales\n  WHERE vkorg = '1000'\n  UP TO 100 ROWS.\n\n\" Build field catalog manually\n\" Column 1: Sales Order (Key field)\nCLEAR ls_fcat.\nls_fcat-fieldname = 'VBELN'.       \" MUST match ty_sales exactly\nls_fcat-ref_table = 'VBAK'.        \" For F1 help from DDIC\nls_fcat-ref_field = 'VBELN'.\nls_fcat-coltext   = 'Sales Order'.\nls_fcat-key       = abap_true.     \" Displayed bold, pinned left\nAPPEND ls_fcat TO lt_fcat.\n\n\" Column 2: Creation Date\nCLEAR ls_fcat.\nls_fcat-fieldname = 'ERDAT'.\nls_fcat-ref_table = 'VBAK'.\nls_fcat-ref_field = 'ERDAT'.\nls_fcat-coltext   = 'Created On'.\nls_fcat-outputlen = 10.\nAPPEND ls_fcat TO lt_fcat.\n\n\" Column 3: Customer (hidden by default)\nCLEAR ls_fcat.\nls_fcat-fieldname = 'KUNNR'.\nls_fcat-coltext   = 'Customer'.\nls_fcat-no_out    = abap_true.     \" Hidden but available in column chooser\nAPPEND ls_fcat TO lt_fcat.\n\n\" Column 4: Net Value (with total)\nCLEAR ls_fcat.\nls_fcat-fieldname = 'NETWR'.\nls_fcat-ref_table = 'VBAK'.\nls_fcat-ref_field = 'NETWR'.\nls_fcat-coltext   = 'Net Value'.\nls_fcat-do_sum    = abap_true.     \" Show grand total\nAPPEND ls_fcat TO lt_fcat.\n\n\" Column 5: Currency\nCLEAR ls_fcat.\nls_fcat-fieldname = 'WAERK'.\nls_fcat-coltext   = 'Currency'.\nls_fcat-outputlen = 5.\nAPPEND ls_fcat TO lt_fcat.\n\n\" Layout\nls_layout-zebra      = abap_true.\nls_layout-cwidth_opt = abap_true.",
+    "interviewScriptHinglish": "field catalog ek internal table hai jo ALV output ke har column ko define karti hai. Har row mein FIELDNAME specify hota hai — jo output structure se exactly match karna chahiye — COLTEXT user-visible header ke liye, OUTPUTLEN width ke liye, KEY left-pinned highlighted columns ke liye, aur DO_SUM numeric totals ke liye. Amount columns ke liye CFIELDNAME currency key column pe point karna mandatory hai, warna ALV raw numbers display karta hai bina currency symbols ke. REUSE function modules SLIS_T_FIELDCAT_ALV use karte hain jabki OO ALV LVC_T_FCAT. Production reports ke liye main hamesha catalog manually build karta hoon taaki user labels, hidden technical fields aur totals configuration pe full control rahe. REUSE_ALV_FIELDCATALOG_MERGE se auto-generation sirf prototypes ke liye reserve hai. Business value yeh hai ki consistent, professional column presentation milti hai jo functional specification ke aligned hoti hai.",
+    "interviewScriptEnglish": "A field catalog is the internal table that defines every column in an ALV output. Each row specifies FIELDNAME — which must match the output structure exactly — COLTEXT for the user-visible header, OUTPUTLEN for width, KEY for left-pinned highlighted columns, and DO_SUM for numeric totals. Amount columns require CFIELDNAME pointing to the currency key column, otherwise ALV displays raw numbers without currency symbols. The REUSE function modules use SLIS_T_FIELDCAT_ALV while OO ALV uses LVC_T_FCAT. For production reports I always build the catalog manually so I retain control over user labels, hidden technical fields, and totals configuration. Auto-generation via REUSE_ALV_FIELDCATALOG_MERGE is reserved for prototypes. The business value is consistent, professional column presentation aligned with the functional specification.",
+    "wordByWordSamjho": [
+      {
+        "keyword": "lvc_t_fcat",
+        "meaning": "Modern OO ALV field catalog table type with one row per output column"
+      },
+      {
+        "keyword": "lvc_s_fcat",
+        "meaning": "Work area structure used to populate entries in lvc_t_fcat"
+      },
+      {
+        "keyword": "fieldname",
+        "meaning": "Output table field whose values map to this ALV column"
+      },
+      {
+        "keyword": "coltext",
+        "meaning": "User-visible column header text shown by ALV"
+      },
+      {
+        "keyword": "ref_table",
+        "meaning": "DDIC table providing F1 help and type information for the column"
+      },
+      {
+        "keyword": "ref_field",
+        "meaning": "DDIC field referenced together with ref_table for help and metadata"
+      },
+      {
+        "keyword": "key",
+        "meaning": "Marks the column as a key field; rendered bold and pinned"
+      },
+      {
+        "keyword": "no_out",
+        "meaning": "Hides the column by default while keeping it available in the column chooser"
+      },
+      {
+        "keyword": "do_sum",
+        "meaning": "Enables a grand total and is required for subtotal rendering"
+      },
+      {
+        "keyword": "cwidth_opt",
+        "meaning": "Layout flag instructing OO ALV to optimize column widths automatically"
+      }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Typing fieldnames manually with capital/spelling variation",
+        "whyWrong": "Field catalog mismatch is silently ignored and the column appears blank",
+        "correctApproach": "Copy field names directly from the TYPES definition or use constants"
+      },
+      {
+        "mistake": "Skipping ref_table and ref_field for amount or quantity fields",
+        "whyWrong": "Loses F1 help and produces incorrect decimal or currency formatting",
+        "correctApproach": "Set ref_table and ref_field to the DDIC source for every standard SAP field"
+      },
+      {
+        "mistake": "Using REUSE_ALV_FIELDCATALOG_MERGE for production reports",
+        "whyWrong": "Column labels come from DDIC technical names and customization is hard",
+        "correctApproach": "Build the field catalog manually so coltext, no_out and do_sum can be precisely controlled"
+      },
+      {
+        "mistake": "Setting do_sum on character fields",
+        "whyWrong": "ALV silently ignores the flag because totals only work on numeric types",
+        "correctApproach": "Only use do_sum on CURR, QUAN, INT and DEC fields and reference currency or unit fields"
+      },
+      {
+        "mistake": "Reusing static field catalog with a dynamic internal table",
+        "whyWrong": "Dynamic structures need fcat entries generated at runtime",
+        "correctApproach": "Use RTTI via CL_ABAP_STRUCTDESCR to build the field catalog dynamically"
+      }
+    ],
+    "quickRevisionNotes": "What: Field catalog is the internal table that tells ALV which columns to display and how each column should behave.\n\nUsed for:\n- Mapping output structure fields to ALV columns with user-friendly labels\n- Setting key fields, hidden fields and currency or quantity references\n- Enabling totals and subtotals via DO_SUM and sort criteria\n\nKey syntax / tables / Tcodes:\n- LVC_T_FCAT, LVC_S_FCAT, SLIS_T_FIELDCAT_ALV, SLIS_FIELDCAT_ALV\n- REUSE_ALV_FIELDCATALOG_MERGE, CL_ABAP_STRUCTDESCR for dynamic catalogs\n- SE11 to inspect DDIC fields, SE38 to debug fcat content\n\nInterview keyword: Per-column definition table that drives ALV display behavior",
     "followupAnswerBank": [
       {
         "question": "What happens if fieldname in field catalog does not match the internal table?",
-        "hinglishExplanation": "Agar fieldname mismatch ho toh ALV column bilkul blank dikhata hai — koi error message nahi, koi dump nahi, bas empty column. Yeh ek silent failure hai jo beginners ko confuse karta hai. Debug karo: SE38 mein breakpoint lagao field catalog ke baad, watch karo fieldname values vs ty_sales mein jo fields hain.",
+        "hinglishExplanation": "Agar field catalog mein fieldname internal table component name se exactly match nahi karta, toh ALV silently ek empty column dikhata hai — koi error, koi dump nahi. Yeh sabse common ALV mistakes mein se ek hai. Isse avoid karne ke liye main field names directly TYPE definition se copy karta hoon. Issue debug karte waqt main runtime pe field catalog contents inspect karta hoon aur internal table structure ke against compare karta hoon.",
         "interviewAnswer": "If the fieldname in the field catalog does not exactly match the internal table component name, ALV silently shows an empty column — no error, no dump. This is one of the most common ALV mistakes. To avoid it, I copy field names directly from the TYPE definition. When debugging this issue, I inspect the field catalog contents at runtime and compare against the internal table structure.",
         "realtimeExplanation": "Production issue: 'Amount column blank hai.' First check: fieldname in fcat vs actual itab field name. 99% of blank column issues come from this mismatch.",
         "mistakes": "Spelling copy karna instead of pasting from code — typos like 'NETWRK' instead of 'NETWR'. Always use copy-paste or F4 help when building fcat.",
-        "codeExample": "\" Wrong - will show blank column\nls_fcat-fieldname = 'NETVALUE'.  \" Typo! Actual field is NETWR\n\n\" Correct - matches TYPE definition exactly\nls_fcat-fieldname = 'NETWR'.     \" Copy from: netwr TYPE vbak-netwr"
+        "codeExample": "\" Wrong - will show blank column\nls_fcat-fieldname = 'NETVALUE'.  \" Typo! Actual field is NETWR\n\n\" Correct - matches TYPE definition exactly\nls_fcat-fieldname = 'NETWR'.     \" Copy from: netwr TYPE vbak-netwr",
+        "tier": "easy"
       },
       {
         "question": "How does ref_table and ref_field help in ALV?",
-        "hinglishExplanation": "ref_table aur ref_field set karne se ALV column ko DDIC field ke saath link ho jaata hai. Iska benefit: user F1 press kare column header pe toh DDIC help dikhegi, type information (length, decimals) automatically pick hogi, aur search help (F4) automatically attach ho sakti hai agar DDIC mein set hai.",
+        "hinglishExplanation": "ref_table aur ref_field set karne se ALV column DDIC field definition se link ho jaata hai. Yeh provide karta hai: automatic F1 documentation help jab users column pe F1 press karein, correct data type display (especially amounts aur quantities ke liye proper decimal handling ke saath), aur automatic search help attachment agar DDIC field mein check table ya search help hai. Yeh column ko self-documenting bhi banata hai — future developers dekh sakte hain ki yeh kis SAP standard field se map hota hai.",
         "interviewAnswer": "Setting ref_table and ref_field links the ALV column to a DDIC field definition. This provides: automatic F1 documentation help when users press F1 on the column, correct data type display (especially for amounts and quantities with proper decimal handling), and automatic search help attachment if the DDIC field has a check table or search help. It also makes the column self-documenting — future developers can see which SAP standard field it maps to.",
         "realtimeExplanation": "Good practice: hamesha ref_table/ref_field set karo standard SAP table fields ke liye. Custom fields ke liye bhi apna Z-table reference do. Yeh F1 support aur proper number formatting ensure karta hai.",
         "mistakes": "ref_table/ref_field skip karna for amount fields — decimal display galat ho sakta hai bina proper currency/quantity reference ke.",
-        "codeExample": "\" With ref_table/ref_field: proper F1 help + formatting\nls_fcat-fieldname = 'NETWR'.\nls_fcat-ref_table = 'VBAK'.   \" DDIC table\nls_fcat-ref_field = 'NETWR'.  \" DDIC field (has currency ref to WAERK)\nls_fcat-coltext   = 'Net Value'.\n\" ALV auto-handles currency display with correct decimals"
+        "codeExample": "\" With ref_table/ref_field: proper F1 help + formatting\nls_fcat-fieldname = 'NETWR'.\nls_fcat-ref_table = 'VBAK'.   \" DDIC table\nls_fcat-ref_field = 'NETWR'.  \" DDIC field (has currency ref to WAERK)\nls_fcat-coltext   = 'Net Value'.\n\" ALV auto-handles currency display with correct decimals",
+        "tier": "medium"
       },
       {
         "question": "What is REUSE_ALV_FIELDCATALOG_MERGE and when should you use it?",
-        "hinglishExplanation": "REUSE_ALV_FIELDCATALOG_MERGE ek function module hai jo automatically field catalog generate karta hai DDIC table ya structure ke basis pe. Sirf table name pass karo aur yeh saari fields ka fcat bana deta hai. Useful hai: rapid prototyping ke liye, jab DDIC structure available ho aur sari fields dikhani hon. Limitations: coltext DDIC field label se aati hai (customize nahi), saari fields aati hain (extra no_out work), production-level customization mushkil hai.",
+        "hinglishExplanation": "REUSE_ALV_FIELDCATALOG_MERGE DDIC table ya structure name se ek field catalog auto-generate karta hai. Yeh quick prototyping ke liye useful hai ya jab tum ek standard SAP table ki saari fields unke DDIC-defined labels ke saath display karna chahte ho. Production reports ke liye main manual field catalog prefer karta hoon kyunki yeh full control deta hai ki konse columns appear honge, unke user-friendly headers, aur do_sum ya no_out jaise special behaviors.",
         "interviewAnswer": "REUSE_ALV_FIELDCATALOG_MERGE auto-generates a field catalog from a DDIC table or structure name. It is useful for quick prototyping or when you want to display all fields of a standard SAP table with their DDIC-defined labels. For production reports, I prefer manual field catalog because it gives full control over which columns appear, their user-friendly headers, and special behaviors like do_sum or no_out.",
         "realtimeExplanation": "Use case: Tech spec review ke liye quick mockup banana hai — FIELDCATALOG_MERGE se jaldi dikhao. Final delivery ke liye manual fcat build karo with proper coltext aur column selection.",
         "mistakes": "Production report mein FIELDCATALOG_MERGE use karna — column headers technical DDIC labels hote hain, unnecessary fields dikhti hain, user experience poor hoti hai.",
-        "codeExample": "CALL FUNCTION 'REUSE_ALV_FIELDCATALOG_MERGE'\n  EXPORTING\n    i_program_name     = sy-repid\n    i_internal_tabname = 'LT_SALES'  \" Internal table name as string\n    i_inclname         = sy-repid\n  CHANGING\n    ct_fieldcat        = lt_fcat\n  EXCEPTIONS\n    inconsistent_interface = 1\n    OTHERS                 = 2.\n\" Now lt_fcat has auto-generated entries\n\" Customize after: find entry and change coltext if needed\nLOOP AT lt_fcat ASSIGNING FIELD-SYMBOL(<f>).\n  IF <f>-fieldname = 'NETWR'.\n    <f>-coltext = 'Net Value'.\n    <f>-do_sum  = abap_true.\n  ENDIF.\nENDLOOP."
+        "codeExample": "CALL FUNCTION 'REUSE_ALV_FIELDCATALOG_MERGE'\n  EXPORTING\n    i_program_name     = sy-repid\n    i_internal_tabname = 'LT_SALES'  \" Internal table name as string\n    i_inclname         = sy-repid\n  CHANGING\n    ct_fieldcat        = lt_fcat\n  EXCEPTIONS\n    inconsistent_interface = 1\n    OTHERS                 = 2.\n\" Now lt_fcat has auto-generated entries\n\" Customize after: find entry and change coltext if needed\nLOOP AT lt_fcat ASSIGNING FIELD-SYMBOL(<f>).\n  IF <f>-fieldname = 'NETWR'.\n    <f>-coltext = 'Net Value'.\n    <f>-do_sum  = abap_true.\n  ENDIF.\nENDLOOP.",
+        "tier": "easy"
       },
       {
         "question": "How do you hide columns in ALV that exist in the internal table but should not be visible?",
-        "hinglishExplanation": "Teen tarike hain: (1) Field catalog mein no_out = abap_true set karo — column hidden hoga but user column chooser se show kar sakta hai. (2) Field catalog mein woh field ka entry hi mat daalo — ALV display nahi karega lekin column chooser mein bhi nahi aayega. (3) tech_complete = abap_true set karo — completely hidden, user show bhi nahi kar sakta.",
+        "hinglishExplanation": "Column hide karne ke liye main field catalog mein no_out = abap_true set karta hoon — column by default hidden hota hai lekin users column chooser se visible bana sakte hain. Agar ek field users ko kabhi visible nahi honi chahiye, main usse field catalog se entirely exclude karta hoon ya tech_complete = abap_true set karta hoon. Main commonly technical key fields hide karta hoon jaise internal IDs jo mujhe processing ke liye chahiye lekin users ko nahi dikhana.",
         "interviewAnswer": "To hide a column, I set no_out = abap_true in the field catalog — the column is hidden by default but users can make it visible via the column chooser. If a field should never be visible to users, I either exclude it from the field catalog entirely or set tech_complete = abap_true. I commonly hide technical key fields like internal IDs that I need for processing but users should not see.",
         "realtimeExplanation": "Common pattern: internal ID field hidden rakho (no_out), process karne ke liye zaroorat hai but user ko nahi dikhana. User_command mein selected row ka ID internally read karo aur next screen pe navigate karo.",
         "mistakes": "Field ko field catalog se completely exclude karna jab kabhi kabhi user ko chahiye ho — no_out use karo taaki user apni need pe show kar sake.",
-        "codeExample": "\" Hidden but user can show via column chooser\nls_fcat-fieldname = 'ZINTERNAL_ID'.\nls_fcat-coltext   = 'Internal ID'.\nls_fcat-no_out    = abap_true.  \" Hidden by default\nAPPEND ls_fcat TO lt_fcat.\n\n\" Completely hidden, cannot be shown by user\nls_fcat-fieldname   = 'TECH_KEY'.\nls_fcat-tech_complete = abap_true.  \" OO ALV: completely invisible\nAPPEND ls_fcat TO lt_fcat."
+        "codeExample": "\" Hidden but user can show via column chooser\nls_fcat-fieldname = 'ZINTERNAL_ID'.\nls_fcat-coltext   = 'Internal ID'.\nls_fcat-no_out    = abap_true.  \" Hidden by default\nAPPEND ls_fcat TO lt_fcat.\n\n\" Completely hidden, cannot be shown by user\nls_fcat-fieldname   = 'TECH_KEY'.\nls_fcat-tech_complete = abap_true.  \" OO ALV: completely invisible\nAPPEND ls_fcat TO lt_fcat.",
+        "tier": "easy"
       },
       {
         "question": "How do you make a specific ALV column editable while keeping others read-only?",
-        "hinglishExplanation": "Do approaches: (1) Full grid editable karo (layout-edit = 'X') aur specific fields ke liye fcat mein edit = space set karo (read-only). (2) Default read-only rakho aur sirf specific fields mein edit = abap_true set karo. Dusra approach cleaner hai — explicitly editable fields mark karo, baaki sab read-only by default.",
+        "hinglishExplanation": "Main overall layout ko non-editable rakhta hoon (default) aur sirf specific columns ko field catalog mein editable mark karta hoon ls_fcat-edit = abap_true set karke un fields ke liye. Alternatively, agar most columns editable hain, toh main ls_layout-edit = abap_true set karta hoon aur phir individual read-only columns ko ls_fcat-no_zero se mark karta hoon ya edit ko initial chhod deta hoon. Explicit per-column approach cleaner aur less error-prone hai mixed editable aur display fields wale reports ke liye.",
         "interviewAnswer": "I set the overall layout as non-editable (default) and mark only specific columns as editable in the field catalog by setting ls_fcat-edit = abap_true for those fields. Alternatively, if most columns are editable, I set ls_layout-edit = abap_true and then mark individual read-only columns with ls_fcat-no_zero or by leaving edit as initial. The explicit per-column approach is cleaner and less error-prone for reports with mixed editable and display fields.",
         "realtimeExplanation": "Use case: GR quantity correction screen — material number aur description read-only, quantity field editable, unit of measure read-only. Per-column edit flag use karo for clarity.",
         "mistakes": "Full layout edit = 'X' karna aur fir key fields bhi accidentally editable rehna — users data corrupt kar sakte hain. Always explicitly mark which fields are editable.",
-        "codeExample": "\" Approach: Mark only specific columns editable\n\" ls_layout-edit NOT set (default read-only)\n\n\" Read-only column\nls_fcat-fieldname = 'MATNR'.\nls_fcat-coltext   = 'Material'.\nls_fcat-edit      = abap_false.  \" Not editable\nAPPEND ls_fcat TO lt_fcat.\n\n\" Editable column\nls_fcat-fieldname = 'MENGE'.\nls_fcat-coltext   = 'Quantity'.\nls_fcat-edit      = abap_true.   \" Only this column editable\nAPPEND ls_fcat TO lt_fcat."
+        "codeExample": "\" Approach: Mark only specific columns editable\n\" ls_layout-edit NOT set (default read-only)\n\n\" Read-only column\nls_fcat-fieldname = 'MATNR'.\nls_fcat-coltext   = 'Material'.\nls_fcat-edit      = abap_false.  \" Not editable\nAPPEND ls_fcat TO lt_fcat.\n\n\" Editable column\nls_fcat-fieldname = 'MENGE'.\nls_fcat-coltext   = 'Quantity'.\nls_fcat-edit      = abap_true.   \" Only this column editable\nAPPEND ls_fcat TO lt_fcat.",
+        "tier": "medium"
       },
       {
         "question": "What is the do_sum field in field catalog and how does it work?",
-        "hinglishExplanation": "do_sum = abap_true set karne se ALV automatically us column ka grand total calculate karta hai aur bottom row mein dikhata hai. Sirf numeric fields pe work karta hai — amounts, quantities, counts. Agar sort/group bhi set ho toh subtotals bhi automatic aate hain. Layout mein no_totalline = abap_false rakho taaki total row show ho.",
+        "hinglishExplanation": "Field catalog mein do_sum = abap_true set karne se ALV ko bolta hai ki us column ka grand total compute aur display kare totals row mein bottom pe. Yeh numeric fields ke liye work karta hai — amounts, quantities aur counts. Jab ek sort table ke saath combine ho jisme subtot = abap_true ho, ALV har group break pe subtotals bhi dikhata hai. Totals row visibility layout se control hoti hai — main ensure karta hoon no_totalline abap_true set na ho.",
         "interviewAnswer": "Setting do_sum = abap_true in the field catalog tells ALV to compute and display a grand total for that column in the totals row at the bottom. It works for numeric fields — amounts, quantities, and counts. When combined with a sort table that has subtot = abap_true, ALV also shows subtotals at each group break. The totals row visibility is controlled by the layout — I ensure no_totalline is not set to abap_true.",
         "realtimeExplanation": "Finance reports mein do_sum common hai — invoice total, payment amount, outstanding balance. Multiple numeric columns mein sab pe do_sum set karo. User automatically totals dekhega bina extra code ke.",
         "mistakes": "do_sum set karna character fields pe — ALV ignores it silently. Only meaningful for numeric types (CURR, QUAN, INT, DEC).",
-        "codeExample": "\" Amount column with total\nls_fcat-fieldname = 'NETWR'.\nls_fcat-coltext   = 'Net Value'.\nls_fcat-do_sum    = abap_true.    \" Grand total shown\nAPPEND ls_fcat TO lt_fcat.\n\n\" Quantity column with total\nls_fcat-fieldname = 'MENGE'.\nls_fcat-coltext   = 'Quantity'.\nls_fcat-do_sum    = abap_true.\nAPPEND ls_fcat TO lt_fcat.\n\n\" Layout: ensure totals row is visible\nls_layout-no_totalline = abap_false.  \" Show totals row (default)"
+        "codeExample": "\" Amount column with total\nls_fcat-fieldname = 'NETWR'.\nls_fcat-coltext   = 'Net Value'.\nls_fcat-do_sum    = abap_true.    \" Grand total shown\nAPPEND ls_fcat TO lt_fcat.\n\n\" Quantity column with total\nls_fcat-fieldname = 'MENGE'.\nls_fcat-coltext   = 'Quantity'.\nls_fcat-do_sum    = abap_true.\nAPPEND ls_fcat TO lt_fcat.\n\n\" Layout: ensure totals row is visible\nls_layout-no_totalline = abap_false.  \" Show totals row (default)",
+        "tier": "medium"
       },
       {
         "question": "How do you set column width in ALV field catalog?",
-        "hinglishExplanation": "outputlen field mein character count set karo — jaise 10 matlab 10 characters wide column. Agar nahi set karo toh ALV DDIC field length use karta hai. lvc_t_fcat mein outputlen hai, REUSE mein bhi outputlen hai. Better approach: layout mein colwidth_optimize ya cwidth_opt = abap_true set karo — ALV automatically data ke hisaab se width adjust karta hai.",
+        "hinglishExplanation": "Main field catalog mein outputlen field ko ek specific character width pe set karta hoon. Agar set na karein, toh ALV DDIC-defined field length use karta hai, jo kuch fields ke liye unnecessarily wide ho sakti hai. Most reports ke liye main OO ALV mein ls_layout-cwidth_opt = abap_true set karna prefer karta hoon ya REUSE ALV mein ls_layout-colwidth_optimize = abap_true — yeh saari column widths actual data aur header length ke based pe auto-optimize karta hai, manual sizing ke bina cleaner display deta hai.",
         "interviewAnswer": "I set the outputlen field in the field catalog to a specific character width. If not set, ALV uses the DDIC-defined field length, which can be unnecessarily wide for some fields. For most reports, I prefer setting ls_layout-cwidth_opt = abap_true in OO ALV or ls_layout-colwidth_optimize = abap_true in REUSE ALV — this auto-optimizes all column widths based on the actual data and header length, giving a cleaner display without manual sizing.",
         "realtimeExplanation": "Manual outputlen use karo jab ek specific column width important ho — jaise description columns jo bahut long ho sakti hain, unhe cap karo taaki grid readable rahe.",
         "mistakes": "outputlen bhoolna aur DDIC default pe depend karna — MATNR ka DDIC length 18 hai but display mein 8-10 kaafi hote hain. Explicitly set karo for better UX.",
-        "codeExample": "\" Manual column width\nls_fcat-fieldname = 'MATNR'.\nls_fcat-coltext   = 'Material No'.\nls_fcat-outputlen = 12.  \" Override DDIC default of 18\nAPPEND ls_fcat TO lt_fcat.\n\n\" OR use layout auto-optimize (recommended)\n\" OO ALV:\nls_layout-cwidth_opt = abap_true.\n\" REUSE ALV:\nls_layout-colwidth_optimize = abap_true."
+        "codeExample": "\" Manual column width\nls_fcat-fieldname = 'MATNR'.\nls_fcat-coltext   = 'Material No'.\nls_fcat-outputlen = 12.  \" Override DDIC default of 18\nAPPEND ls_fcat TO lt_fcat.\n\n\" OR use layout auto-optimize (recommended)\n\" OO ALV:\nls_layout-cwidth_opt = abap_true.\n\" REUSE ALV:\nls_layout-colwidth_optimize = abap_true.",
+        "tier": "easy"
       },
       {
         "question": "How do you build a field catalog for a dynamic internal table in ALV?",
-        "hinglishExplanation": "Dynamic internal table ke saath kaam karne pe field catalog bhi dynamically build karna padta hai. RTTI (Run Time Type Information) use karo — CL_ABAP_TYPEDESCR se table type describe karo, components list nikalo, aur har component ke liye field catalog entry create karo programmatically. Yeh advanced scenario hai — mostly custom frameworks ya flexible reporting tools mein aata hai.",
+        "hinglishExplanation": "Dynamic internal tables ke liye main RTTI use karta hoon — specifically CL_ABAP_STRUCTDESCR — table ke row type ke component list ko runtime pe paane ke liye. Phir main components pe loop karta hoon aur har ek ke liye ek field catalog entry build karta hoon, component-name se fieldname set karta hoon, aur component name ya ek mapping table se coltext. Yeh approach un tables ke liye ALV display support karta hai jinki structure sirf runtime pe known hoti hai.",
         "interviewAnswer": "For dynamic internal tables, I use RTTI — specifically CL_ABAP_STRUCTDESCR — to get the component list of the table's row type at runtime. I then loop over the components and build a field catalog entry for each, setting fieldname from component-name, and coltext from the component name or a mapping table. This approach supports ALV display for tables whose structure is only known at runtime.",
         "realtimeExplanation": "Use case: generic report tool jahan user selects which fields to display — structure dynamic hai. RTTI se fields nikalo, selected fields ka fcat banao, dynamic itab ALV mein pass karo.",
         "mistakes": "Dynamic table ko static field catalog ke saath use karna — field names nahi milenge aur sab columns blank honge. Dynamic table = dynamic fcat required.",
-        "codeExample": "DATA lo_desc   TYPE REF TO cl_abap_structdescr.\nDATA lt_comps  TYPE cl_abap_structdescr=>component_table.\nDATA ls_comp   TYPE cl_abap_structdescr=>component.\n\n\" Get structure description of dynamic table row type\nlo_desc ?= cl_abap_typedescr=>describe_by_data(\n               p_data = <dynamic_row> ).\nlt_comps = lo_desc->get_components( ).\n\n\" Build field catalog from components\nLOOP AT lt_comps INTO ls_comp.\n  CLEAR ls_fcat.\n  ls_fcat-fieldname = ls_comp-name.\n  ls_fcat-coltext   = ls_comp-name.  \" Or lookup friendly name\n  APPEND ls_fcat TO lt_fcat.\nENDLOOP."
+        "codeExample": "DATA lo_desc   TYPE REF TO cl_abap_structdescr.\nDATA lt_comps  TYPE cl_abap_structdescr=>component_table.\nDATA ls_comp   TYPE cl_abap_structdescr=>component.\n\n\" Get structure description of dynamic table row type\nlo_desc ?= cl_abap_typedescr=>describe_by_data(\n               p_data = <dynamic_row> ).\nlt_comps = lo_desc->get_components( ).\n\n\" Build field catalog from components\nLOOP AT lt_comps INTO ls_comp.\n  CLEAR ls_fcat.\n  ls_fcat-fieldname = ls_comp-name.\n  ls_fcat-coltext   = ls_comp-name.  \" Or lookup friendly name\n  APPEND ls_fcat TO lt_fcat.\nENDLOOP.",
+        "tier": "advanced"
       }
     ]
   }

@@ -4,70 +4,145 @@
     "hinglishMasterExplanation": "Yeh ticket production mein aaya tha — ek custom goods receipt entry screen jisme table control tha 10 line items ke liye. User ne line 1-5 enter kiye, scroll kiya, line 6-10 enter karna shuru kiya. Jab save kiya toh data mix up ho gaya — line 6 ka data line 3 mein save ho raha tha.\n\nDebug karne pe pata chala: PBO mein developer ne likha tha:\n\nLOOP AT lt_items INTO ls_item.\n  MOVE-CORRESPONDING ls_item TO screen_fields.\n  MODIFY lt_items FROM ls_item.\nENDLOOP.\n\nYahan problem yeh thi ki table control ka MODIF ID sync nahi tha. Table control internally apna cursor aur scroll position maintain karta hai — lekin LOOP ko pata hi nahi tha kaunsi row currently visible hai. Toh invisible rows bhi process ho rahi thi.\n\nCorrect fix:\n\nPBO mein:\nLOOP AT lt_items INTO ls_item WITH CONTROL tc_items.\n  \" Automatically syncs with table control's current visible rows\nENDLOOP.\n\nPAI mein:\nLOOP AT lt_items INTO ls_item WITH CONTROL tc_items.\n  MODIFY lt_items FROM ls_item.\nENDLOOP.\n\nWITH CONTROL tc_items kehta hai: 'yeh loop table control ke scroll position ke saath sync karo.' Table control khud batata hai ki abhi kaun sa INDEX visible hai.\n\nAur ek aur galti thi — developer PAI mein INDEX manually pass kar raha tha:\nMODIFY lt_items FROM ls_item INDEX sy-tabix.\n\nTable control scroll hone ke baad sy-tabix reset ho jaata hai — toh wrong row modify ho rahi thi. WITH CONTROL ke saath yeh problem automatically solve ho jaati hai.\n\nTransport ke baad UAT mein test kiya: scroll karo, data enter karo, save karo — bilkul correct. Ticket close.",
     "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'One production ticket I solved was related to a Table Control showing incorrect data after scrolling. The root cause was that the LOOP AT statement in PBO and PAI was missing the WITH CONTROL keyword, so the table control's scroll index was out of sync with the internal table. After scrolling, the visible rows were being mapped to wrong internal table entries. The fix was straightforward — I added WITH CONTROL tc_name to the LOOP statement in both PBO and PAI modules. This ensures the table control itself manages the row index synchronization. After the fix and transport, the data was correctly mapped regardless of scroll position.'\n\nHinglish tip: 'Ticket-based question ka jawab always STAR format mein do: Situation (kya problem tha), Task (tumhara role kya tha), Action (kya kiya), Result (kya fix hua). Table control scroll bug bahut common hai Module Pool mein — agar yeh bola toh interviewer confirm kar leta hai ki tumne real screens banaye hain, books nahi padhi sirf.'",
     "codeExamples": "\" WRONG approach — missing WITH CONTROL — scroll bug hoga\nMODULE pbo_0200_wrong OUTPUT.\n  LOOP AT lt_items INTO ls_item.     \" No table control sync!\n    MOVE ls_item-matnr TO tc_matnr.\n    MOVE ls_item-menge TO tc_menge.\n  ENDLOOP.\nENDMODULE.\n\n\" CORRECT approach — WITH CONTROL syncs scroll index\nMODULE pbo_0200 OUTPUT.\n  LOOP AT lt_items INTO ls_item\n    WITH CONTROL tc_items.           \" Syncs with table control scroll\n    MOVE ls_item-matnr TO tc_matnr.\n    MOVE ls_item-menge TO tc_menge.\n  ENDLOOP.\nENDMODULE.\n\nMODULE pai_0200 INPUT.\n  LOOP AT lt_items INTO ls_item\n    WITH CONTROL tc_items.           \" Same control — correct row captured\n    MOVE tc_matnr TO ls_item-matnr.\n    MOVE tc_menge TO ls_item-menge.\n    MODIFY lt_items FROM ls_item.    \" No manual INDEX needed\n  ENDLOOP.\nENDMODULE.",
+    "interviewScriptEnglish": "One production ticket I solved was related to a Table Control showing incorrect data after scrolling. The root cause was that the LOOP AT statement in PBO and PAI was missing the WITH CONTROL keyword, so the table control's scroll index was out of sync with the internal table. After scrolling, the visible rows were being mapped to wrong internal table entries. The fix was straightforward — I added WITH CONTROL tc_name to the LOOP statement in both PBO and PAI modules. This ensures the table control itself manages the row index synchronization. After the fix and transport, the data was correctly mapped regardless of scroll position.",
+    "interviewScriptHinglish": "ek production ticket jo maine solve kiya woh Table Control mein scrolling ke baad incorrect data show hone se related tha. Root cause yeh tha ki PBO aur PAI mein LOOP AT statement WITH CONTROL keyword miss kar raha tha, isliye table control ka scroll index internal table ke saath sync se out tha. Scrolling ke baad, visible rows wrong internal table entries ko map ho rahi thi. Fix straightforward tha — maine LOOP statement mein WITH CONTROL tc_name add kiya PBO aur PAI dono modules mein. Yeh ensure karta hai ki table control khud row index synchronization manage karta hai. Fix aur transport ke baad, data scroll position ke baawajood correctly mapped tha.",
+    "commonMistakesSection": [
+      {
+        "mistake": "Sirf 5 rows ke saath test karna aur 5 hi rows visible hain — scroll hi nahi hoga, bug kabhi nahi dikhega.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Always test with more rows than visible height."
+      },
+      {
+        "mistake": "Sirf sy-subrc check karna enough nahi — table control issues mein sy-tabix aur actual internal table index compare karna zaroori hai.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Use the correct approach as described in the deep-dive section."
+      },
+      {
+        "mistake": "Hotfix mein test chhod dena — 'urgent hai, directly production pe lagao' — yeh kabhi nahi karna.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Even 30 minute ka focused test QA mein zaroori hai."
+      },
+      {
+        "mistake": "MODIF ID ko table control synchronization ke liye use karna — ye kaam nahi karta.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "LOOP AT SCREEN alag hai, LOOP AT lt_table WITH CONTROL alag hai — in dono ko mix mat karo."
+      }
+    ],
+    "wordByWordSamjho": [
+      {
+        "keyword": "MODULE pbo_0200_wrong OUTPUT",
+        "meaning": "Anti-pattern PBO with plain LOOP — causes scroll mismatch in table control"
+      },
+      {
+        "keyword": "LOOP AT lt_items INTO ls_item",
+        "meaning": "Plain loop without sync — internal table index drifts from visible rows"
+      },
+      {
+        "keyword": "MOVE ls_item-matnr TO tc_matnr",
+        "meaning": "Manual field move between work area and screen field"
+      },
+      {
+        "keyword": "MODULE pbo_0200 OUTPUT",
+        "meaning": "Correct PBO module using WITH CONTROL for index sync"
+      },
+      {
+        "keyword": "WITH CONTROL tc_items",
+        "meaning": "Critical addition — ties loop index to table control scroll"
+      },
+      {
+        "keyword": "CONTROLS tc_items TYPE TABLEVIEW",
+        "meaning": "Required declaration matching screen 0200 table control"
+      },
+      {
+        "keyword": "MODULE pai_0200 INPUT",
+        "meaning": "PAI module capturing edits row by row"
+      },
+      {
+        "keyword": "MODIFY lt_items FROM ls_item",
+        "meaning": "Writes the edited row back into the internal table"
+      },
+      {
+        "keyword": "tc_items-current_line",
+        "meaning": "Tracks the currently focused row when needed for cursor handling"
+      },
+      {
+        "keyword": "SY-TABIX",
+        "meaning": "Loop index — useful to debug INDEX mismatch issues"
+      }
+    ],
+    "quickRevisionNotes": "What: Table control scroll bugs almost always come from missing WITH CONTROL on LOOP AT in PBO and PAI.\n\nUsed for:\n- Fixing real tickets where rows appear shifted after scrolling or paging\n- Code review of legacy module pool table controls\n- Demonstrating root-cause analysis in production support interviews\n\nKey syntax / tables / Tcodes:\n- LOOP AT lt INTO ls WITH CONTROL tc_items in both PBO and PAI\n- MODIFY lt FROM ls inside PAI loop to persist edits\n- tc_items-current_line for cursor, SY-TABIX for debug logs\n\nInterview keyword: WITH CONTROL keeps the scroll index honest — drop it and rows shift.",
     "followupAnswerBank": [
       {
         "question": "How do you reproduce a Table Control scroll bug in development?",
-        "hinglishExplanation": "Development mein reproduce karne ke liye: table control ka size chhota rakho — sirf 3-4 rows visible. Phir 8-10 rows ka data load karo. Ab scroll karo row 5 tak, data enter karo, save karo. Agar data wrong row mein save hua toh bug confirm. Hamesha edge cases test karo — scroll to last row, scroll back to first row, phir save.",
+        "hinglishExplanation": "Ek Table Control scroll bug reproduce karne ke liye, main SE51 mein visible row count ko 3-4 rows tak reduce karta hoon aur 8-10 rows ka data load karta hoon. Phir main mid-point pe scroll karta hoon, data enter karta hoon, aur save ke baad verify karta hoon ki data correct internal table index mein stored hai ya nahi. Yeh WITH CONTROL sync issue ko jaldi isolate karta hai.",
         "interviewAnswer": "To reproduce a Table Control scroll bug, I reduce the visible row count in SE51 to 3-4 rows and load 8-10 rows of data. Then I scroll to a mid-point, enter data, and verify after save whether the data is stored in the correct internal table index. This isolates the WITH CONTROL sync issue quickly.",
         "realtimeExplanation": "Production mein users ne complain kiya ki data mix up ho raha hai sirf jab bahut rows hain. Small data se test kiya toh issue nahi aaya. Always test with more rows than the table control can show at once.",
         "mistakes": "Sirf 5 rows ke saath test karna aur 5 hi rows visible hain — scroll hi nahi hoga, bug kabhi nahi dikhega. Always test with more rows than visible height.",
-        "codeExample": "\" Test data setup — more rows than table control height\nDATA: lt_test TYPE TABLE OF zitem_type.\nDO 15 TIMES.\n  APPEND INITIAL LINE TO lt_test.\n  lt_test[ sy-index ]-matnr =\n    |MAT{ sy-index }|.\nENDDO."
+        "codeExample": "\" Test data setup — more rows than table control height\nDATA: lt_test TYPE TABLE OF zitem_type.\nDO 15 TIMES.\n  APPEND INITIAL LINE TO lt_test.\n  lt_test[ sy-index ]-matnr =\n    |MAT{ sy-index }|.\nENDDO.",
+        "tier": "easy"
       },
       {
         "question": "What tools do you use to investigate a Module Pool data issue?",
-        "hinglishExplanation": "Pehla tool: /h URL debugger — screen step karo, internal table ka content dekho PBO aur PAI ke beech. Dusra: ST05 (SQL trace) — verify karo kaunsi SELECT statements chal rahi hain aur kaunsi values aa rahi hain. Teesra: ABAP dump SM21/ST22 — koi runtime error hai toh dump dekhte hain. Chauta: sy-tabix watch karna debugger mein — table control scroll ke baad sy-tabix ka value confirm karo.",
+        "hinglishExplanation": "Module Pool data issues ke liye, main PBO aur PAI modules step karne aur internal table contents aur sy-tabix values inspect karne ke liye /h debugger use karta hoon. ST05 database read values verify karne mein help karta hai. Main SCREEN system table bhi watch karta hoon yeh dekhne ke liye ki kaunse fields active hain. Dump-related issues ke liye, SM21 aur ST22 mere go-to transactions hain.",
         "interviewAnswer": "For Module Pool data issues, I use the /h debugger to step through PBO and PAI modules and inspect internal table contents and sy-tabix values. ST05 helps verify database read values. I also watch the SCREEN system table to see which fields are active. For dump-related issues, SM21 and ST22 are my go-to transactions.",
         "realtimeExplanation": "Table control bug mein specifically: debugger mein loop iteration ke time sy-tabix check karo. Scroll ke baad agar sy-tabix 1 se start ho raha hai instead of 5 (scroll position) toh WITH CONTROL missing hai.",
         "mistakes": "Sirf sy-subrc check karna enough nahi — table control issues mein sy-tabix aur actual internal table index compare karna zaroori hai.",
-        "codeExample": "\" In debugger — watch these variables\n\" sy-tabix     → current loop index\n\" tc_items-top_line → table control's scroll position\n\" tc_items-lines   → total visible rows\n\n\" Quick debug check in code (remove before transport)\nIF sy-subrc <> 0.\n  MESSAGE i001(zmsg) WITH 'tabix:' sy-tabix.\nENDIF."
+        "codeExample": "\" In debugger — watch these variables\n\" sy-tabix     → current loop index\n\" tc_items-top_line → table control's scroll position\n\" tc_items-lines   → total visible rows\n\n\" Quick debug check in code (remove before transport)\nIF sy-subrc <> 0.\n  MESSAGE i001(zmsg) WITH 'tabix:' sy-tabix.\nENDIF.",
+        "tier": "easy"
       },
       {
         "question": "Have you ever handled a Module Pool hotfix in production?",
-        "hinglishExplanation": "Haan — production mein PAI module mein ek critical validation missing thi. Negative quantity save ho rahi thi jo inventory wrong kar rahi thi. Hotfix process: DEV mein fix karo, QA mein rush test karo (1-2 ghante), emergency transport request banao, basis team se production transport request karo, go-live. Documentation zaroori hai — change log mein ticket number, root cause, fix, tester ka naam sab likho.",
+        "hinglishExplanation": "Haan, maine ek production hotfix handle kiya jahaan PAI validation missing thi, allowing negative quantities to be saved, jo inventory data corrupt kar rahi thi. Maine development mein validation fix kiya, QA mein specific scenario pe focused test perform kiya, aur same business day ke andar production pe emergency transport execute karne ke liye Basis team ke saath kaam kiya.",
         "interviewAnswer": "Yes, I handled a production hotfix where a PAI validation was missing, allowing negative quantities to be saved, which corrupted inventory data. I fixed the validation in development, performed a focused test on the specific scenario in QA, and worked with the Basis team to execute an emergency transport to production within the same business day.",
         "realtimeExplanation": "Emergency transport mein Basis team ke saath coordinate karna padta hai — unhe transport se pehle production lock karna hota hai. Business stakeholder se approval lena padta hai aur impact assessment share karna padta hai.",
         "mistakes": "Hotfix mein test chhod dena — 'urgent hai, directly production pe lagao' — yeh kabhi nahi karna. Even 30 minute ka focused test QA mein zaroori hai.",
-        "codeExample": "\" PAI validation fix — hotfix example\nMODULE pai_validate_qty INPUT.\n  IF ls_item-menge <= 0.           \" Was missing before hotfix\n    MESSAGE e010(zmsg)\n      WITH 'Quantity must be positive'.\n  ENDIF.\n  IF ls_item-matnr IS INITIAL.\n    MESSAGE e011(zmsg)\n      WITH 'Material number required'.\n  ENDIF.\nENDMODULE."
+        "codeExample": "\" PAI validation fix — hotfix example\nMODULE pai_validate_qty INPUT.\n  IF ls_item-menge <= 0.           \" Was missing before hotfix\n    MESSAGE e010(zmsg)\n      WITH 'Quantity must be positive'.\n  ENDIF.\n  IF ls_item-matnr IS INITIAL.\n    MESSAGE e011(zmsg)\n      WITH 'Material number required'.\n  ENDIF.\nENDMODULE.",
+        "tier": "easy"
       },
       {
         "question": "What is MODIF ID and how does it relate to table control bugs?",
-        "hinglishExplanation": "MODIF ID ek group identifier hai jo screen fields ko group karta hai — phir LOOP AT SCREEN ke andar uss group ke fields ki properties (input/output/invisible) ek saath change kar sakte ho. Table control bug se directly related nahi hai, but ek common confusion hai: developer sochta hai MODIF ID table control rows control karta hai — nahi karta. Table control row sync hoti hai sirf LOOP AT ... WITH CONTROL se.",
+        "hinglishExplanation": "MODIF ID screen fields ko LOOP AT SCREEN ... WHERE GROUP = 'MOD' use karke batch attribute changes ke liye group karta hai. Yeh field-level properties jaise input-enabled ya hidden state control karta hai. Yeh Table Control row synchronization se related nahi hai — woh exclusively LOOP AT statement mein WITH CONTROL keyword ke through handle hota hai.",
         "interviewAnswer": "MODIF ID groups screen fields for batch attribute changes using LOOP AT SCREEN ... WHERE GROUP = 'MOD'. It controls field-level properties like input-enabled or hidden state. It is not related to Table Control row synchronization — that is handled exclusively by the WITH CONTROL keyword in the LOOP AT statement.",
         "realtimeExplanation": "MODIF ID ka use case: ek field readonly mode mein hona chahiye jab status 'POSTED' hai. LOOP AT SCREEN WHERE GROUP = 'GRP1' — screen-input = 0. Table control sync ke liye MODIF ID kabhi use mat karo.",
         "mistakes": "MODIF ID ko table control synchronization ke liye use karna — ye kaam nahi karta. LOOP AT SCREEN alag hai, LOOP AT lt_table WITH CONTROL alag hai — in dono ko mix mat karo.",
-        "codeExample": "\" MODIF ID use case — field enable/disable by group\nMODULE pbo_0100 OUTPUT.\n  LOOP AT SCREEN.\n    IF screen-group1 = 'GRP'.\n      IF lv_status = 'POSTED'.\n        screen-input = 0.    \" Read-only\n      ELSE.\n        screen-input = 1.    \" Editable\n      ENDIF.\n      MODIFY SCREEN.\n    ENDIF.\n  ENDLOOP.\nENDMODULE."
+        "codeExample": "\" MODIF ID use case — field enable/disable by group\nMODULE pbo_0100 OUTPUT.\n  LOOP AT SCREEN.\n    IF screen-group1 = 'GRP'.\n      IF lv_status = 'POSTED'.\n        screen-input = 0.    \" Read-only\n      ELSE.\n        screen-input = 1.    \" Editable\n      ENDIF.\n      MODIFY SCREEN.\n    ENDIF.\n  ENDLOOP.\nENDMODULE.",
+        "tier": "medium"
       },
       {
         "question": "How do you prevent duplicate data save in Module Pool?",
-        "hinglishExplanation": "PAI mein SAVE button press hone pe pehle check karo: kya yeh record already database mein hai? SELECT SINGLE karo primary key se. Agar found toh UPDATE karo, nahi toh INSERT karo. Ya phir MODIFY use karo jo automatically INSERT ya UPDATE decide karta hai. Duplicate check ke liye bhi ek flag rakho — lv_already_saved = abap_true — taaki user ne accidentally double-click kiya toh double save na ho.",
+        "hinglishExplanation": "Module Pool mein duplicate saves prevent karne ke liye, main ek flag variable use karta hoon jo pehle successful save ke baad true set hota hai. PAI mein, main save routine execute karne se pehle yeh flag check karta hoon. Database level pe, main INSERT se pehle primary key pe SELECT SINGLE use karta hoon — agar record exist karta hai, main bajaye iske UPDATE perform karta hoon, ya simply MODIFY statement use karta hoon jo dono cases handle karta hai.",
         "interviewAnswer": "To prevent duplicate saves in Module Pool, I use a flag variable that is set to true after the first successful save. In PAI, I check this flag before executing the save routine. For database level, I use SELECT SINGLE on the primary key before INSERT — if a record exists, I perform UPDATE instead, or simply use MODIFY statement which handles both cases.",
         "realtimeExplanation": "SAP users often double-click Save or press Enter twice quickly. Without a save-guard flag, the PAI module fires twice and duplicate database entries or errors occur. Simple lv_saved flag in PBO prevents this.",
         "mistakes": "Bas database MODIFY lagana aur assume karna ki duplicates nahi honge — MODIFY primary key ke basis pe kaam karta hai, but agar key hi wrong hai toh duplicate records ban sakte hain. Primary key validation pehle karo.",
-        "codeExample": "DATA: lv_saved TYPE abap_bool VALUE abap_false.\n\nMODULE pai_0100 INPUT.\n  CASE ok_code.\n    WHEN 'SAVE'.\n      CHECK lv_saved = abap_false.  \" Prevent double-save\n      PERFORM validate_data.\n      SELECT SINGLE * FROM ztable\n        WHERE key1 = ls_data-key1.\n      IF sy-subrc = 0.\n        UPDATE ztable FROM ls_data.\n      ELSE.\n        INSERT ztable FROM ls_data.\n      ENDIF.\n      lv_saved = abap_true.\n  ENDCASE.\nENDMODULE."
+        "codeExample": "DATA: lv_saved TYPE abap_bool VALUE abap_false.\n\nMODULE pai_0100 INPUT.\n  CASE ok_code.\n    WHEN 'SAVE'.\n      CHECK lv_saved = abap_false.  \" Prevent double-save\n      PERFORM validate_data.\n      SELECT SINGLE * FROM ztable\n        WHERE key1 = ls_data-key1.\n      IF sy-subrc = 0.\n        UPDATE ztable FROM ls_data.\n      ELSE.\n        INSERT ztable FROM ls_data.\n      ENDIF.\n      lv_saved = abap_true.\n  ENDCASE.\nENDMODULE.",
+        "tier": "medium"
       },
       {
         "question": "What is the impact of wrong LOOP INDEX in Table Control PAI?",
-        "hinglishExplanation": "Wrong index ka matlab: user ne row 7 mein data bhara, but internal table mein row 2 modify ho gayi. Ya row 7 empty save ho gayi. Yeh data integrity issue hai — inventory, finance data galat ho sakta hai. Production mein yeh silently hota hai — koi error nahi aata, sirf wrong data save hota hai. Tab pata chalta hai jab report run hoti hai ya audit hota hai.",
+        "hinglishExplanation": "Ek Table Control PAI mein incorrect LOOP INDEX wrong internal table row modify hone ka cause hota hai. User row 7 mein data enter karta hai but row 2 update hoti hai — yeh ek silent data corruption bug hai bina koi runtime error ke. Yeh typically data reconciliation ya audits ke dauran surface hota hai. Fix hamesha PBO aur PAI dono LOOP statements mein WITH CONTROL use karna hai.",
         "interviewAnswer": "An incorrect LOOP INDEX in a Table Control PAI causes the wrong internal table row to be modified. The user enters data in row 7 but row 2 gets updated — this is a silent data corruption bug with no runtime error. It typically surfaces during data reconciliation or audits. The fix is always to use WITH CONTROL in both PBO and PAI LOOP statements.",
         "realtimeExplanation": "Ek client ke yahan yeh bug 3 mahine tak undetected raha kyunki sirf scroll karne ke baad hota tha aur users small datasets ke saath kaam karte the. Audit ke time pata chala ki inventory counts mismatch kar rahe hain.",
         "mistakes": "Sochna ki sy-tabix always correct row track karta hai table control mein — nahi karta after scroll. WITH CONTROL keyword mandatory hai table control ke saath.",
-        "codeExample": "\" WRONG — sy-tabix unreliable after scroll\nMODULE pai_wrong INPUT.\n  LOOP AT lt_items INTO ls_item.\n    MOVE tc_menge TO ls_item-menge.\n    MODIFY lt_items FROM ls_item\n      INDEX sy-tabix.              \" WRONG after scroll!\n  ENDLOOP.\nENDMODULE.\n\n\" CORRECT — WITH CONTROL manages index\nMODULE pai_correct INPUT.\n  LOOP AT lt_items INTO ls_item\n    WITH CONTROL tc_items.         \" Correct index always\n    MOVE tc_menge TO ls_item-menge.\n    MODIFY lt_items FROM ls_item.  \" No INDEX needed\n  ENDLOOP.\nENDMODULE."
+        "codeExample": "\" WRONG — sy-tabix unreliable after scroll\nMODULE pai_wrong INPUT.\n  LOOP AT lt_items INTO ls_item.\n    MOVE tc_menge TO ls_item-menge.\n    MODIFY lt_items FROM ls_item\n      INDEX sy-tabix.              \" WRONG after scroll!\n  ENDLOOP.\nENDMODULE.\n\n\" CORRECT — WITH CONTROL manages index\nMODULE pai_correct INPUT.\n  LOOP AT lt_items INTO ls_item\n    WITH CONTROL tc_items.         \" Correct index always\n    MOVE tc_menge TO ls_item-menge.\n    MODIFY lt_items FROM ls_item.  \" No INDEX needed\n  ENDLOOP.\nENDMODULE.",
+        "tier": "medium"
       },
       {
         "question": "How do you handle a situation where table control shows blank rows after data load?",
-        "hinglishExplanation": "Blank rows ka matlab: internal table mein data hai but screen pe nahi dikh raha. Cause 1: PBO mein LOOP AT ... WITH CONTROL missing hai. Cause 2: Screen fields ka name internal table fields se match nahi karta — case sensitive nahi hai ABAP mein but typo ho sakta hai. Cause 3: Table control ka Lines property correctly set nahi hai — tc_items-lines = LINES( lt_items ) SET karna padta hai PBO mein.",
+        "hinglishExplanation": "Internal table mein data hone ke bawajud ek Table Control mein blank rows ke usually teen causes hote hain: PBO mein LOOP WITH CONTROL missing, screen aur internal table work area ke beech field name mismatch, ya table control Lines property set nahi hai. Main PBO mein tc_items-lines = lines( lt_items ) set karta hoon table control ko total row count inform karne ke liye.",
         "interviewAnswer": "Blank rows in a Table Control despite data in the internal table usually have three causes: missing LOOP WITH CONTROL in PBO, field name mismatch between the screen and internal table work area, or the table control Lines property not being set. I set tc_items-lines = lines( lt_items ) in PBO to inform the table control of the total row count.",
         "realtimeExplanation": "Ek ticket mein table control 0 rows dikh raha tha — tc_items-lines set hi nahi kiya tha. Screen pe table control blank dikhata tha even though 20 rows internal table mein thi. Ek line fix ne problem solve kiya.",
         "mistakes": "tc_name-lines set karna bhool jaana — table control ko pata hi nahi hota kitni rows hain, toh woh 0 rows display karta hai.",
-        "codeExample": "MODULE pbo_0200 OUTPUT.\n  \" Critical: Set total line count for table control\n  tc_items-lines = lines( lt_items ).\n\n  LOOP AT lt_items INTO ls_item\n    WITH CONTROL tc_items.\n    \" Screen fields auto-populated from ls_item\n    MOVE ls_item-matnr TO tc_matnr.\n    MOVE ls_item-menge TO tc_menge.\n    MOVE ls_item-meins TO tc_meins.\n  ENDLOOP.\nENDMODULE."
+        "codeExample": "MODULE pbo_0200 OUTPUT.\n  \" Critical: Set total line count for table control\n  tc_items-lines = lines( lt_items ).\n\n  LOOP AT lt_items INTO ls_item\n    WITH CONTROL tc_items.\n    \" Screen fields auto-populated from ls_item\n    MOVE ls_item-matnr TO tc_matnr.\n    MOVE ls_item-menge TO tc_menge.\n    MOVE ls_item-meins TO tc_meins.\n  ENDLOOP.\nENDMODULE.",
+        "tier": "advanced"
       },
       {
         "question": "How do you communicate a production bug fix to stakeholders?",
-        "hinglishExplanation": "Stakeholder communication simple rakhni chahiye — technical jargon avoid karo. Email ya Teams message mein likho: 'Problem: [kya hua], Impact: [kitne users affected], Root Cause: [simple explanation], Fix: [kya kiya], Status: [kab fix hoga ya hua]. Functional consultant ko samjhana: 'Table control mein scroll karne ke baad data galat row mein save ho raha tha — ab correct hai.' Developer jargon avoid karo — 'LOOP WITH CONTROL' stakeholder ke liye irrelevant hai.",
+        "hinglishExplanation": "Production bug communication ke liye, main structured format follow karta hoon: business terms mein problem statement, user impact, non-technical language mein root cause, applied fix, aur current status. For example — 'Goods receipt screen mein scroll karne ke baad, quantities incorrect line items mein save hue. Yeh aaj 3 users ko affect kiya. Underlying mapping issue fix ho gaya aur production mein transported hai. Saari previous incorrect entries verify karni hain.'",
         "interviewAnswer": "For production bug communication, I follow a structured format: Problem statement in business terms, user impact, root cause in non-technical language, fix applied, and current status. For example — 'After scrolling in the goods receipt screen, quantities were saved to incorrect line items. This affected 3 users today. The underlying mapping issue has been fixed and transported to production. All previous incorrect entries need to be verified.'",
         "realtimeExplanation": "Project manager ya business owner ko technical explanation nahi chahiye — unhe sirf impact aur resolution timeline chahiye. Technical details functional consultant ya lead ke saath share karo.",
         "mistakes": "Stakeholder ko yeh mat bolna: 'LOOP AT INTERNAL TABLE ka WITH CONTROL missing tha.' Bolna: 'Scroll karne ke baad screen aur database ke beech data mapping issue tha — fix ho gaya.'",
-        "codeExample": "\" No code needed for this — communication pattern:\n\" Subject: [RESOLVED] Goods Receipt Screen - Scroll Data Issue\n\"\n\" Hi Team,\n\" Problem : Data saving to wrong row after scroll\n\" Impact  : 3 users, 5 transactions affected today\n\" Fix     : Deployed to production at 3:30 PM\n\" Action  : Please verify the 5 affected GR documents\n\" Root    : Screen-to-table mapping corrected\n\"\n\" Regards, Dev Team"
+        "codeExample": "\" No code needed for this — communication pattern:\n\" Subject: [RESOLVED] Goods Receipt Screen - Scroll Data Issue\n\"\n\" Hi Team,\n\" Problem : Data saving to wrong row after scroll\n\" Impact  : 3 users, 5 transactions affected today\n\" Fix     : Deployed to production at 3:30 PM\n\" Action  : Please verify the 5 affected GR documents\n\" Root    : Screen-to-table mapping corrected\n\"\n\" Regards, Dev Team",
+        "tier": "advanced"
       }
     ]
   },
@@ -76,214 +151,455 @@
     "hinglishMasterExplanation": "Module Pool debugging ek systematic process hai. End-to-end samjhte hain:\n\nStep 1 — Debug mode activate karo:\nSAP command field mein `/h` type karo. Ek message aayega 'Debugging is switched on.' Ab har Enter ya function key press pe debugger open hoga.\n\nStep 2 — PBO debug karo:\nPBO module mein jaao. Dekho: SET PF-STATUS sahi call ho raha hai? AUTHORITY-CHECK pass ho raha hai ya fail? Internal table mein data populate ho raha hai? sy-subrc kya hai SELECT ke baad? Yahaan sabse common issue hai: SELECT mein wrong WHERE clause — toh data hi nahi aa raha.\n\nStep 3 — OKCODE inspect karo:\nPAI mein sabse pehla kaam: ok_code variable ka value dekho. User ne kaunsa button dabaya? 'SAVE' aaya? 'BACK' aaya? Ya kuch aur unexpected value? Agar empty string aa raha hai toh GUI Status mein function code assign nahi hua.\n\nStep 4 — SCREEN system table dekho:\nLOOP AT SCREEN karo debugger mein — har field ka naam, input flag (0=display, 1=input), invisible flag dekho. Agar koi field unexpectedly display mode mein hai, yahaan se pata chalega kyun.\n\nStep 5 — Table control debug:\nLOOP AT lt_items WITH CONTROL tc_items step karo. Dekho: tc_items-top_line (scroll position), tc_items-lines (total rows), sy-tabix (current row being processed). Scroll ke baad ye values confirm karo.\n\nStep 6 — Field validation trace:\nPAI mein validation ke through step karo. Kaunsa field fail kar raha hai? MESSAGE E issue ho raha hai? sy-msgno aur sy-msgv1 dekho.\n\nStep 7 — Database operations check:\nINSERT/UPDATE ke baad sy-subrc check karo. 0 = success, 4 = already exists (INSERT case), kuch aur = error. DB lock issues ke liye SM12 transaction.\n\nStep 8 — ABAP dump analysis:\nAgar dump aaya (SM21/ST22) toh error class, program name, screen number, module name note karo. Short dump clearly batata hai kahan issue tha.\n\nPro tip: /h ke alawa, source code mein BREAK-POINT statement likh sakte ho — execution automatically uss line pe rukegi. BREAK username (e.g., BREAK SANJAY) — sirf tumhara session rukta hai, baaki users affect nahi hote. Production mein kabhi BREAK lagana avoid karo.",
     "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'To debug a Module Pool issue end to end, I start by activating the ABAP debugger using /h in the SAP command field. In PBO, I step through to verify data loading — checking SELECT results, sy-subrc, and field population. In PAI, the first thing I inspect is the OKCODE variable to confirm which function code the user triggered. I then step through validation logic and database operations, checking sy-subrc after each DML statement. For table control issues specifically, I watch tc_name-top_line and sy-tabix to verify row synchronization. For field visibility issues, I use LOOP AT SCREEN in the debugger to inspect each field's input and invisible attributes. For dump-based issues, SM21 and ST22 provide the exact program, screen, and module where the failure occurred.'\n\nHinglish tip: 'Debug process answer mein steps bolne ka order dikhata hai ki tumhara systematic approach hai. Interviewer ek senior developer dhundh raha hai jo structured sochta hai — random try-and-error nahi karta. /h mention karna, OKCODE inspect karna, SCREEN table dekhna — yeh teen points clearly bolna enough hai.'",
     "codeExamples": "\" Debugging helper — watch these key variables in debugger\n\n\" Step 1: Activate debugger\n\" → Type '/h' in command field → Enter\n\n\" Step 2: PBO — check data load\nMODULE pbo_0100 OUTPUT.\n  SELECT SINGLE * FROM zcustom_tab\n    INTO ls_data\n    WHERE lifnr = gv_lifnr.\n  IF sy-subrc <> 0.              \" Watch sy-subrc in debugger\n    MESSAGE w001(zmsg).\n  ENDIF.\n  SET PF-STATUS 'ZSTATUS'.       \" Check in GUI Status SE41\nENDMODULE.\n\n\" Step 3: PAI — OKCODE first\nMODULE pai_0100 INPUT.\n  SAVE_OK_CODE ok_code.          \" Watch ok_code value in debugger\n  CLEAR ok_code.\n  CASE ok_code.                  \" Step through each WHEN\n    WHEN 'SAVE'.\n      PERFORM validate_and_save. \" Step into PERFORM\n    WHEN 'BACK' OR 'EXIT'.\n      SET SCREEN 0. LEAVE SCREEN.\n  ENDCASE.\nENDMODULE.\n\n\" Step 4: Check SCREEN table for field issues\nMODULE pbo_field_debug OUTPUT.\n  LOOP AT SCREEN.                \" Watch screen-name, screen-input\n    IF screen-name = 'ZFIELD1'.\n      screen-input = 1.          \" Set breakpoint here\n      MODIFY SCREEN.\n    ENDIF.\n  ENDLOOP.\nENDMODULE.",
+    "interviewScriptEnglish": "To debug a Module Pool issue end to end, I start by activating the ABAP debugger using /h in the SAP command field. In PBO, I step through to verify data loading — checking SELECT results, sy-subrc, and field population. In PAI, the first thing I inspect is the OKCODE variable to confirm which function code the user triggered. I then step through validation logic and database operations, checking sy-subrc after each DML statement. For table control issues specifically, I watch tc_name-top_line and sy-tabix to verify row synchronization. For field visibility issues, I use LOOP AT SCREEN in the debugger to inspect each field's input and invisible attributes. For dump-based issues, SM21 and ST22 provide the exact program, screen, and module where the failure occurred.",
+    "interviewScriptHinglish": "Module Pool issue end to end debug karne ke liye, main ABAP debugger ko SAP command field mein /h se activate karke start karta hoon. PBO mein, main step through karta hoon data loading verify karne ke liye — SELECT results, sy-subrc aur field population check karte hue. PAI mein, pehli cheez jo main inspect karta hoon woh OKCODE variable hai confirm karne ke liye ki user ne kaunsa function code trigger kiya. Phir main validation logic aur database operations step through karta hoon, har DML statement ke baad sy-subrc check karte hue. Table control issues ke liye specifically, main tc_name-top_line aur sy-tabix watch karta hoon row synchronization verify karne ke liye. Field visibility issues ke liye, main debugger mein LOOP AT SCREEN use karta hoon har field ke input aur invisible attributes inspect karne ke liye. Dump-based issues ke liye, SM21 aur ST22 exact program, screen aur module provide karte hain jahan failure hua.",
+    "commonMistakesSection": [
+      {
+        "mistake": "SELECT ke baad sy-subrc check karna bhool jaana — assume karna ki data aa gaya.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Always sy-subrc check karo aur NOT FOUND scenario handle karo."
+      },
+      {
+        "mistake": "BREAK-POINT (without username) production mein lagana — sab users ka execution wahan ruk jaata hai.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "BREAK username use karo ya development environment mein hi debug karo."
+      },
+      {
+        "mistake": "Puri PAI sequence blindly step karna jab pata hai ki issue save mein hai — targeted approach se time bachao.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Flow logic pehle dekho, phir targeted debug."
+      },
+      {
+        "mistake": "ST22 dump sirf system admin dekhta hai aur developer ko nahi batata — developer ko ST22 access maango ya SM21 event log dekho for context.",
+        "whyWrong": "Production impact: runtime dump visible in ST22.",
+        "correctApproach": "Use the correct approach as described in the deep-dive section."
+      }
+    ],
+    "wordByWordSamjho": [
+      {
+        "keyword": "/h",
+        "meaning": "Command field shortcut that turns on the ABAP debugger for the next dialog step"
+      },
+      {
+        "keyword": "MODULE pbo_0100 OUTPUT",
+        "meaning": "Breakpoint spot for verifying SELECT result and screen prep"
+      },
+      {
+        "keyword": "SELECT SINGLE",
+        "meaning": "Data load line — watch sy-subrc to confirm fetch success"
+      },
+      {
+        "keyword": "SY-SUBRC",
+        "meaning": "Return code system field — primary debugger watch variable"
+      },
+      {
+        "keyword": "MESSAGE w001(zmsg)",
+        "meaning": "Warning shown when fetch fails — debugger confirms it triggers"
+      },
+      {
+        "keyword": "SET PF-STATUS",
+        "meaning": "Validate that the SE41 status name resolves; missing status fails silently"
+      },
+      {
+        "keyword": "MODULE pai_0100 INPUT",
+        "meaning": "Breakpoint spot for OKCODE inspection"
+      },
+      {
+        "keyword": "SAVE_OK_CODE ok_code",
+        "meaning": "First variable to watch in PAI — confirms which button fired"
+      },
+      {
+        "keyword": "CASE ok_code",
+        "meaning": "Step-through structure to find which WHEN actually runs"
+      },
+      {
+        "keyword": "PERFORM validate_and_save",
+        "meaning": "Step-into call to dig deeper into save logic"
+      },
+      {
+        "keyword": "LOOP AT SCREEN",
+        "meaning": "Debug spot for dynamic field attribute issues"
+      },
+      {
+        "keyword": "screen-name / screen-input",
+        "meaning": "Watch variables to confirm field-level attribute changes"
+      }
+    ],
+    "quickRevisionNotes": "What: Module Pool debugging starts with /h in the command field, then watches PBO data load and PAI OKCODE before stepping into save logic.\n\nUsed for:\n- Reproducing user-reported issues in QA without touching production\n- Verifying SET PF-STATUS and SET TITLEBAR resolve correctly\n- Pinpointing wrong WHEN branch or stale ok_code\n\nKey syntax / tables / Tcodes:\n- /h activates debugger, SE80 set static breakpoint in PBO/PAI module\n- Watch SY-SUBRC, ok_code, SY-DYNNR, SY-TABIX, screen-name, screen-input\n- ST05 SQL trace, SAT runtime trace for deeper performance analysis\n\nInterview keyword: /h then watch ok_code — your first move in any module pool bug.",
     "followupAnswerBank": [
       {
         "question": "How do you debug a PBO module that is not loading data?",
-        "hinglishExplanation": "PBO mein data nahi aa raha — debugger mein /h lagao, PBO mein step karo. SELECT statement pe rukao. WHERE clause ki values dekho — gv_lifnr mein kya value hai? INITIAL hai? Agar INITIAL hai toh calling program ne value pass nahi ki. sy-subrc dekho SELECT ke baad — 4 hai toh record nahi mila database mein. SQL trace ST05 se actual query verify karo.",
+        "hinglishExplanation": "Data load nahi kar rahe ek PBO ko debug karne ke liye, main /h debugger activate karta hoon, PBO module mein step karta hoon, aur SELECT statement ke WHERE clause values inspect karta hoon. Main check karta hoon ki key variable INITIAL hai ya nahi, SELECT ke baad sy-subrc verify karta hoon, aur ST05 SQL trace use karta hoon confirm karne ke liye ki kya query actually database ko send ho rahi hai aur kya return karti hai.",
         "interviewAnswer": "To debug a PBO that is not loading data, I activate /h debugger, step into the PBO module, and inspect the SELECT statement's WHERE clause values. I check if the key variable is INITIAL, verify sy-subrc after the SELECT, and use ST05 SQL trace to confirm what query is actually being sent to the database and what it returns.",
         "realtimeExplanation": "Ek case mein gv_lifnr INITIAL tha — SET PARAMETER ID se value aani chahiye thi but GET PARAMETER ID statement PBO mein missing tha. Ek line addition se fix ho gaya.",
         "mistakes": "SELECT ke baad sy-subrc check karna bhool jaana — assume karna ki data aa gaya. Always sy-subrc check karo aur NOT FOUND scenario handle karo.",
-        "codeExample": "MODULE pbo_0100 OUTPUT.\n  \" Get parameter passed from calling program\n  GET PARAMETER ID 'LIF' FIELD gv_lifnr.\n\n  SELECT SINGLE * FROM lfa1\n    INTO ls_vendor\n    WHERE lifnr = gv_lifnr.\n\n  IF sy-subrc <> 0.              \" Breakpoint here in debug\n    MESSAGE w005(zmsg)\n      WITH gv_lifnr.\n  ENDIF.\nENDMODULE."
+        "codeExample": "MODULE pbo_0100 OUTPUT.\n  \" Get parameter passed from calling program\n  GET PARAMETER ID 'LIF' FIELD gv_lifnr.\n\n  SELECT SINGLE * FROM lfa1\n    INTO ls_vendor\n    WHERE lifnr = gv_lifnr.\n\n  IF sy-subrc <> 0.              \" Breakpoint here in debug\n    MESSAGE w005(zmsg)\n      WITH gv_lifnr.\n  ENDIF.\nENDMODULE.",
+        "tier": "easy"
       },
       {
         "question": "What is the difference between /h debugger and BREAK-POINT statement?",
-        "hinglishExplanation": "/h = global debug mode — is session mein har Enter pe debugger open hoga. Useful jab pata nahi kahan issue hai — step through sab kuch. BREAK-POINT = specific line pe debugger open hoga, baaki sab normal chalta hai. BREAK username = sirf uss user ke session mein breakpoint lagta hai — production mein safer hai agar absolutely zaruri ho. Lekin production mein BREAK-POINT kabhi mat lagao.",
+        "hinglishExplanation": "/h command current session ke liye debug mode activate karta hai — har Enter press debugger open karta hai. Source code mein BREAK-POINT execution ke dauran us specific line pe debugger open karta hai. BREAK username variant breakpoint ko sirf us user ke session tak restrict karta hai, jo shared environments mein safer hai. Practice mein, main initial investigation ke liye /h use karta hoon aur specific module ke targeted debugging ke liye BREAK-POINT.",
         "interviewAnswer": "The /h command activates debug mode for the current session — every Enter press opens the debugger. BREAK-POINT in source code opens the debugger at that specific line during execution. BREAK username variant restricts the breakpoint to only that user's session, which is safer in shared environments. In practice, I use /h for initial investigation and BREAK-POINT for targeted debugging of a specific module.",
         "realtimeExplanation": "Ek complex navigation issue mein — multiple screens ke beech — /h se step karna slow tha. Maine specific PAI module mein BREAK SANJAY lagaya aur directly wahan pahunch gaya. Efficient debugging.",
         "mistakes": "BREAK-POINT (without username) production mein lagana — sab users ka execution wahan ruk jaata hai. BREAK username use karo ya development environment mein hi debug karo.",
-        "codeExample": "\" /h debug — command field mein type karo\n\" All Enter presses → debugger opens\n\n\" BREAK-POINT — specific line pe debugger\nMODULE pai_0100 INPUT.\n  SAVE_OK_CODE ok_code.\n  BREAK-POINT.                   \" Debugger opens here for ALL users!\n  CASE ok_code.\n    WHEN 'SAVE'.\n      BREAK sanjay.              \" Only sanjay's session stops here\n      PERFORM validate_and_save.\n  ENDCASE.\nENDMODULE."
+        "codeExample": "\" /h debug — command field mein type karo\n\" All Enter presses → debugger opens\n\n\" BREAK-POINT — specific line pe debugger\nMODULE pai_0100 INPUT.\n  SAVE_OK_CODE ok_code.\n  BREAK-POINT.                   \" Debugger opens here for ALL users!\n  CASE ok_code.\n    WHEN 'SAVE'.\n      BREAK sanjay.              \" Only sanjay's session stops here\n      PERFORM validate_and_save.\n  ENDCASE.\nENDMODULE.",
+        "tier": "easy"
       },
       {
         "question": "How do you identify which PAI module is causing an issue?",
-        "hinglishExplanation": "Screen flow logic (SE51 → Flow Logic tab) mein dekho — PROCESS AFTER INPUT section mein kaun se modules listed hain. Har CALL MODULE statement ek PAI module call karta hai. /h debugger se step through karo — debugger batata hai kaunse module mein abhi execution hai (top bar mein module name dikhta hai). Fir specific module pe BREAK-POINT lagao.",
+        "hinglishExplanation": "Main SE51 mein navigate karta hoon aur screen ka Flow Logic dekhta hoon PROCESS AFTER INPUT section mein saare CALL MODULE statements identify karne ke liye. Phir /h debugger use karke, main PAI execution step karta hoon aur debugger toolbar mein current module name dikhata hai. Problematic module identify hone ke baad, main detailed inspection ke liye us specific module mein targeted BREAK-POINT set karta hoon.",
         "interviewAnswer": "I navigate to SE51 and view the screen's Flow Logic to identify all CALL MODULE statements in the PROCESS AFTER INPUT section. Then using /h debugger, I step through PAI execution and the debugger shows the current module name in the toolbar. Once I identify the problematic module, I set a targeted BREAK-POINT in that specific module for detailed inspection.",
         "realtimeExplanation": "Ek screen mein 5 PAI modules the — validation, authorization, save, navigate, audit log. Issue tha sirf save module mein. Flow logic dekha, seedha save module pe BREAK lagaya — time bachaya.",
         "mistakes": "Puri PAI sequence blindly step karna jab pata hai ki issue save mein hai — targeted approach se time bachao. Flow logic pehle dekho, phir targeted debug.",
-        "codeExample": "\" SE51 → Flow Logic → PROCESS AFTER INPUT\n\" CALL MODULE pai_validate.\n\" CALL MODULE pai_authorize.\n\" CALL MODULE pai_save.          ← Issue yahan suspect hai\n\" CALL MODULE pai_navigate.\n\n\" Targeted breakpoint in suspected module\nMODULE pai_save INPUT.\n  BREAK sanjay.                  \" Debug starts here directly\n  PERFORM do_save.\nENDMODULE."
+        "codeExample": "\" SE51 → Flow Logic → PROCESS AFTER INPUT\n\" CALL MODULE pai_validate.\n\" CALL MODULE pai_authorize.\n\" CALL MODULE pai_save.          ← Issue yahan suspect hai\n\" CALL MODULE pai_navigate.\n\n\" Targeted breakpoint in suspected module\nMODULE pai_save INPUT.\n  BREAK sanjay.                  \" Debug starts here directly\n  PERFORM do_save.\nENDMODULE.",
+        "tier": "easy"
       },
       {
         "question": "How do you debug an ABAP dump in a Module Pool screen?",
-        "hinglishExplanation": "ST22 transaction mein jaao — last dumps list milegi. Dump click karo. Short dump mein: Program name, Screen number, Module name, Line number — sab milega. Error category dekho: DATA_LENGTH_MISMATCH, MOVE_CAST_ERROR, etc. Source code extract ST22 mein hi milta hai dump ke time ka — exact line highlighted hoti hai. Wahan jaao, issue fix karo, transport karo.",
+        "hinglishExplanation": "Module Pool runtime dump ke liye, main short dump dekhne ke liye ST22 mein jaata hoon. Yeh exact program name, screen number, module name, aur code ki line dikhata hai jahaan exception occur hua. ST22 ke andar source code extract failing line highlight karta hai. Main isse identify karne ke liye use karta hoon ki yeh type conflict hai, null pointer access, ya termination cause karne wala unexpected field value hai.",
         "interviewAnswer": "For a Module Pool runtime dump, I go to ST22 to view the short dump. It shows the exact program name, screen number, module name, and line of code where the exception occurred. The source code extract within ST22 highlights the failing line. I use this to identify whether it is a type conflict, null pointer access, or an unexpected field value causing the termination.",
         "realtimeExplanation": "Ek dump tha TYPE_CONVERSION_FAILED — user ne alphanumeric value quantity field mein paste kar diya. PAI mein type check missing thi. Fix: CALL FUNCTION 'CHECK_INPUT' ya manual CONDENSE check add kiya.",
         "mistakes": "ST22 dump sirf system admin dekhta hai aur developer ko nahi batata — developer ko ST22 access maango ya SM21 event log dekho for context.",
-        "codeExample": "\" ST22 → Workbench Error → Select latest dump\n\" Dump Details:\n\" Runtime Error : FIELD_SYMBOL_NOT_ASSIGNED\n\" Program       : ZDEMO_MODULE_POOL\n\" Screen        : 0200\n\" Module        : PAI_0200\n\" Line          : 47  ← go to this line\n\n\" Fix: Assign field symbol before dereferencing\nMODULE pai_0200 INPUT.\n  ASSIGN lt_items[ sy-tabix ] TO <ls_item>.\n  IF <ls_item> IS ASSIGNED.       \" Check before use\n    <ls_item>-menge = tc_menge.\n  ENDIF.\nENDMODULE."
+        "codeExample": "\" ST22 → Workbench Error → Select latest dump\n\" Dump Details:\n\" Runtime Error : FIELD_SYMBOL_NOT_ASSIGNED\n\" Program       : ZDEMO_MODULE_POOL\n\" Screen        : 0200\n\" Module        : PAI_0200\n\" Line          : 47  ← go to this line\n\n\" Fix: Assign field symbol before dereferencing\nMODULE pai_0200 INPUT.\n  ASSIGN lt_items[ sy-tabix ] TO <ls_item>.\n  IF <ls_item> IS ASSIGNED.       \" Check before use\n    <ls_item>-menge = tc_menge.\n  ENDIF.\nENDMODULE.",
+        "tier": "medium"
       },
       {
         "question": "How do you trace navigation flow in a multi-screen Module Pool?",
-        "hinglishExplanation": "Navigation trace ke liye: PAI mein SET SCREEN ke ठीक pehle BREAK lagao. Debugger mein dekho: gv_next_screen variable kya value hai? 0 hai toh exit ho raha hai. 200 hai toh screen 200 pe jaayega. Agar unexpected screen pe ja raha hai toh yeh variable galat set ho raha hai. Another approach: MESSAGE I (information) use karo temporarily — 'Going to screen: 200' — display mode mein navigation trace karo bina debugger ke.",
+        "hinglishExplanation": "Multi-screen Module Pool mein navigation trace karne ke liye, main PAI mein SET SCREEN statement se thoda pehle breakpoint set karta hoon aur target screen variable inspect karta hoon. Alternatively, main temporarily navigation commands se pehle MESSAGE TYPE 'I' statements add karta hoon runtime pe next screen number display karne ke liye. Yeh identify karne mein help karta hai jahaan navigation unexpectedly redirect ho rahi hai.",
         "interviewAnswer": "To trace navigation in a multi-screen Module Pool, I set a breakpoint just before the SET SCREEN statement in PAI and inspect the target screen variable. Alternatively, I temporarily add MESSAGE TYPE 'I' statements before navigation commands to display the next screen number at runtime. This helps identify where navigation is being redirected unexpectedly.",
         "realtimeExplanation": "Ek case mein user ne Save dabaya but screen 300 pe jaana chahiye tha — woh screen 0 pe ja raha tha (exit). PAI mein CASE statement mein 'SAVE' WHEN clause missing thi aur default mein SET SCREEN 0 tha.",
         "mistakes": "Navigation debugging ke liye CALL SCREEN ki jagah SET SCREEN use karna — CALL SCREEN modal dialog kholti hai aur wapas aati hai. SET SCREEN + LEAVE SCREEN ek-way navigation hai. Dono ka different behavior hai.",
-        "codeExample": "\" Navigation debug — trace next screen\nMODULE pai_0100 INPUT.\n  SAVE_OK_CODE ok_code.\n  CASE ok_code.\n    WHEN 'SAVE'.\n      lv_next_screen = 300.      \" Watch this in debugger\n    WHEN 'NEXT'.\n      lv_next_screen = 200.\n    WHEN OTHERS.\n      lv_next_screen = 0.        \" Exit\n  ENDCASE.\n  SET SCREEN lv_next_screen.\n  LEAVE SCREEN.\nENDMODULE."
+        "codeExample": "\" Navigation debug — trace next screen\nMODULE pai_0100 INPUT.\n  SAVE_OK_CODE ok_code.\n  CASE ok_code.\n    WHEN 'SAVE'.\n      lv_next_screen = 300.      \" Watch this in debugger\n    WHEN 'NEXT'.\n      lv_next_screen = 200.\n    WHEN OTHERS.\n      lv_next_screen = 0.        \" Exit\n  ENDCASE.\n  SET SCREEN lv_next_screen.\n  LEAVE SCREEN.\nENDMODULE.",
+        "tier": "medium"
       },
       {
         "question": "How do you debug a field that is unexpectedly in display mode?",
-        "hinglishExplanation": "Field display mode mein unexpected hai — iska matlab koi code hai jo screen-input = 0 set kar raha hai. PBO mein LOOP AT SCREEN statement dekho. Debugger mein LOOP AT SCREEN step karo — jab screen-name tumhara field aaye tab rukao, screen-input ki value dekho, kaunsa code ne yeh 0 set kiya. MODIF ID check karo — koi condition galat evaluate ho rahi hai kya.",
+        "hinglishExplanation": "Agar ek field unexpectedly display mode mein hai, main PBO mein LOOP AT SCREEN block ke andar breakpoint set karta hoon. Jab debugger specific field entry pe rukta hai, main screen-input aur screen-invisible values inspect karta hoon. Main saari conditions check karta hoon jo is field ko modify karti hain — authorization results, status flags, MODIF ID conditions — yeh identify karne ke liye ki kaunsi logic incorrectly screen-input ko 0 set kar rahi hai.",
         "interviewAnswer": "If a field is unexpectedly in display mode, I set a breakpoint inside the LOOP AT SCREEN block in PBO. When the debugger stops on the specific field entry, I inspect screen-input and screen-invisible values. I check all conditions that modify this field — authorization results, status flags, MODIF ID conditions — to identify which logic is incorrectly setting screen-input to 0.",
         "realtimeExplanation": "Ek case mein Amount field readonly aa raha tha. PBO mein LOOP AT SCREEN mein ek IF lv_status = 'LOCKED' condition thi — lv_status galat LOCKED set ho raha tha kyunki SELECT mein wrong record aa raha tha.",
         "mistakes": "Seedha SE51 pe jaana aur screen field properties mein 'Output only' check karna — lekin agar woh set nahi hai aur phir bhi readonly aa raha hai toh LOOP AT SCREEN mein code hai. Dono jagah check karo.",
-        "codeExample": "MODULE pbo_0100 OUTPUT.\n  LOOP AT SCREEN.\n    IF screen-name = 'ZFIELD_AMT'.\n      \" Breakpoint here — inspect screen-input\n      IF lv_status = 'POSTED'.   \" Watch lv_status value\n        screen-input    = 0.     \" This makes it display-only\n        screen-invisible = 0.    \" Still visible\n      ELSE.\n        screen-input    = 1.     \" Editable\n      ENDIF.\n      MODIFY SCREEN.\n    ENDIF.\n  ENDLOOP.\nENDMODULE."
+        "codeExample": "MODULE pbo_0100 OUTPUT.\n  LOOP AT SCREEN.\n    IF screen-name = 'ZFIELD_AMT'.\n      \" Breakpoint here — inspect screen-input\n      IF lv_status = 'POSTED'.   \" Watch lv_status value\n        screen-input    = 0.     \" This makes it display-only\n        screen-invisible = 0.    \" Still visible\n      ELSE.\n        screen-input    = 1.     \" Editable\n      ENDIF.\n      MODIFY SCREEN.\n    ENDIF.\n  ENDLOOP.\nENDMODULE.",
+        "tier": "medium"
       },
       {
         "question": "What is ST05 and how do you use it for Module Pool debugging?",
-        "hinglishExplanation": "ST05 = SQL Trace. Isse pata chalta hai ki ABAP code ne database ko kaunsi queries bheji aur unka response kya aaya. Module Pool debug mein use: ST05 ON karo, apna transaction run karo, ST05 OFF karo, trace list dekho. Yahaan dikhega: SELECT statement ki exact WHERE clause, kitne records return hue, kitna time laga. Agar SELECT no records return kiya toh woh WHERE clause mein problem hai — debugger se already suspect kiya tha, ST05 se confirm karo.",
+        "hinglishExplanation": "ST05 SQL Performance Trace tool hai. Main isse problematic Module Pool transaction run karne se pehle activate karta hoon aur baad mein deactivate karta hoon. Trace har database call ko exact WHERE clause, returned records ki number, aur execution time ke saath dikhata hai. Yeh confirm karne mein help karta hai ki kya SELECT wrong filter values ki wajah se no data return kar raha hai ya missing indexes ki wajah se performance issues cause kar raha hai.",
         "interviewAnswer": "ST05 is the SQL Performance Trace tool. I activate it before running the problematic Module Pool transaction and deactivate it after. The trace shows every database call with the exact WHERE clause, number of records returned, and execution time. This helps confirm whether a SELECT is returning no data due to wrong filter values or is causing performance issues due to missing indexes.",
         "realtimeExplanation": "PBO mein data nahi aa raha tha. ST05 trace dikha ki SELECT WHERE WERKS = '' — WERKS field INITIAL tha. GET PARAMETER ID se value get karna fix tha. ST05 ne exact WHERE clause dikhaya jo debugger se clearly see karna mushkil tha.",
         "mistakes": "ST05 ON karna aur transaction run karna but trace filter nahi lagana — toh bahut saara data aata hai. Program name filter lagao: apna module pool program name specify karo trace filter mein.",
-        "codeExample": "\" ST05 Usage Steps:\n\" 1. Go to ST05\n\" 2. Click 'Activate Trace With Filter'\n\" 3. Set Program = ZDEMO_MODULE_POOL\n\" 4. Run your transaction, reproduce the issue\n\" 5. Go back to ST05 → Deactivate\n\" 6. Click 'Display Trace'\n\" 7. Look for SELECT with 0 records or high duration\n\n\" Trace output shows:\n\" SELECT * FROM ZCUSTOM WHERE LIFNR = ''\n\"   → 0 rows found   ← Problem identified!\n\" Fix: GET PARAMETER ID 'LIF' FIELD gv_lifnr\n\"   before the SELECT"
+        "codeExample": "\" ST05 Usage Steps:\n\" 1. Go to ST05\n\" 2. Click 'Activate Trace With Filter'\n\" 3. Set Program = ZDEMO_MODULE_POOL\n\" 4. Run your transaction, reproduce the issue\n\" 5. Go back to ST05 → Deactivate\n\" 6. Click 'Display Trace'\n\" 7. Look for SELECT with 0 records or high duration\n\n\" Trace output shows:\n\" SELECT * FROM ZCUSTOM WHERE LIFNR = ''\n\"   → 0 rows found   ← Problem identified!\n\" Fix: GET PARAMETER ID 'LIF' FIELD gv_lifnr\n\"   before the SELECT",
+        "tier": "advanced"
       },
       {
         "question": "How do you debug a Module Pool issue reported by an end user in production?",
-        "hinglishExplanation": "Production issue ka flow: 1. User se exact steps lo — kaunsa screen, kaunsa button, kya data enter kiya, kya error aaya ya kya galat hua. 2. Development system mein same data se reproduce karo. 3. /h se debug karo. 4. Root cause find karo. 5. Fix DEV mein karo. 6. QA mein verify karo. 7. Production transport karo. Production mein seedha debug karna avoid karo — BREAK-POINT lagana sabke liye disruptive hai. Agar absolutely zaruri ho toh BREAK username use karo.",
+        "hinglishExplanation": "Production Module Pool issue ke liye, main pehle user se exact reproduction steps gather karta hoon — screen number, input values, button pressed, aur observed error ya wrong behavior. Main same data ke saath development system mein scenario replicate karta hoon aur wahaan /h debugging activate karta hoon. Root cause identify aur fix karne ke baad, main QA ke through production mein transport karta hoon. Doosre users ko disrupt hone se prevent karne ke liye direct production debugging avoided hai.",
         "interviewAnswer": "For a production Module Pool issue, I first gather exact reproduction steps from the user — screen number, input values, button pressed, and the error or wrong behavior observed. I replicate the scenario in the development system with the same data and activate /h debugging there. After identifying and fixing the root cause, I transport through QA to production. Direct production debugging is avoided to prevent disrupting other users.",
         "realtimeExplanation": "User ne bola 'Save karne pe kuch nahi hota.' DEV mein same data se reproduce kiya — MESSAGE E aa raha tha but MESSAGE line inaccessible thi (PERFORM ke andar andar). Debugger step se pata chala MESSAGE E issue kar raha tha but catch nahi ho raha tha.",
         "mistakes": "Production mein BREAK-POINT lagana aur bhool jaana — sab users ka transaction uss line pe atak jaata hai. Emergency hoti hai. BREAK username lagao ya prod pe bilkul mat lagao.",
-        "codeExample": "\" Production debugging checklist:\n\" [ ] Get exact reproduction steps from user\n\" [ ] Check ST22 for any dumps at that time\n\" [ ] Check SM21 system log for errors\n\" [ ] Reproduce in DEV with same data\n\" [ ] Activate /h in DEV session only\n\" [ ] Step through PBO → PAI → validate → save\n\" [ ] Fix in DEV, transport QA, verify, transport PROD\n\" [ ] Inform user: resolved at [time], please verify"
+        "codeExample": "\" Production debugging checklist:\n\" [ ] Get exact reproduction steps from user\n\" [ ] Check ST22 for any dumps at that time\n\" [ ] Check SM21 system log for errors\n\" [ ] Reproduce in DEV with same data\n\" [ ] Activate /h in DEV session only\n\" [ ] Step through PBO → PAI → validate → save\n\" [ ] Fix in DEV, transport QA, verify, transport PROD\n\" [ ] Inform user: resolved at [time], please verify",
+        "tier": "advanced"
       }
     ]
   },
   "module-pool-022": {
-    "easyUnderstanding": "Simple words mein samjho: Module Pool mein sabse bada performance problem hai — SELECT statement PAI ke andar, jo har baar user kuch karta hai tab chalta hai. Jaise socho: user ek field mein type karta hai aur Enter dabata hai — PAI chalta hai. PAI ke andar SELECT hai jo 10,000 rows fetch karta hai. User phir Enter dabata hai — same SELECT phir chalta hai. Har Enter = database trip. Yeh galit tarika hai. Sahi tarika: PBO mein ek baar SELECT karo, data internal table mein rakho. PAI mein sirf internal table se kaam karo — database mat chhuwo. Screen open hote waqt ek baar fetch karo, baaki sab kaam memory mein karo.",
+    "easyUnderstanding": "Simple words mein samjho: Module Pool mein sabse bada performance problem hai — SELECT statement PAI ke andar, jo har baar user kuch karta hai tab chalta hai. Jaise socho: user ek field mein type karta hai aur Enter dabata hai — PAI chalta hai. PAI ke andar SELECT hai jo 10,000 rows fetch karta hai. User phir Enter dabata hai — same SELECT phir chalta hai. Har Enter = database trip. Yeh galat tarika hai. Sahi tarika: PBO mein ek baar SELECT karo, data internal table mein rakho. PAI mein sirf internal table se kaam karo — database mat chhuwo. Screen open hote waqt ek baar fetch karo, baaki sab kaam memory mein karo.",
     "hinglishMasterExplanation": "Module Pool mein performance problems kaafi specific hain. Detail mein samjhte hain:\n\nProblem 1 — SELECT in PAI:\nSabse common aur serious. User har Enter press karta hai toh PAI chalta hai. Agar PAI mein SELECT hai (especially bina proper WHERE clause ke), toh database hit ho raha hai bar bar. 50 users same screen use karein toh 50x database load. Fix: PBO mein ek baar SELECT karo, lt_data mein store karo. PAI mein READ TABLE lt_data use karo.\n\nProblem 2 — Full table scan:\nSELECT WITHOUT appropriate WHERE clause. SELECT * FROM mara WHERE mandt = sy-mandt — poori material table padh raha hai! Lakhon records. Fix: Primary key ya indexed fields mein WHERE clause use karo. MARA ke liye MATNR mandatory hai WHERE mein.\n\nProblem 3 — SELECT inside LOOP AT SCREEN:\nPBO mein LOOP AT SCREEN ke andar SELECT karna — LOOP AT SCREEN har visible field ke liye iterate karta hai. Agar 50 fields hain toh 50 database calls. Fix: SELECT LOOP se bahar, pehle karo.\n\nProblem 4 — Table Control without proper buffering:\nTable control mein 1000 rows — PBO mein LOOP AT lt_items har baar puri 1000 rows se iterate karta hai, har screen refresh pe. Fix: Pagination implement karo ya lazy loading — sirf visible rows load karo.\n\nProblem 5 — No SAP Buffering:\nTable jisme static data hai (like configuration) — bina buffering ke bar bar database hit hota hai. SPRO ya table definition mein buffering enable karo. Generic area buffer ya single record buffer.\n\nProblem 6 — Synchronous RFC calls in PAI:\nPAI mein RFC call lagana — RFC remote system se data fetch karta hai. Network latency add hoti hai har user interaction pe. Fix: PBO mein RFC data fetch karo ya asynchronous RFC use karo.\n\nPerformance testing approach: SM50 (process monitor) se dekho ki transaction kaunsa process use kar raha hai aur CPU/memory consumption kya hai. SE30 (ABAP runtime analysis) se identify karo kaunsa code section most time le raha hai. ST05 (SQL trace) se identify karo unnecessary SELECT calls.",
     "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'The most common performance problem in Module Pool is executing SELECT statements inside the PAI module. Since PAI fires on every user interaction — every Enter key press, every button click — a database call inside PAI means a database hit on every single user action. The correct approach is to fetch all required data in PBO into internal tables, and then in PAI only work with those internal tables using READ TABLE. Additionally, SELECT statements without proper WHERE clauses — especially full table scans on large tables like MARA or VBAK — cause severe performance issues. I also watch for SELECT statements inside LOOP AT SCREEN blocks, which multiply database calls by the number of visible screen fields.'\n\nHinglish tip: 'Performance question ka jawab concrete example ke saath do — SELECT in PAI ke saath SM50, SE30, ST05 mention karo. Yeh dikhata hai ki tum problem identify karna jaante ho — sirf theory nahi. Interviewer expect karta hai ki tum monitoring tools bhi jaante ho.'",
     "codeExamples": "\" WRONG: SELECT in PAI — performance killer\nMODULE pai_0100_wrong INPUT.\n  CASE ok_code.\n    WHEN 'VALIDATE'.\n      \" This hits DB on every Enter press!\n      SELECT * FROM mara\n        INTO TABLE lt_materials\n        WHERE mtart = lv_mtart.   \" Could return thousands of rows\n  ENDCASE.\nENDMODULE.\n\n\" CORRECT: Fetch in PBO, use in PAI\nMODULE pbo_0100 OUTPUT.\n  \" Fetch ONCE when screen loads\n  IF lt_materials IS INITIAL.    \" Only if not yet loaded\n    SELECT matnr maktx FROM mara\n      INNER JOIN makt ON mara~matnr = makt~matnr\n      INTO TABLE @lt_materials\n      WHERE mara~mtart = @lv_mtart\n        AND makt~spras = @sy-langu.\n  ENDIF.\nENDMODULE.\n\nMODULE pai_0100 INPUT.\n  CASE ok_code.\n    WHEN 'VALIDATE'.\n      \" Use internal table — no DB hit\n      READ TABLE lt_materials\n        WITH KEY matnr = lv_matnr\n        INTO ls_material.\n      IF sy-subrc <> 0.\n        MESSAGE e020(zmsg) WITH 'Invalid material'.\n      ENDIF.\n  ENDCASE.\nENDMODULE.",
+    "interviewScriptEnglish": "The most common performance problem in Module Pool is executing SELECT statements inside the PAI module. Since PAI fires on every user interaction — every Enter key press, every button click — a database call inside PAI means a database hit on every single user action. The correct approach is to fetch all required data in PBO into internal tables, and then in PAI only work with those internal tables using READ TABLE. Additionally, SELECT statements without proper WHERE clauses — especially full table scans on large tables like MARA or VBAK — cause severe performance issues. I also watch for SELECT statements inside LOOP AT SCREEN blocks, which multiply database calls by the number of visible screen fields.",
+    "interviewScriptHinglish": "Module Pool mein most common performance problem PAI module ke andar SELECT statements execute karna hai. Kyunki PAI har user interaction pe fire hota hai — har Enter key press, har button click — PAI ke andar database call matlab har single user action pe database hit. Correct approach yeh hai ki saara required data PBO mein internal tables mein fetch kar lo, aur phir PAI mein sirf un internal tables ke saath READ TABLE use karke kaam karo. Additionally, proper WHERE clauses ke bina SELECT statements — especially MARA ya VBAK jaisi large tables pe full table scans — severe performance issues cause karte hain. Main LOOP AT SCREEN blocks ke andar SELECT statements ke liye bhi watch karta hoon, jo database calls ko visible screen fields ki number se multiply kar dete hain.",
+    "commonMistakesSection": [
+      {
+        "mistake": "Performance issue report hone pe directly code change karna bina profiling ke — kabhi kabhi perceived slow screen actually fast hai but user ka network slow hai.",
+        "whyWrong": "Production impact: measurable runtime degradation in ST05/SAT traces.",
+        "correctApproach": "Always profile first."
+      },
+      {
+        "mistake": "Transactional table jaise VBAP ya EKKO pe buffering enable karna — data stale ho jaata hai aur users purana data dekhne lagte hain.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Sirf static/config tables ke liye buffering."
+      },
+      {
+        "mistake": "SELECT ..",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "INTO TABLE lt_data (bina UP TO clause ke) aur phir sab kuch table control mein show karna — memory overflow possible hai. Always limit dataset with WHERE clause or pagination."
+      },
+      {
+        "mistake": "AUTHORITY-CHECK ya SELECT ko LOOP AT SCREEN ke andar lagana — har field ke liye execute hota hai.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Pehle ek baar check karo, result variable mein rakho, loop mein variable use karo."
+      }
+    ],
+    "wordByWordSamjho": [
+      {
+        "keyword": "MODULE pai_0100_wrong INPUT",
+        "meaning": "Anti-pattern PAI containing a SELECT — DB hits on every Enter"
+      },
+      {
+        "keyword": "CASE ok_code",
+        "meaning": "Dispatcher whose WHEN clauses must not include unguarded SELECT"
+      },
+      {
+        "keyword": "WHEN 'VALIDATE'",
+        "meaning": "Branch that mistakenly hits the database on every keystroke"
+      },
+      {
+        "keyword": "SELECT ... INTO TABLE",
+        "meaning": "Heavy read that belongs in PBO, not PAI"
+      },
+      {
+        "keyword": "MODULE pbo_0100 OUTPUT",
+        "meaning": "Correct PBO that caches master data once when screen loads"
+      },
+      {
+        "keyword": "lt_materials IS INITIAL",
+        "meaning": "Guard ensuring fetch happens only on first PBO call"
+      },
+      {
+        "keyword": "INNER JOIN",
+        "meaning": "Combines MARA and MAKT to fetch description with code in one trip"
+      },
+      {
+        "keyword": "READ TABLE ... WITH KEY",
+        "meaning": "Cheap in-memory lookup used by PAI instead of SELECT"
+      },
+      {
+        "keyword": "MESSAGE e020(zmsg)",
+        "meaning": "Type E error raised when validation fails on cached data"
+      },
+      {
+        "keyword": "MODULE pai_0100 INPUT",
+        "meaning": "Correct PAI that uses cached internal table for validation"
+      }
+    ],
+    "quickRevisionNotes": "What: The classic Module Pool performance trap is SELECT inside PAI — fetch once in PBO and validate from internal tables in PAI.\n\nUsed for:\n- Fixing screens that get progressively slower as users press Enter\n- Code review checklist before performance test sign-off\n- Justifying caching patterns in PBO\n\nKey syntax / tables / Tcodes:\n- IF lt_cache IS INITIAL ... SELECT ... ENDIF inside PBO to fetch once\n- READ TABLE lt_cache WITH KEY ... TRANSPORTING NO FIELDS inside PAI\n- ST05 to prove the regression, SAT to confirm the fix\n\nInterview keyword: PAI fires on every Enter — keep SELECT out of it.",
     "followupAnswerBank": [
       {
         "question": "How do you identify performance issues in a Module Pool program?",
-        "hinglishExplanation": "Teen tools use karo: 1. SE30 (ABAP Runtime Analysis) — transaction run karo SE30 ke saath, runtime profile dekhte hain. Kaunsa statement kitna time le raha hai — clearly dikhta hai. 2. ST05 (SQL Trace) — database calls dekho, slow queries identify karo. 3. SM50/SM66 — process monitor mein dekho agar transaction CPU-heavy hai. User complaint pe: pehle reproduce karo, phir SE30 se profile karo.",
+        "hinglishExplanation": "Main SE30 ABAP runtime analysis ke liye use karta hoon yeh identify karne ke liye ki kaunse statements sabse zyada time consume karte hain. ST05 SQL trace slow ya repetitive database calls reveal karta hai. SM50 aur SM66 real-time process CPU consumption dikhate hain. Ek reported slow Module Pool screen ke liye, main pehle slowness reproduce karta hoon, phir bottleneck pinpoint karne ke liye SE30 profile capture karta hoon — chahe yeh ek SELECT, ek LOOP, ya ek PERFORM ho.",
         "interviewAnswer": "I use SE30 for ABAP runtime analysis to identify which statements consume the most time. ST05 SQL trace reveals slow or repetitive database calls. SM50 and SM66 show real-time process CPU consumption. For a reported slow Module Pool screen, I first reproduce the slowness, then capture a SE30 profile to pinpoint the bottleneck — whether it is a SELECT, a LOOP, or a PERFORM.",
         "realtimeExplanation": "Ek screen 8 seconds lag kar khul raha tha. SE30 profile dikha: ek SELECT * FROM vbap bina WHERE clause 7.8 seconds le raha tha. WHERE clause add kiya — screen 0.3 seconds mein khulne laga.",
         "mistakes": "Performance issue report hone pe directly code change karna bina profiling ke — kabhi kabhi perceived slow screen actually fast hai but user ka network slow hai. Always profile first.",
-        "codeExample": "\" SE30 Usage:\n\" 1. Transaction SE30\n\" 2. Enter your program name: ZDEMO_MODULE_POOL\n\" 3. Click 'Execute' → Run your transaction\n\" 4. Come back to SE30 → 'Evaluate'\n\" 5. Look for highest runtime consumers\n\n\" ST05 Usage:\n\" 1. Transaction ST05\n\" 2. 'Activate Trace'\n\" 3. Run transaction\n\" 4. 'Deactivate' → 'Display Trace'\n\" 5. Sort by Duration descending"
+        "codeExample": "\" SE30 Usage:\n\" 1. Transaction SE30\n\" 2. Enter your program name: ZDEMO_MODULE_POOL\n\" 3. Click 'Execute' → Run your transaction\n\" 4. Come back to SE30 → 'Evaluate'\n\" 5. Look for highest runtime consumers\n\n\" ST05 Usage:\n\" 1. Transaction ST05\n\" 2. 'Activate Trace'\n\" 3. Run transaction\n\" 4. 'Deactivate' → 'Display Trace'\n\" 5. Sort by Duration descending",
+        "tier": "easy"
       },
       {
         "question": "What is SAP table buffering and how does it help Module Pool performance?",
-        "hinglishExplanation": "SAP table buffering matlab: table ka data application server ki memory mein cache ho jaata hai. Jab SELECT karte ho buffered table se, database tak nahi jaata — directly memory se milta hai. Module Pool mein configuration tables (ztable jisme static data hai) ke liye buffering helpful hai. SE11 mein table mein jaao → Technical Settings → Buffering: 'Fully Buffered' ya 'Single Records Buffered'. Warning: frequently changing transactional data ke liye buffering mat karo — stale data milega.",
+        "hinglishExplanation": "SAP table buffering application server ki memory mein table data store karta hai. Subsequent SELECT calls memory se read karte hain bajaye database ke, drastically I/O reduce karte hue. Module Pool mein, main SE11 Technical Settings use karke small, static configuration tables ke liye buffering enable karta hoon. EKKO ya VBAK jaisi frequently changing transactional tables ke liye, buffering appropriate nahi hai kyunki yeh stale data reads lead kar sakta hai.",
         "interviewAnswer": "SAP table buffering stores table data in the application server's memory. Subsequent SELECT calls read from memory instead of the database, drastically reducing I/O. In Module Pool, I enable buffering for small, static configuration tables using SE11 Technical Settings. For frequently changing transactional tables like EKKO or VBAK, buffering is not appropriate as it can lead to stale data reads.",
         "realtimeExplanation": "Ek Module Pool mein plant-level configuration ztable tha — 50 records, rarely changed. PBO mein SELECT ho raha tha is table se bar bar. Buffering enable kiya — response time half ho gaya kyunki database call memory call ban gayi.",
         "mistakes": "Transactional table jaise VBAP ya EKKO pe buffering enable karna — data stale ho jaata hai aur users purana data dekhne lagte hain. Sirf static/config tables ke liye buffering.",
-        "codeExample": "\" SE11 → ZCUSTOM_CONFIG → Technical Settings\n\" Buffering Settings:\n\"   Buffering Not Allowed  ← Default\n\"   Buffering Allowed      ← Enable if needed\n\"   Buffering Activated    ← Fully buffered\n\n\" After enabling buffering — SELECT reads from memory\nSELECT SINGLE value1 value2\n  FROM zcustom_config        \" Buffered table\n  INTO (lv_val1, lv_val2)\n  WHERE param = lv_key.      \" Memory read, not DB I/O"
+        "codeExample": "\" SE11 → ZCUSTOM_CONFIG → Technical Settings\n\" Buffering Settings:\n\"   Buffering Not Allowed  ← Default\n\"   Buffering Allowed      ← Enable if needed\n\"   Buffering Activated    ← Fully buffered\n\n\" After enabling buffering — SELECT reads from memory\nSELECT SINGLE value1 value2\n  FROM zcustom_config        \" Buffered table\n  INTO (lv_val1, lv_val2)\n  WHERE param = lv_key.      \" Memory read, not DB I/O",
+        "tier": "easy"
       },
       {
         "question": "How do you handle large datasets in a Table Control without performance issues?",
-        "hinglishExplanation": "Table control mein 10,000 rows load karna — yeh performance killer hai. Screen pe ek baar sirf 10-15 rows dikhti hain. Toh 10,000 rows kyun load karein? Solution: Pagination. Page size define karo — e.g., 50 rows. PBO mein sirf current page ka data load karo. User 'Next Page' button dabata hai toh next 50 rows load karo. Ya filter lagao — user pehle filter criteria enter kare phir data load ho. Dialog selection screen ki tarah.",
+        "hinglishExplanation": "Ek Table Control mein hazaron rows load karna performance aur usability dono ko degrade karta hai. Main page size define karke pagination implement karta hoon aur SELECT mein OFFSET aur UP TO use karke PBO mein sirf current page ka data load karta hoon. Jab user next page pe navigate karta hai, PAI page counter update karta hai aur PBO next batch re-fetch karta hai. Alternatively, main dataset restrict karne ke liye table control se pehle search filter screen add karta hoon.",
         "interviewAnswer": "Loading thousands of rows into a Table Control degrades both performance and usability. I implement pagination by defining a page size and loading only the current page's data in PBO using OFFSET and UP TO in SELECT. When the user navigates to the next page, PAI updates the page counter and PBO re-fetches the next batch. Alternatively, I add a search filter screen before the table control to restrict the dataset.",
         "realtimeExplanation": "Ek screen mein 50,000 purchase orders load ho rahe the table control mein — screen timeout ho jaata tha. Pagination implement kiya: 100 rows per page, page navigation buttons. Screen instantly load hone lagi.",
         "mistakes": "SELECT ... INTO TABLE lt_data (bina UP TO clause ke) aur phir sab kuch table control mein show karna — memory overflow possible hai. Always limit dataset with WHERE clause or pagination.",
-        "codeExample": "CONSTANTS: gc_page_size TYPE i VALUE 50.\nDATA: gv_page TYPE i VALUE 1.\n\nMODULE pbo_0200 OUTPUT.\n  DATA(lv_offset) = ( gv_page - 1 ) * gc_page_size.\n\n  SELECT matnr maktx menge\n    FROM zitems\n    INTO TABLE @lt_items\n    WHERE bukrs = @gv_bukrs\n    ORDER BY matnr\n    OFFSET @lv_offset\n    UP TO @gc_page_size ROWS.\n\n  tc_items-lines = lines( lt_items ).\nENDMODULE."
+        "codeExample": "CONSTANTS: gc_page_size TYPE i VALUE 50.\nDATA: gv_page TYPE i VALUE 1.\n\nMODULE pbo_0200 OUTPUT.\n  DATA(lv_offset) = ( gv_page - 1 ) * gc_page_size.\n\n  SELECT matnr maktx menge\n    FROM zitems\n    INTO TABLE @lt_items\n    WHERE bukrs = @gv_bukrs\n    ORDER BY matnr\n    OFFSET @lv_offset\n    UP TO @gc_page_size ROWS.\n\n  tc_items-lines = lines( lt_items ).\nENDMODULE.",
+        "tier": "easy"
       },
       {
         "question": "What happens if you put a SELECT inside LOOP AT SCREEN in PBO?",
-        "hinglishExplanation": "LOOP AT SCREEN ek system internal table pe iterate karta hai — ek entry har screen field ke liye. Agar ek screen pe 60 fields hain toh LOOP AT SCREEN 60 baar iterate karta hai. Agar is loop ke andar SELECT hai toh 60 database calls — har PBO execution mein. User har screen refresh karega toh 60 calls. Yeh serious performance problem hai. Fix: SELECT pehle karo, result variable mein store karo, phir LOOP AT SCREEN mein condition check karo us variable se.",
+        "hinglishExplanation": "LOOP AT SCREEN screen ke har field ke liye ek baar iterate karta hai. Is loop ke andar ek SELECT har field ke liye ek database call execute karta hai — agar 60 fields hain, woh per PBO execution 60 database calls hain. Main hamesha LOOP AT SCREEN se bahar koi bhi data fetching move karta hoon aur results variables mein store karta hoon, phir loop ke andar attribute-setting conditions ke liye un variables ko reference karta hoon.",
         "interviewAnswer": "LOOP AT SCREEN iterates once for every field on the screen. A SELECT inside this loop executes a database call for each field — if there are 60 fields, that is 60 database calls per PBO execution. I always move any data fetching outside the LOOP AT SCREEN and store results in variables, then reference those variables inside the loop for attribute-setting conditions.",
         "realtimeExplanation": "Ek developer ne LOOP AT SCREEN ke andar AUTHORITY-CHECK lagaya tha — AUTHORITY-CHECK internally system calls karta hai. 80 fields wale screen pe yeh 80 authority checks per PBO. SM50 mein transaction 100% CPU le raha tha.",
         "mistakes": "AUTHORITY-CHECK ya SELECT ko LOOP AT SCREEN ke andar lagana — har field ke liye execute hota hai. Pehle ek baar check karo, result variable mein rakho, loop mein variable use karo.",
-        "codeExample": "\" WRONG: SELECT inside LOOP AT SCREEN\nMODULE pbo_0100_wrong OUTPUT.\n  LOOP AT SCREEN.\n    SELECT SINGLE * FROM zconfig   \" Executes 60+ times!\n      INTO ls_config WHERE ...\n    IF ls_config-value = 'X'.\n      screen-input = 0.\n      MODIFY SCREEN.\n    ENDIF.\n  ENDLOOP.\nENDMODULE.\n\n\" CORRECT: SELECT outside loop\nMODULE pbo_0100 OUTPUT.\n  SELECT SINGLE * FROM zconfig     \" Executes ONCE\n    INTO ls_config WHERE ...\n  LOOP AT SCREEN.\n    IF screen-name = 'ZFIELD1'\n      AND ls_config-value = 'X'.  \" Use pre-fetched result\n      screen-input = 0.\n      MODIFY SCREEN.\n    ENDIF.\n  ENDLOOP.\nENDMODULE."
+        "codeExample": "\" WRONG: SELECT inside LOOP AT SCREEN\nMODULE pbo_0100_wrong OUTPUT.\n  LOOP AT SCREEN.\n    SELECT SINGLE * FROM zconfig   \" Executes 60+ times!\n      INTO ls_config WHERE ...\n    IF ls_config-value = 'X'.\n      screen-input = 0.\n      MODIFY SCREEN.\n    ENDIF.\n  ENDLOOP.\nENDMODULE.\n\n\" CORRECT: SELECT outside loop\nMODULE pbo_0100 OUTPUT.\n  SELECT SINGLE * FROM zconfig     \" Executes ONCE\n    INTO ls_config WHERE ...\n  LOOP AT SCREEN.\n    IF screen-name = 'ZFIELD1'\n      AND ls_config-value = 'X'.  \" Use pre-fetched result\n      screen-input = 0.\n      MODIFY SCREEN.\n    ENDIF.\n  ENDLOOP.\nENDMODULE.",
+        "tier": "medium"
       },
       {
         "question": "How does unnecessary screen refresh cause performance issues in Module Pool?",
-        "hinglishExplanation": "Screen refresh matlab PBO phir se chalta hai — agar PBO mein heavy SELECT hai toh har refresh pe woh SELECT dobara chalta hai. Kab unnecessary refresh hota hai: PAI mein SET SCREEN current_screen + LEAVE SCREEN lagana — same screen pe wapas jaana matlab PBO dobara chalta hai. Fix: Agar data change nahi hua toh screen refresh avoid karo. Sirf jab actual data change ho tab refresh karo ya user explicitly Refresh kahe.",
+        "hinglishExplanation": "Module Pool mein, same screen pe return karna — SET SCREEN same_number + LEAVE SCREEN — PBO ko phir trigger karta hai. Agar PBO mein bina caching ke heavy database fetches hain, har screen refresh un fetches ko repeat karta hai. Main PBO mein IS INITIAL check ke saath global variables mein fetched data cache karta hoon — data sirf first load pe fetch hota hai, subsequent refreshes pe nahi.",
         "interviewAnswer": "In Module Pool, returning to the same screen — SET SCREEN same_number + LEAVE SCREEN — triggers PBO again. If PBO has heavy database fetches without caching, every screen refresh repeats those fetches. I cache fetched data in global variables with an IS INITIAL check in PBO — data is fetched only on the first load, not on subsequent refreshes.",
         "realtimeExplanation": "Ek screen mein user Refresh dabata tha — 5 second lag raha tha. PBO mein SELECT bina INITIAL check ke tha — har refresh pe full data fetch. INITIAL check add kiya — first load pe hi data fetch, phir cache se. Refresh instant ho gaya.",
         "mistakes": "PBO mein bina caching ke heavy SELECT — every screen redisplay fetches from database. IS INITIAL check add karo: IF lt_data IS INITIAL — tabhi fetch karo.",
-        "codeExample": "MODULE pbo_0100 OUTPUT.\n  \" Cache check — only fetch on first load\n  IF lt_materials IS INITIAL.    \" Prevent re-fetch on refresh\n    SELECT matnr maktx\n      FROM mara\n      INNER JOIN makt\n        ON mara~matnr = makt~matnr\n      INTO TABLE @lt_materials\n      WHERE mara~mtart = @lv_type\n        AND makt~spras = @sy-langu\n      UP TO 500 ROWS.\n  ENDIF.\n  SET PF-STATUS 'ZSTATUS'.\nENDMODULE."
+        "codeExample": "MODULE pbo_0100 OUTPUT.\n  \" Cache check — only fetch on first load\n  IF lt_materials IS INITIAL.    \" Prevent re-fetch on refresh\n    SELECT matnr maktx\n      FROM mara\n      INNER JOIN makt\n        ON mara~matnr = makt~matnr\n      INTO TABLE @lt_materials\n      WHERE mara~mtart = @lv_type\n        AND makt~spras = @sy-langu\n      UP TO 500 ROWS.\n  ENDIF.\n  SET PF-STATUS 'ZSTATUS'.\nENDMODULE.",
+        "tier": "medium"
       },
       {
         "question": "What is the impact of N+1 SELECT problem in Module Pool?",
-        "hinglishExplanation": "N+1 problem: pehle ek SELECT se N records fetch karo, phir LOOP mein har record ke liye ek aur SELECT karo — total N+1 database calls. Example: table control mein 100 purchase orders fetch kiya (1 SELECT). Phir LOOP mein har PO ke liye vendor name fetch kia (100 SELECTs). Total 101 database calls. Fix: JOIN use karo original SELECT mein — ek hi SELECT mein PO aur vendor data saath laao. Ya pehle sabhi vendor codes collect karo, phir ek SELECT WHERE IN range se sab vendor names laao.",
+        "hinglishExplanation": "Module Pool mein N+1 problem tab occur hota hai jab ek primary SELECT N rows fetch karta hai, aur phir har row ke liye LOOP ke andar ek secondary SELECT run karta hai. 100 rows ke liye, iska matlab 101 database calls. Fix hai original SELECT mein JOIN use karna, ya ek pass mein saare secondary keys collect karna aur phir FOR ALL ENTRIES ya IN range ke saath ek single SELECT use karna saara related data ek baar mein fetch karne ke liye.",
         "interviewAnswer": "The N+1 problem in Module Pool occurs when a primary SELECT fetches N rows, and then a secondary SELECT runs inside a LOOP for each row. For 100 rows, this means 101 database calls. The fix is to use a JOIN in the original SELECT, or to collect all secondary keys in one pass and then use a single SELECT with FOR ALL ENTRIES or IN range to fetch all related data at once.",
         "realtimeExplanation": "Table control mein 200 line items the. LOOP mein material description ke liye MAKT SELECT tha — 200 separate MAKT reads. FOR ALL ENTRIES implement kiya — ek MAKT SELECT sab descriptions ek baar mein. Response time 12 seconds se 0.8 seconds.",
         "mistakes": "LOOP mein SELECT lagana 'sirf ek extra field chahiye' ke liye — yeh N+1 problem hai. FOR ALL ENTRIES ya JOIN use karo.",
-        "codeExample": "\" WRONG: N+1 problem\nLOOP AT lt_items INTO ls_item.\n  SELECT SINGLE maktx FROM makt    \" N database calls!\n    INTO ls_item-maktx\n    WHERE matnr = ls_item-matnr\n      AND spras = sy-langu.\nENDLOOP.\n\n\" CORRECT: FOR ALL ENTRIES — one DB call\nIF lt_items IS NOT INITIAL.\n  SELECT matnr maktx FROM makt\n    INTO TABLE @lt_makt\n    FOR ALL ENTRIES IN @lt_items\n    WHERE matnr = @lt_items-matnr\n      AND spras = @sy-langu.\nENDIF."
+        "codeExample": "\" WRONG: N+1 problem\nLOOP AT lt_items INTO ls_item.\n  SELECT SINGLE maktx FROM makt    \" N database calls!\n    INTO ls_item-maktx\n    WHERE matnr = ls_item-matnr\n      AND spras = sy-langu.\nENDLOOP.\n\n\" CORRECT: FOR ALL ENTRIES — one DB call\nIF lt_items IS NOT INITIAL.\n  SELECT matnr maktx FROM makt\n    INTO TABLE @lt_makt\n    FOR ALL ENTRIES IN @lt_items\n    WHERE matnr = @lt_items-matnr\n      AND spras = @sy-langu.\nENDIF.",
+        "tier": "medium"
       },
       {
         "question": "How do you optimize a slow Module Pool transaction for end users?",
-        "hinglishExplanation": "Optimization steps: 1. SE30 se profile karo — kahan time ja raha hai. 2. SQL trace ST05 se unnecessary SELECT identify karo. 3. SELECT mein proper WHERE clause lagao. 4. PBO mein ek baar data fetch karo, PAI mein internal table use karo. 5. FOR ALL ENTRIES ya JOIN use karo N+1 solve karne ke liye. 6. Configuration tables pe buffering enable karo. 7. Table control mein pagination lagao bade datasets ke liye. 8. Frequently accessed data ke liye global variable caching.",
+        "hinglishExplanation": "Slow Module Pool transaction ke liye mera optimization approach ek structured sequence follow karta hai: pehle SE30 use karke profile karo, bottlenecks identify karo, phir targeted fixes apply karo. Common fixes mein PAI se PBO mein SELECTs move karna, indexed fields ke saath proper WHERE clauses add karna, N+1 loops ko FOR ALL ENTRIES ya JOINs se replace karna, static configuration tables ke liye table buffering enable karna, aur large table control datasets ke liye pagination implement karna include hain.",
         "interviewAnswer": "My optimization approach for a slow Module Pool transaction follows a structured sequence: profile first using SE30, identify bottlenecks, then apply targeted fixes. Common fixes include moving SELECTs from PAI to PBO, adding proper WHERE clauses with indexed fields, replacing N+1 loops with FOR ALL ENTRIES or JOINs, enabling table buffering for static configuration tables, and implementing pagination for large table control datasets.",
         "realtimeExplanation": "Ek 15-second screen ko 1.5 seconds mein laya: teen changes — SELECT PAI se PBO move kiya, N+1 loop FOR ALL ENTRIES se replace kiya, aur config table pe buffering enable kiya. Koi UI change nahi, sirf data fetch logic optimize kiya.",
         "mistakes": "Optimization ke naam pe unnecessary indexes banana — index maintenance overhead add hota hai. Pehle proper WHERE clause lagao existing indexes pe, phir agar zaruri ho toh naya index consider karo DBA se coordinate karke.",
-        "codeExample": "\" Optimization checklist in code:\n\n\" 1. PBO: Fetch once with proper WHERE\nMODULE pbo_0100 OUTPUT.\n  IF lt_data IS INITIAL.          \" Cache check\n    SELECT vbeln posnr matnr menge  \" Select only needed fields\n      FROM vbap\n      INTO TABLE @lt_data\n      WHERE vbeln = @gv_vbeln.    \" Primary key — fast\n  ENDIF.\nENDMODULE.\n\n\" 2. PAI: Internal table — no DB\nMODULE pai_0100 INPUT.\n  READ TABLE lt_data\n    WITH KEY matnr = lv_matnr\n    INTO ls_data\n    BINARY SEARCH.                \" Sort lt_data in PBO first\nENDMODULE."
+        "codeExample": "\" Optimization checklist in code:\n\n\" 1. PBO: Fetch once with proper WHERE\nMODULE pbo_0100 OUTPUT.\n  IF lt_data IS INITIAL.          \" Cache check\n    SELECT vbeln posnr matnr menge  \" Select only needed fields\n      FROM vbap\n      INTO TABLE @lt_data\n      WHERE vbeln = @gv_vbeln.    \" Primary key — fast\n  ENDIF.\nENDMODULE.\n\n\" 2. PAI: Internal table — no DB\nMODULE pai_0100 INPUT.\n  READ TABLE lt_data\n    WITH KEY matnr = lv_matnr\n    INTO ls_data\n    BINARY SEARCH.                \" Sort lt_data in PBO first\nENDMODULE.",
+        "tier": "advanced"
       },
       {
         "question": "What is the role of SUPPRESS DIALOG in Module Pool performance?",
-        "hinglishExplanation": "SUPPRESS DIALOG ek screen ko completely skip karta hai — us screen ka PBO aur dialog run hi nahi hota, seedha next screen pe chala jaata hai. Performance benefit: agar koi screen sirf data pass karne ke liye use ho rahi thi (koi user interaction nahi), SUPPRESS DIALOG se woh screen rendering cost save hoti hai. Use case: multi-step module pool mein step 2 screen conditional hai — agar condition false hai toh skip karo SUPPRESS DIALOG se.",
+        "hinglishExplanation": "SUPPRESS DIALOG current screen ka display aur PBO processing skip karta hai, sequence mein directly next screen pe jump karta hai. Yeh tab useful hai jab ek screen actual user interaction ke bina conditional routing point ke roop mein serve karta hai. Unnecessary screens suppress karke, hum un screens ke liye screen rendering, PBO data fetch, aur GUI status setup ka overhead avoid karte hain jinhe user dekhne ki zarurat nahi hai.",
         "interviewAnswer": "SUPPRESS DIALOG skips the current screen's display and PBO processing, jumping directly to the next screen in the sequence. This is useful when a screen serves as a conditional routing point without actual user interaction. By suppressing unnecessary screens, we avoid the overhead of screen rendering, PBO data fetch, and GUI status setup for screens the user does not need to see.",
         "realtimeExplanation": "Ek module pool mein screen 200 sirf ek decision screen thi — data check karo, phir screen 300 ya 400 pe jaao. Koi user input nahi tha screen 200 pe. SUPPRESS DIALOG use kiya — screen 200 invisible ho gayi, directly 300 ya 400 pe jump. User experience aur performance dono improve hua.",
         "mistakes": "SUPPRESS DIALOG use karna ek screen pe jo actually user input leta hai — woh input skip ho jaata hai. Sirf non-interactive routing screens ke liye use karo.",
-        "codeExample": "MODULE pbo_0200 OUTPUT.\n  \" Skip this screen if user is admin\n  IF gv_user_role = 'ADMIN'.\n    SUPPRESS DIALOG.               \" Skip screen 200 entirely\n    SET SCREEN 300.                \" Jump to admin screen\n    LEAVE SCREEN.\n  ENDIF.\n  \" Normal users see screen 200\n  SET PF-STATUS 'STATUS_STD'.\nENDMODULE."
+        "codeExample": "MODULE pbo_0200 OUTPUT.\n  \" Skip this screen if user is admin\n  IF gv_user_role = 'ADMIN'.\n    SUPPRESS DIALOG.               \" Skip screen 200 entirely\n    SET SCREEN 300.                \" Jump to admin screen\n    LEAVE SCREEN.\n  ENDIF.\n  \" Normal users see screen 200\n  SET PF-STATUS 'STATUS_STD'.\nENDMODULE.",
+        "tier": "advanced"
       }
     ]
   },
   "module-pool-023": {
-    "easyUnderstanding": "Simple words mein samjho: Module Pool mein authorization check do jagah lagani padti hai — PBO mein aur PAI mein. PBO check kyu: agar user ko yeh screen dekhne ka right nahi hai toh screen display hi mat karo — PBO mein AUTHORITY-CHECK lagao. Agar fail hua toh MESSAGE E do aur SET SCREEN 0 karo (exit). PAI check kyu: agar koi user ne URL ya shortcut se directly PAI trigger kar diya bina screen pe aaye, aur save ka access nahi hai — toh PAI mein bhi check lagao save karne se pehle. Dono checks must hain — sirf ek lagana security hole hai.",
+    "easyUnderstanding": "Simple words mein samjho: Module Pool mein authorization check do jagah lagani padti hai — PBO mein aur PAI mein, dono. PBO check kyu: agar user ko yeh screen dekhne ka right nahi hai toh screen display hi mat karo — PBO mein AUTHORITY-CHECK OBJECT 'Z_CUSTOM' ID 'ACTVT' FIELD '03' lagao. Agar sy-subrc != 0 hua toh MESSAGE E do aur SET SCREEN 0 + LEAVE SCREEN se exit karo. PAI check kyu: SAVE button click hone pe alag se SAVE activity ('01') check karo — display rights ho sakta hai but save nahi. Table control mein har row pe alag se row-level check karo (jaise WERKS, BUKRS field ke saath) — warna user ek plant ka access leke sab plants ka data save kar sakta hai. Dono jagah checks must hain — sirf ek lagana security hole hai aur audit fail kar deta hai. Authorization error aaye toh user SU53 run kare — last failed object aur missing field dikha deta hai, Basis team PFCG mein add kar deti hai.",
     "hinglishMasterExplanation": "Module Pool authorization issues detail mein samjhate hain:\n\nSAP Authorization framework: AUTHORITY-CHECK OBJECT 'object_name' ID 'field_name' FIELD value. Agar sy-subrc = 0 hai toh authorized, 4 hai toh not authorized.\n\nIssue 1 — PBO check missing:\nDeveloper ne sirf PAI mein check lagaya — screen toh display ho jaati hai. User sensitive data dekh leta hai (customer credit limit, salary info) even though save nahi kar sakta. Fix: PBO mein check lagao. Fail pe MESSAGE E do aur SET SCREEN 0 LEAVE SCREEN.\n\nIssue 2 — PAI check missing:\nDeveloper ne sirf PBO mein check lagaya. Edge case: power user ne previous session ka URL ya transaction replay kiya aur directly PAI trigger kiya (technically complex but possible). Ya developer testing ke waqt screen flow bypass kiya. Agar PAI mein check nahi hai toh unauthorized save possible hai. Fix: PAI mein bhi check lagao SAVE logic se pehle.\n\nIssue 3 — Wrong authorization object:\nSAP mein standard authorization objects hain: M_MSEG_BWA (goods movement), V_VBAK_AAT (sales order), etc. Developer ne custom object banaya jo properly configured nahi tha PFCG mein — sab users ko access de diya accidentally. Fix: Standard SAP objects use karo jahan possible.\n\nIssue 4 — Authorization bypass through Table Control:\nTable control mein har row ke liye authorization check nahi kiya — sirf header check kiya. Koi row-level restriction nahi thi. User sabhi plants ka data dekh sakta tha even though sirf plant 1000 ka access tha. Fix: LOOP AT lt_items mein AUTHORITY-CHECK WERKS field ke saath.\n\nIssue 5 — PFCG role mein T-code missing:\nModule pool ka T-code SE93 mein create hua, but PFCG role mein add karna bhool gaye. Users ko 'No authorization' error aata hai even though authorization object sahi hai. Fix: PFCG mein role open karo, Menu tab mein T-code add karo, role transport karo.\n\nSU53 tool: Agar user ko authorization error aata hai, user SU53 run kare — last failed authorization check ka detail dikhata hai. Kaunsa object, kaunsi field, kaunsi value missing thi — clearly dikhta hai. Development team ko SU53 screenshot do — directly pata chalega kya add karna hai PFCG mein.",
     "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'In Module Pool programming, authorization must be checked in both PBO and PAI modules. The PBO check prevents unauthorized users from even viewing the screen — if AUTHORITY-CHECK fails in PBO, I issue a message and immediately exit using SET SCREEN 0 followed by LEAVE SCREEN. The PAI check prevents unauthorized save or action execution — checked before any DML or critical logic. Using only one check is a security gap. For diagnosing authorization issues, SU53 is the go-to tool — it shows the exact authorization object, field, and value that the last check failed on, which helps the Basis team add the correct values in PFCG.'\n\nHinglish tip: 'Authorization question mein PBO AND PAI — dono jagah — yeh point clearly bolna zaroori hai. Ek jagah bolne se interviewer samjhega ki tumne real scenarios mein authorization implement kiya hai, sirf theory nahi padhi. SU53 mention karna shows troubleshooting experience.'",
     "codeExamples": "\" Authorization check in PBO — prevent screen display\nMODULE pbo_0100 OUTPUT.\n  \" Check authorization before showing screen\n  AUTHORITY-CHECK OBJECT 'Z_CUSTOM'\n    ID 'ACTVT' FIELD '03'         \" 03 = Display\n    ID 'WERKS' FIELD gv_werks.\n\n  IF sy-subrc <> 0.\n    MESSAGE e001(zmsg)\n      WITH 'No display authorization for plant' gv_werks.\n    SET SCREEN 0.\n    LEAVE SCREEN.\n  ENDIF.\n\n  SET PF-STATUS 'ZSTATUS'.\n  SET TITLEBAR 'ZTITLE'.\nENDMODULE.\n\n\" Authorization check in PAI — prevent unauthorized save\nMODULE pai_0100 INPUT.\n  SAVE_OK_CODE ok_code.\n  CLEAR ok_code.\n\n  CASE ok_code.\n    WHEN 'SAVE'.\n      \" Check SAVE authorization before any DML\n      AUTHORITY-CHECK OBJECT 'Z_CUSTOM'\n        ID 'ACTVT' FIELD '01'     \" 01 = Create/Save\n        ID 'WERKS' FIELD gv_werks.\n\n      IF sy-subrc <> 0.\n        MESSAGE e002(zmsg)\n          WITH 'No save authorization'.\n        RETURN.                   \" Stop here, no save\n      ENDIF.\n\n      PERFORM validate_and_save.  \" Only if authorized\n\n    WHEN 'BACK' OR 'EXIT'.\n      SET SCREEN 0. LEAVE SCREEN.\n  ENDCASE.\nENDMODULE.",
+    "interviewScriptEnglish": "In Module Pool programming, authorization must be checked in both PBO and PAI modules. The PBO check prevents unauthorized users from even viewing the screen — if AUTHORITY-CHECK fails in PBO, I issue a message and immediately exit using SET SCREEN 0 followed by LEAVE SCREEN. The PAI check prevents unauthorized save or action execution — checked before any DML or critical logic. Using only one check is a security gap. For diagnosing authorization issues, SU53 is the go-to tool — it shows the exact authorization object, field, and value that the last check failed on, which helps the Basis team add the correct values in PFCG.",
+    "interviewScriptHinglish": "Module Pool programming mein authorization PBO aur PAI dono modules mein check honi chahiye. PBO check unauthorized users ko screen tak view karne se rokti hai — agar PBO mein AUTHORITY-CHECK fail hota hai, main message issue karta hoon aur SET SCREEN 0 ke baad LEAVE SCREEN use karke immediately exit karta hoon. PAI check unauthorized save ya action execution rokta hai — kisi bhi DML ya critical logic se pehle check hota hai. Sirf ek check use karna security gap hai. Authorization issues diagnose karne ke liye, SU53 go-to tool hai — yeh exact authorization object, field aur value dikhata hai jis pe last check fail hua, jo Basis team ko PFCG mein correct values add karne mein help karta hai.",
+    "commonMistakesSection": [
+      {
+        "mistake": "Authorization issue pe seedha PFCG kholna aur random values add karna — SU53 pehle dekho, exact requirement pata karo, phir targeted fix karo.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Use the correct approach as described in the deep-dive section."
+      },
+      {
+        "mistake": "PBO mein ACTVT = '02' (change) check karna display ke liye — display-only users screen hi nahi dekh paate.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "PBO mein '03' (display) check karo, PAI save mein '02' check karo."
+      },
+      {
+        "mistake": "Sochna ki 'PBO check hai toh PAI mein need nahi' — CALL TRANSACTION SKIP FIRST SCREEN, GUI scripting, ya transaction recorder se PBO bypass possible hai.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Dono check mandatory hain."
+      },
+      {
+        "mistake": "Authorization object banaya but PFCG mein Add karna bhool gaye — users ko object ata hi nahi SU53 mein toh ya toh blank access milti hai ya complete denial.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "PFCG role mein object manually add karna zaroori hai."
+      }
+    ],
+    "wordByWordSamjho": [
+      {
+        "keyword": "MODULE pbo_0100 OUTPUT",
+        "meaning": "PBO block where display-level authorization is enforced"
+      },
+      {
+        "keyword": "AUTHORITY-CHECK OBJECT",
+        "meaning": "Standard ABAP statement that evaluates a user's authorization"
+      },
+      {
+        "keyword": "ID 'ACTVT' FIELD '03'",
+        "meaning": "Activity field — 03 means Display"
+      },
+      {
+        "keyword": "ID 'WERKS' FIELD gv_werks",
+        "meaning": "Plant-level authorization scope"
+      },
+      {
+        "keyword": "SY-SUBRC",
+        "meaning": "Return code from AUTHORITY-CHECK — non-zero means denied"
+      },
+      {
+        "keyword": "MESSAGE e001(zmsg)",
+        "meaning": "Type E error informing the user about missing authorization"
+      },
+      {
+        "keyword": "SET SCREEN 0 + LEAVE SCREEN",
+        "meaning": "Hard exit when auth denied — screen never displays data"
+      },
+      {
+        "keyword": "SET PF-STATUS / SET TITLEBAR",
+        "meaning": "Runs only if authorization passed — otherwise toolbar is irrelevant"
+      },
+      {
+        "keyword": "MODULE pai_0100 INPUT",
+        "meaning": "PAI block where activity-level (Save) authorization is enforced"
+      },
+      {
+        "keyword": "ID 'ACTVT' FIELD '01'",
+        "meaning": "Activity 01 — Create / Save authorization"
+      },
+      {
+        "keyword": "RETURN",
+        "meaning": "Exits the WHEN branch when SAVE auth denied so MODIFY never runs"
+      },
+      {
+        "keyword": "PERFORM validate_and_save",
+        "meaning": "Routed save logic that only executes when both PBO and PAI checks pass"
+      }
+    ],
+    "quickRevisionNotes": "What: Module Pool authorization must run twice — in PBO to gate display, in PAI to gate save and critical actions.\n\nUsed for:\n- Protecting sensitive plant-, company code-, or activity-level data\n- Passing SOX and access audits on custom Z transactions\n- Avoiding the classic 'screen loaded but save denied' bad UX\n\nKey syntax / tables / Tcodes:\n- AUTHORITY-CHECK OBJECT 'Z_OBJ' ID 'ACTVT' FIELD '03'/'01'\n- SU21 to define Z auth object, PFCG to assign in role, SU53 to debug\n- Exit pattern: MESSAGE E + SET SCREEN 0 + LEAVE SCREEN on PBO denial\n\nInterview keyword: Check twice — once before the screen shows, once before the save runs.",
     "followupAnswerBank": [
       {
         "question": "What is SU53 and when do you use it?",
-        "hinglishExplanation": "SU53 = Authorization check analysis tool. Jab user ko 'No authorization' error aata hai, user SU53 run karta hai — yeh last failed authorization check ki details dikhata hai. Kaunsa authorization object check fail hua, kaunsi field value missing thi, kaunsi value user ke pass thi. Development team ya Basis team ko yeh screenshot do — exactly pata chalega PFCG mein kya add karna hai. Yeh tool bilkul pehle use karo authorization issues mein — manual guessing se time waste mat karo.",
+        "hinglishExplanation": "SU53 ek user session ke liye last failed AUTHORITY-CHECK ki details display karta hai — exact authorization object, specific field, aur jo values checked hue versus jo user actually rakhta hai. Jab ek user Module Pool screen pe authorization error report karta hai, main unhe error ke turant baad SU53 run karne aur screenshot share karne ke liye kehta hoon. Yeh mujhe exactly batata hai kaunse authorization object aur field values unke PFCG role mein add karne hain.",
         "interviewAnswer": "SU53 displays the details of the last failed AUTHORITY-CHECK for a user session — the exact authorization object, the specific field, and the values that were checked versus what the user actually has. When a user reports an authorization error on a Module Pool screen, I ask them to run SU53 immediately after the error and share the screenshot. This tells me exactly which authorization object and field values need to be added to their PFCG role.",
         "realtimeExplanation": "User ne bola 'Mujhe screen nahi khulee, authorization error aaya.' SU53 screenshot mein dikha: Object Z_CUSTOM, Field WERKS, Required '2000', User has '1000' only. PFCG mein plant 2000 add kiya — problem solved in 5 minutes.",
         "mistakes": "Authorization issue pe seedha PFCG kholna aur random values add karna — SU53 pehle dekho, exact requirement pata karo, phir targeted fix karo.",
-        "codeExample": "\" SU53 steps for user:\n\" 1. Get authorization error on Module Pool screen\n\" 2. Immediately (same session) run SU53\n\" 3. Transaction SU53 → Execute\n\" 4. Shows:\n\"    Object    : Z_CUSTOM_OBJ\n\"    Field     : WERKS\n\"    Required  : 2000\n\"    User has  : 1000, 1100\n\"    → Missing : 2000\n\" 5. Share screenshot with Basis/Dev team\n\" 6. Basis adds WERKS = 2000 in PFCG role"
+        "codeExample": "\" SU53 steps for user:\n\" 1. Get authorization error on Module Pool screen\n\" 2. Immediately (same session) run SU53\n\" 3. Transaction SU53 → Execute\n\" 4. Shows:\n\"    Object    : Z_CUSTOM_OBJ\n\"    Field     : WERKS\n\"    Required  : 2000\n\"    User has  : 1000, 1100\n\"    → Missing : 2000\n\" 5. Share screenshot with Basis/Dev team\n\" 6. Basis adds WERKS = 2000 in PFCG role",
+        "tier": "easy"
       },
       {
         "question": "How do you handle authorization for different activities (display vs. change) in Module Pool?",
-        "hinglishExplanation": "SAP authorization mein ACTVT (Activity) field standard hai. Common values: 01 = Create, 02 = Change, 03 = Display, 06 = Delete. PBO mein display check karo: ACTVT = '03'. PAI mein SAVE ke liye change check karo: ACTVT = '02'. Create ke liye ACTVT = '01'. Aise ek hi authorization object different activities ke liye different check karta hai — modular approach. User sirf display role mein hai toh screen toh dekhega (03 pass) but save nahi kar payega (02 fail).",
+        "hinglishExplanation": "SAP authorization objects standard ACTVT field use karte hain activity values ke saath: create ke liye 01, change ke liye 02, display ke liye 03, aur delete ke liye 06. Module Pool PBO mein, main screen display allow ya deny karne ke liye ACTVT = '03' check karta hoon. SAVE button ke liye PAI mein, main ACTVT = '02' check karta hoon. Yeh granular control allow karta hai — ek display-only user screen view kar sakta hai but save nahi kar sakta. PFCG roles phir specific activity combinations grant karne ke liye configured ho sakte hain.",
         "interviewAnswer": "SAP authorization objects use the standard ACTVT field with activity values: 01 for create, 02 for change, 03 for display, and 06 for delete. In Module Pool PBO, I check ACTVT = '03' to allow or deny screen display. In PAI for the SAVE button, I check ACTVT = '02'. This allows granular control — a display-only user can view the screen but cannot save. PFCG roles can then be configured to grant specific activity combinations.",
         "realtimeExplanation": "Finance team ke liye: read-only role mein ACTVT = 03 only. Accounting lead ke liye: ACTVT = 01, 02, 03. Controller ke liye: 01, 02, 03, 06. Same authorization object, different activity values — PFCG mein manage karo.",
         "mistakes": "PBO mein ACTVT = '02' (change) check karna display ke liye — display-only users screen hi nahi dekh paate. PBO mein '03' (display) check karo, PAI save mein '02' check karo.",
-        "codeExample": "MODULE pbo_0100 OUTPUT.\n  \" Display check — ACTVT 03\n  AUTHORITY-CHECK OBJECT 'Z_VENDOR'\n    ID 'ACTVT' FIELD '03'\n    ID 'LIFNR' FIELD gv_lifnr.\n  IF sy-subrc <> 0.\n    MESSAGE e001(zmsg). SET SCREEN 0. LEAVE SCREEN.\n  ENDIF.\nENDMODULE.\n\nMODULE pai_0100 INPUT.\n  WHEN 'SAVE'.\n    \" Change check — ACTVT 02\n    AUTHORITY-CHECK OBJECT 'Z_VENDOR'\n      ID 'ACTVT' FIELD '02'\n      ID 'LIFNR' FIELD gv_lifnr.\n    IF sy-subrc <> 0.\n      MESSAGE e002(zmsg). RETURN.\n    ENDIF.\n    PERFORM do_save.\nENDMODULE."
+        "codeExample": "MODULE pbo_0100 OUTPUT.\n  \" Display check — ACTVT 03\n  AUTHORITY-CHECK OBJECT 'Z_VENDOR'\n    ID 'ACTVT' FIELD '03'\n    ID 'LIFNR' FIELD gv_lifnr.\n  IF sy-subrc <> 0.\n    MESSAGE e001(zmsg). SET SCREEN 0. LEAVE SCREEN.\n  ENDIF.\nENDMODULE.\n\nMODULE pai_0100 INPUT.\n  WHEN 'SAVE'.\n    \" Change check — ACTVT 02\n    AUTHORITY-CHECK OBJECT 'Z_VENDOR'\n      ID 'ACTVT' FIELD '02'\n      ID 'LIFNR' FIELD gv_lifnr.\n    IF sy-subrc <> 0.\n      MESSAGE e002(zmsg). RETURN.\n    ENDIF.\n    PERFORM do_save.\nENDMODULE.",
+        "tier": "easy"
       },
       {
         "question": "What happens if you only check authorization in PBO and not in PAI?",
-        "hinglishExplanation": "PBO-only check ek security gap hai. Scenarios jahan PAI check bhi zaroori hai: 1. Developer testing ke waqt screen flow bypass karke seedha PAI trigger kar sakta hai — save ho jaayega bina authorization ke. 2. GUI scripting tools se PAI directly trigger possible hai. 3. Complex navigation scenarios mein ek screen ka PAI dusri screen se trigger ho sakta hai. Real-world rule: defense in depth — har critical action pe check lagao regardless of entry point.",
+        "hinglishExplanation": "Sirf PBO mein authorization ek security gap create karta hai. Agar PAI module bina PBO check ke trigger ho sakta hai — GUI scripting, transaction recording playback, ya complex navigation scenarios ke through — ek unauthorized save succeed kar sakta hai. Defense-in-depth security display layer (PBO) aur action layer (PAI) dono pe authorization checks require karta hai. PBO check visibility control karta hai, PAI check execution control karta hai.",
         "interviewAnswer": "Authorization only in PBO creates a security gap. If the PAI module can be triggered without the PBO check — through GUI scripting, transaction recording playback, or complex navigation scenarios — an unauthorized save can succeed. Defense-in-depth security requires authorization checks at both the display layer (PBO) and the action layer (PAI). The PBO check controls visibility, the PAI check controls execution.",
         "realtimeExplanation": "Security audit mein pata chala: ek batch program internally CALL TRANSACTION kar raha tha aur SKIP FIRST SCREEN use kiya — PBO skip ho gaya. PAI directly chala. PBO-only auth check completely bypass hua. PAI mein check add karne ke baad audit pass hua.",
         "mistakes": "Sochna ki 'PBO check hai toh PAI mein need nahi' — CALL TRANSACTION SKIP FIRST SCREEN, GUI scripting, ya transaction recorder se PBO bypass possible hai. Dono check mandatory hain.",
-        "codeExample": "\" Security gap — PBO only\nMODULE pbo_0100 OUTPUT.           \" Auth check here\n  AUTHORITY-CHECK OBJECT 'Z_OBJ'\n    ID 'ACTVT' FIELD '03'.\n  IF sy-subrc <> 0.\n    SET SCREEN 0. LEAVE SCREEN.   \" Stops normal flow\n  ENDIF.                          \" But bypass possible!\nENDMODULE.\n\n\" Secure — both PBO and PAI\nMODULE pai_0100 INPUT.\n  WHEN 'SAVE'.\n    AUTHORITY-CHECK OBJECT 'Z_OBJ'  \" Defense in depth\n      ID 'ACTVT' FIELD '02'.\n    IF sy-subrc <> 0.\n      MESSAGE e001(zmsg). RETURN.   \" Blocked even if bypassed\n    ENDIF.\n    PERFORM save_data.\nENDMODULE."
+        "codeExample": "\" Security gap — PBO only\nMODULE pbo_0100 OUTPUT.           \" Auth check here\n  AUTHORITY-CHECK OBJECT 'Z_OBJ'\n    ID 'ACTVT' FIELD '03'.\n  IF sy-subrc <> 0.\n    SET SCREEN 0. LEAVE SCREEN.   \" Stops normal flow\n  ENDIF.                          \" But bypass possible!\nENDMODULE.\n\n\" Secure — both PBO and PAI\nMODULE pai_0100 INPUT.\n  WHEN 'SAVE'.\n    AUTHORITY-CHECK OBJECT 'Z_OBJ'  \" Defense in depth\n      ID 'ACTVT' FIELD '02'.\n    IF sy-subrc <> 0.\n      MESSAGE e001(zmsg). RETURN.   \" Blocked even if bypassed\n    ENDIF.\n    PERFORM save_data.\nENDMODULE.",
+        "tier": "easy"
       },
       {
         "question": "How do you create and assign a custom authorization object in Module Pool?",
-        "hinglishExplanation": "Step 1: SU21 mein jaao — Authorization Object classes. New class create karo (Z prefix). Step 2: Authorization object create karo — fields define karo (e.g., WERKS, ACTVT). ACTVT standard field hai — isme values 01/02/03/06 define hoti hain. Step 3: SE80 ya se38 mein ABAP code mein AUTHORITY-CHECK OBJECT use karo. Step 4: PFCG mein role banao/open karo — Authorizations tab — object add karo — field values assign karo. Step 5: Role users ko assign karo SU01 ya PFCG User Comparison se. Step 6: Transport all the way to production.",
+        "hinglishExplanation": "Ek custom authorization object create karna involve karta hai: SU21 mein object class define karna, ACTVT including relevant fields ke saath authorization object create karna, phir AUTHORITY-CHECK use karke ABAP code mein reference karna. Basis team phir is object ke saath PFCG roles create ya update karta hai, appropriate activity values assign karta hai, aur users ko role push karne ke liye user comparison run karta hai. Main PFCG configuration ke liye Basis ke saath coordinate karta hoon — developers object define aur check code karte hain, Basis role assignment manage karta hai.",
         "interviewAnswer": "Creating a custom authorization object involves: defining the object class in SU21, creating the authorization object with relevant fields including ACTVT, then referencing it in ABAP code using AUTHORITY-CHECK. The Basis team then creates or updates PFCG roles with this object, assigns appropriate activity values, and runs user comparison to push the role to users. I coordinate with Basis for PFCG configuration — developers define the object and code the check, Basis manages role assignment.",
         "realtimeExplanation": "Ek Module Pool mein plant-level aur document-type level authorization chahiye thi. Custom object banaya: Z_DOC_CTRL with fields WERKS, DOKAR, ACTVT. PFCG mein plant-wise roles banaye. Ab finance team ke liye plant 1000 + document type PR only accessible, procurement ke liye plant 1000+2000 + all doc types.",
         "mistakes": "Authorization object banaya but PFCG mein Add karna bhool gaye — users ko object ata hi nahi SU53 mein toh ya toh blank access milti hai ya complete denial. PFCG role mein object manually add karna zaroori hai.",
-        "codeExample": "\" SU21: Authorization Object definition\n\" Object Name : Z_DOC_CTRL\n\" Class       : ZZ (custom class)\n\" Fields      : WERKS (Plant)\n\"               DOKAR (Document Type)\n\"               ACTVT (Activity)\n\n\" ABAP usage:\nAUTHORITY-CHECK OBJECT 'Z_DOC_CTRL'\n  ID 'WERKS' FIELD ls_header-werks\n  ID 'DOKAR' FIELD ls_header-dokar\n  ID 'ACTVT' FIELD '02'.         \" Change activity\n\nIF sy-subrc <> 0.\n  MESSAGE e003(zmsg)\n    WITH ls_header-werks ls_header-dokar.\nENDIF."
+        "codeExample": "\" SU21: Authorization Object definition\n\" Object Name : Z_DOC_CTRL\n\" Class       : ZZ (custom class)\n\" Fields      : WERKS (Plant)\n\"               DOKAR (Document Type)\n\"               ACTVT (Activity)\n\n\" ABAP usage:\nAUTHORITY-CHECK OBJECT 'Z_DOC_CTRL'\n  ID 'WERKS' FIELD ls_header-werks\n  ID 'DOKAR' FIELD ls_header-dokar\n  ID 'ACTVT' FIELD '02'.         \" Change activity\n\nIF sy-subrc <> 0.\n  MESSAGE e003(zmsg)\n    WITH ls_header-werks ls_header-dokar.\nENDIF.",
+        "tier": "medium"
       },
       {
         "question": "How do you add a T-code to a PFCG role for Module Pool access?",
-        "hinglishExplanation": "PFCG = Profile Generator. Role management ka tool. Steps: PFCG mein jaao → Role naam enter karo → Change → Menu tab → Transactions button → T-code enter karo (e.g., ZDEMO_MP) → Enter → Save. Phir Authorizations tab → Change Authorization data → Authorization objects check karo → Generate profile → Save. Phir User Comparison karo — assigned users ko new authorization push hoti hai. Transport: role transport request generate karo aur QA/PROD mein transport karo.",
+        "hinglishExplanation": "PFCG mein, main relevant role open karta hoon, Menu tab pe jaata hoon, aur Transactions ke under T-code add karta hoon. Phir Authorizations tab mein, main required objects aur field values ke saath authorization data update karta hoon. Profile generate karne ke baad, main saare assigned users ko updated role push karne ke liye User Comparison run karta hoon. Role phir transport request ke through QA aur production mein transported hota hai.",
         "interviewAnswer": "In PFCG, I open the relevant role, go to the Menu tab, and add the T-code under Transactions. Then in the Authorizations tab, I update authorization data with the required objects and field values. After generating the profile, I run User Comparison to push the updated role to all assigned users. The role is then transported to QA and production via a transport request.",
         "realtimeExplanation": "T-code create kiya SE93 mein but user ke role mein add karna bhool gaya. User ko 'You are not authorized to use transaction ZDEMO_MP' aata tha. SU53 dikha: T-code authorization check fail. PFCG mein role mein T-code add kiya — resolved.",
         "mistakes": "Role mein T-code add karna but User Comparison bhool jaana — role updated hai but users ko abhi bhi purani profile mil rahi hai. User Comparison run karna mandatory hai after role change.",
-        "codeExample": "\" PFCG Steps for Module Pool T-code:\n\" 1. Transaction PFCG\n\" 2. Enter Role Name: Z_CUSTOM_ROLE\n\" 3. Click 'Change'\n\" 4. Menu Tab → Transactions\n\"    → Enter T-code: ZDEMO_MP → Enter\n\" 5. Authorizations Tab\n\"    → Change Authorization Data\n\"    → Verify Z_CUSTOM object added\n\"    → Set ACTVT: 01, 02, 03\n\"    → Set WERKS: 1000 (or *)\n\" 6. Generate Profile\n\" 7. User Tab → User Comparison → Complete\n\" 8. Create Transport → Transport to QA/PROD"
+        "codeExample": "\" PFCG Steps for Module Pool T-code:\n\" 1. Transaction PFCG\n\" 2. Enter Role Name: Z_CUSTOM_ROLE\n\" 3. Click 'Change'\n\" 4. Menu Tab → Transactions\n\"    → Enter T-code: ZDEMO_MP → Enter\n\" 5. Authorizations Tab\n\"    → Change Authorization Data\n\"    → Verify Z_CUSTOM object added\n\"    → Set ACTVT: 01, 02, 03\n\"    → Set WERKS: 1000 (or *)\n\" 6. Generate Profile\n\" 7. User Tab → User Comparison → Complete\n\" 8. Create Transport → Transport to QA/PROD",
+        "tier": "medium"
       },
       {
         "question": "What is the difference between authorization object and authorization profile?",
-        "hinglishExplanation": "Authorization Object = ek individual check ka blueprint — jaise Z_DOC_CTRL object with fields WERKS, ACTVT. Isme values nahi hote, sirf structure. Authorization Profile = actual values wala container — WERKS = 1000, ACTVT = 02. Profile ek collection hai multiple objects ki apni values ke saath. Role (PFCG) → Profile generate karta hai → Profile users ko assign hota hai. User ke paas profile hai toh AUTHORITY-CHECK pass hota hai.",
+        "hinglishExplanation": "Ek Authorization Object check ka structure define karta hai — object name aur uske fields, jaise Z_DOC_CTRL WERKS aur ACTVT fields ke saath. Ek Authorization Profile user ko assigned actual field values contain karta hai — for example WERKS = 1000, ACTVT = 02. PFCG roles role mein maintained authorization data se automatically profiles generate karte hain. Users ko roles assigned hote hain, jo unhe profiles grant karte hain, jo ABAP code mein AUTHORITY-CHECK statements ko satisfy karte hain.",
         "interviewAnswer": "An Authorization Object defines the structure of a check — the object name and its fields, like Z_DOC_CTRL with WERKS and ACTVT fields. An Authorization Profile contains the actual field values assigned to a user — for example WERKS = 1000, ACTVT = 02. PFCG roles generate profiles automatically from the authorization data maintained in the role. Users are assigned roles, which grant them profiles, which satisfy AUTHORITY-CHECK statements in ABAP code.",
         "realtimeExplanation": "Developer AUTHORITY-CHECK code karta hai using object name. Basis team PFCG mein us object ke liye values maintain karta hai — profile generate hoti hai. User ko profile assign hoti hai via role. Yeh separation of duties hai — developer decides WHAT to check, Basis decides WHO gets WHAT access.",
         "mistakes": "Authorization object aur authorization profile ko same samajhna — object = structure/definition, profile = values/instance. SU53 mein object ka naam dikhta hai, profile ka nahi. PFCG mein profile auto-generate hoti hai from role.",
-        "codeExample": "\" Authorization Object (SU21) — structure only\n\" Object: Z_VENDOR_OBJ\n\" Fields: LIFNR, ACTVT\n\" (No values here — just definition)\n\n\" Authorization Profile (PFCG-generated)\n\" Profile: Z_VENDOR_PROF\n\"   Object Z_VENDOR_OBJ:\n\"     LIFNR = * (all vendors)\n\"     ACTVT = 03 (display only)\n\n\" ABAP check — references object\nAUTHORITY-CHECK OBJECT 'Z_VENDOR_OBJ'\n  ID 'LIFNR' FIELD gv_lifnr\n  ID 'ACTVT' FIELD '03'.\n\" SAP checks if user's profile satisfies this"
+        "codeExample": "\" Authorization Object (SU21) — structure only\n\" Object: Z_VENDOR_OBJ\n\" Fields: LIFNR, ACTVT\n\" (No values here — just definition)\n\n\" Authorization Profile (PFCG-generated)\n\" Profile: Z_VENDOR_PROF\n\"   Object Z_VENDOR_OBJ:\n\"     LIFNR = * (all vendors)\n\"     ACTVT = 03 (display only)\n\n\" ABAP check — references object\nAUTHORITY-CHECK OBJECT 'Z_VENDOR_OBJ'\n  ID 'LIFNR' FIELD gv_lifnr\n  ID 'ACTVT' FIELD '03'.\n\" SAP checks if user's profile satisfies this",
+        "tier": "medium"
       },
       {
         "question": "How do you handle plant-level authorization in a Module Pool with table control?",
-        "hinglishExplanation": "Table control mein multiple rows hain — har row alag plant ka data ho sakti hai. Agar header level pe sirf ek AUTHORITY-CHECK kiya toh koi user sabhi plants ka data dekh sakta hai even though sirf plant 1000 ka access hai. Fix: LOOP AT lt_items mein har row ke liye AUTHORITY-CHECK karo WERKS field se. Unauthorized rows ke liye: ya toh row delete karo lt_items se (user nahi dekhega), ya row display-only mark karo, ya skip karo. Performance consideration: agar 1000 rows hain toh 1000 AUTHORITY-CHECKs — cache results in a separate table.",
+        "hinglishExplanation": "Table Control mein row-level plant authorization ke liye, main PBO mein internal table populate karne wali LOOP ke andar har row ki plant value ke liye AUTHORITY-CHECK perform karta hoon. Jin plants ke liye user authorized nahi hai un rows ko ya toh display se pehle internal table se remove kiya jaata hai ya table control mein input field use karke display-only marked kiya jaata hai. Large datasets ke saath performance optimize karne ke liye, main redundant checks avoid karne ke liye authorization results ko ek separate internal table mein plant se cache karta hoon.",
         "interviewAnswer": "For row-level plant authorization in a Table Control, I perform AUTHORITY-CHECK for each row's plant value inside the LOOP that populates the internal table in PBO. Rows for plants the user is not authorized for are either removed from the internal table before display or marked as display-only using the input field in the table control. To optimize performance with large datasets, I cache authorization results by plant in a separate internal table to avoid redundant checks.",
         "realtimeExplanation": "Ek goods receipt screen mein table control tha with items from multiple plants. User plant 1000 ka authorized tha. Bina row-level check ke, plant 2000 ka data bhi dikha raha tha. Row-level AUTHORITY-CHECK LOOP mein lagaya — unauthorized rows DELETE kiye lt_items se — user sirf apne plant ka data dekh sakta tha.",
         "mistakes": "Sirf header-level AUTHORITY-CHECK karna — user authorized hai ek plant ke liye but table control mein sab plants ka data dikha raha hai. Row-level check zaroori hai sensitive data ke liye.",
-        "codeExample": "MODULE pbo_0200 OUTPUT.\n  DATA: lt_auth_cache TYPE HASHED TABLE OF\n          zplant_auth WITH UNIQUE KEY werks.\n\n  LOOP AT lt_items INTO ls_item.\n    \" Check cache first for performance\n    READ TABLE lt_auth_cache\n      WITH TABLE KEY werks = ls_item-werks\n      TRANSPORTING NO FIELDS.\n    IF sy-subrc <> 0.\n      AUTHORITY-CHECK OBJECT 'M_MSEG_BWA'\n        ID 'WERKS' FIELD ls_item-werks\n        ID 'ACTVT' FIELD '03'.\n      IF sy-subrc <> 0.\n        DELETE lt_items.           \" Remove unauthorized row\n        CONTINUE.\n      ENDIF.\n      INSERT VALUE #( werks = ls_item-werks )\n        INTO TABLE lt_auth_cache.  \" Cache result\n    ENDIF.\n  ENDLOOP.\n  tc_items-lines = lines( lt_items ).\nENDMODULE."
+        "codeExample": "MODULE pbo_0200 OUTPUT.\n  DATA: lt_auth_cache TYPE HASHED TABLE OF\n          zplant_auth WITH UNIQUE KEY werks.\n\n  LOOP AT lt_items INTO ls_item.\n    \" Check cache first for performance\n    READ TABLE lt_auth_cache\n      WITH TABLE KEY werks = ls_item-werks\n      TRANSPORTING NO FIELDS.\n    IF sy-subrc <> 0.\n      AUTHORITY-CHECK OBJECT 'M_MSEG_BWA'\n        ID 'WERKS' FIELD ls_item-werks\n        ID 'ACTVT' FIELD '03'.\n      IF sy-subrc <> 0.\n        DELETE lt_items.           \" Remove unauthorized row\n        CONTINUE.\n      ENDIF.\n      INSERT VALUE #( werks = ls_item-werks )\n        INTO TABLE lt_auth_cache.  \" Cache result\n    ENDIF.\n  ENDLOOP.\n  tc_items-lines = lines( lt_items ).\nENDMODULE.",
+        "tier": "advanced"
       },
       {
         "question": "What authorization issues arise when transporting a Module Pool to production?",
-        "hinglishExplanation": "Transport ke baad production mein common auth issues: 1. T-code production PFCG roles mein nahi hai — users ko 'not authorized' milta hai. 2. Custom authorization object transport ho gaya but PFCG roles update nahi hue — profiles regenerate nahi ki. 3. Transport sequence galat — authorization object transport se pehle ABAP code transport hua — code run karta hai authority check karta hai but object production mein nahi mila. Fix: Transport order: auth object first, phir code, phir role changes.",
+        "hinglishExplanation": "Module Pool ko production mein transport karne ke baad common authorization issues include karte hain: T-code production PFCG roles mein add nahi hai, custom authorization objects transported but production roles unhe include karne ke liye regenerate nahi hue, aur incorrect transport sequence jahaan new authorization object ko reference karne wala ABAP code object se pehle aata hai. Correct transport sequence hai: pehle authorization object, phir application code, phir role updates, phir production mein user comparison.",
         "interviewAnswer": "Common authorization issues after transporting a Module Pool to production include: the T-code not being added to production PFCG roles, custom authorization objects transported but production roles not regenerated to include them, and incorrect transport sequence where ABAP code referencing a new authorization object arrives before the object itself. The correct transport sequence is: authorization object first, then application code, then role updates, then user comparison in production.",
         "realtimeExplanation": "Go-live ke baad users ko access nahi mila — Module Pool T-code production roles mein tha, auth object transport hua tha but profiles regenerate nahi ki gayi thi production mein. Basis ne PFCG mein profile regenerate kiya aur user comparison run kiya — access restore hua.",
         "mistakes": "Role transport karna but User Comparison production mein bhool jaana — users ko profile milti nahi even though role correct hai. Production mein role change ke baad hamesha User Comparison run karo.",
-        "codeExample": "\" Transport sequence checklist:\n\" Step 1: Transport Authorization Object\n\"   → SU21 → Z_CUSTOM_OBJ → Create Transport\n\n\" Step 2: Transport Module Pool program\n\"   → SE80/SE38 → Workbench Transport\n\n\" Step 3: Transport T-code\n\"   → SE93 → Z_DEMO_MP → Transport\n\n\" Step 4: Transport PFCG Role changes\n\"   → PFCG → Role → Transport\n\n\" Step 5: After all transports in PROD:\n\"   → PFCG → Role → User tab\n\"   → User Comparison → Complete\n\"   → Pushes new profile to all assigned users"
+        "codeExample": "\" Transport sequence checklist:\n\" Step 1: Transport Authorization Object\n\"   → SU21 → Z_CUSTOM_OBJ → Create Transport\n\n\" Step 2: Transport Module Pool program\n\"   → SE80/SE38 → Workbench Transport\n\n\" Step 3: Transport T-code\n\"   → SE93 → Z_DEMO_MP → Transport\n\n\" Step 4: Transport PFCG Role changes\n\"   → PFCG → Role → Transport\n\n\" Step 5: After all transports in PROD:\n\"   → PFCG → Role → User tab\n\"   → User Comparison → Complete\n\"   → Pushes new profile to all assigned users",
+        "tier": "advanced"
       }
     ]
   }

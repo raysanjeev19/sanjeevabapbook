@@ -1,0 +1,142 @@
+{
+  "amdp-hana-020": {
+    "interviewScriptHinglish": "Sir, AMDP basics interview mein quickly cover karte hain. AMDP ek ABAP class method hai jiska body SQLScript mein hota hai aur execution HANA pe hoti hai. IF_AMDP_MARKER_HDB interface aur BY DATABASE PROCEDURE FOR HDB LANGUAGE SQLSCRIPT addition zaroori hain. Performance benefit yeh hai ki millions of rows database pe process hote hain, sirf result network pe aata hai. HANA columnar storage parallel processing aur compression deta hai. USING clause mein dependent tables list karte hain. Practically, mere project mein sales report mein AMDP se 3x performance improvement aaya. Iska benefit yeh hai ki HANA infrastructure investment ka full ROI milta hai aur Fiori dashboards real-time responsive ho jaate hain.",
+    "interviewScriptEnglish": "AMDP basics cover the marker interface, method declaration, dependencies, and benefits. The class implements IF_AMDP_MARKER_HDB and the method uses BY DATABASE PROCEDURE FOR HDB LANGUAGE SQLSCRIPT with the USING clause listing dependent tables and views. The performance advantage comes from processing data inside the HANA columnar in-memory engine instead of moving it to the application server. AMDP can be called from any ABAP context but Fiori needs a wrapper such as a CDS Table Function. Limitations include HANA-only execution, no ABAP statements inside the body, and special debugging tools. The business value is faster reports, lower server load, and real-time Fiori user experience.",
+    "wordByWordSamjho": [
+      { "keyword": "IF_AMDP_MARKER_HDB", "meaning": "Marker interface that designates a class as AMDP-capable for HANA" },
+      { "keyword": "BY DATABASE PROCEDURE", "meaning": "Method addition routing the body to HANA execution" },
+      { "keyword": "FOR HDB", "meaning": "Targets HANA database (HDB) specifically" },
+      { "keyword": "LANGUAGE SQLSCRIPT", "meaning": "Declares the method body is written in SQLScript" },
+      { "keyword": "USING", "meaning": "Lists dependent tables, CDS views, or called AMDPs" },
+      { "keyword": "BY DATABASE FUNCTION", "meaning": "Alternative addition for read-only AMDP functions backing CDS Table Functions" },
+      { "keyword": "cx_amdp_error", "meaning": "Standard exception class for AMDP execution failures" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Forgetting the IF_AMDP_MARKER_HDB interface on the class",
+        "whyWrong": "Activation fails; SAP cannot identify the class as AMDP-capable",
+        "correctApproach": "Add INTERFACES if_amdp_marker_hdb in the class definition"
+      },
+      {
+        "mistake": "Trying to call AMDP from Fiori directly",
+        "whyWrong": "Fiori cannot invoke ABAP methods; AMDP exposure requires a wrapper",
+        "correctApproach": "Wrap the AMDP via a CDS Table Function with @OData.publish or a Gateway service"
+      },
+      {
+        "mistake": "Designing AMDP for portable, multi-database landscapes",
+        "whyWrong": "AMDP is HANA-only and the class will not activate on other databases",
+        "correctApproach": "Use AMDP only on HANA-based S/4HANA systems; fall back to Open SQL for portability"
+      },
+      {
+        "mistake": "Ignoring the difference between PROCEDURE and FUNCTION variants",
+        "whyWrong": "Wrong variant breaks integration with CDS Table Functions",
+        "correctApproach": "Use BY DATABASE FUNCTION for table-function backing; PROCEDURE for general AMDP"
+      }
+    ],
+    "quickRevisionNotes": "What: Basic AMDP mechanics: marker interface, method addition, dependencies, and call pattern.\n\nUsed for:\n- Foundation for any AMDP development\n- Interview answers covering definition and benefits\n- Choosing between AMDP and Open SQL\n\nKey syntax / tables / Tcodes:\n- INTERFACES if_amdp_marker_hdb\n- METHOD ... BY DATABASE PROCEDURE FOR HDB LANGUAGE SQLSCRIPT USING ...\n- BY DATABASE FUNCTION for table function backing\n- cx_amdp_error for error handling\n\nInterview keyword: ABAP-managed HANA stored procedure",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "amdp-hana-021": {
+    "interviewScriptHinglish": "Sir, interview mein best AMDP answer woh hota hai jo teen cheezein cover kare — kya hai, kyun chahiye, aur kahan use kiya. Definition se start karo, business value batao, real project example do. Limitation bhi mention karo — small datasets pe overhead, HANA-only. Practically, mere project mein finance migration mein 12 AMDPs banaye — har baar metrics capture kiye taaki interview mein concrete numbers bol sakun. Iska benefit yeh hai ki interviewer ko theory aur experience dono dikhta hai, aur senior level confidence project karta hai. Trap questions ke liye honest bolo — agar limitation hai toh accept karo, woh mature professional ki nishani hai.",
+    "interviewScriptEnglish": "The strongest AMDP interview answer covers what it is, why it matters, and where you used it. Start with a crisp definition, explain the business value of pushdown, then back it with a concrete project example with numbers — for instance, reducing a report from four minutes to eight seconds. Cover limitations honestly to avoid sounding overconfident: AMDP is HANA-only, has overhead on small queries, and complements rather than replaces CDS. Even with limited experience, structure the answer around a hypothetical scenario you understand well. The business value of strong interview communication is positioning yourself as a senior ABAP-on-HANA developer rather than a textbook candidate.",
+    "wordByWordSamjho": [
+      { "keyword": "Pushdown metric", "meaning": "Quantifiable performance gain used to justify AMDP" },
+      { "keyword": "Baseline", "meaning": "Pre-optimization measurement used as a comparison point" },
+      { "keyword": "Trade-off", "meaning": "Recognising limitations alongside benefits, signal of seniority" },
+      { "keyword": "Project example", "meaning": "Concrete real-world story that grounds theoretical knowledge" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Reciting AMDP definitions without business context",
+        "whyWrong": "Sounds like a textbook quote; interviewer cannot judge real experience",
+        "correctApproach": "Add business outcome and a specific scenario from project work"
+      },
+      {
+        "mistake": "Avoiding limitation questions or downplaying them",
+        "whyWrong": "Signals shallow understanding and lack of senior maturity",
+        "correctApproach": "Acknowledge HANA-only, overhead on small queries, and complement-not-replace nature vs CDS"
+      },
+      {
+        "mistake": "Quoting performance numbers without supporting data",
+        "whyWrong": "Comes across as fabricated; can fall apart under follow-up questions",
+        "correctApproach": "Use ST05 or PlanViz numbers from actual work and explain how they were captured"
+      },
+      {
+        "mistake": "Skipping the production-mistake question",
+        "whyWrong": "Interviewers value learning from failure; silence signals lack of ownership",
+        "correctApproach": "Share a small AMDP issue, root cause, and how you prevented recurrence"
+      }
+    ],
+    "quickRevisionNotes": "What: Communication strategy for AMDP interview answers that mix theory, value, and experience.\n\nUsed for:\n- ABAP and S/4HANA technical interviews\n- Senior consultant role assessments\n- Internal review and promotion discussions\n\nKey syntax / tables / Tcodes:\n- What/Why/Where structure plus limitation\n- Real metrics from ST05 or PlanViz\n- Honest trade-off acknowledgement\n\nInterview keyword: theory + value + story + honesty",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "amdp-hana-022": {
+    "interviewScriptHinglish": "Sir, interviewer real-time project work poochta hai toh woh actual hands-on experience evaluate karta hai. Complex AMDP example do — multi-step transformation, CDS view dependency, parallel testing journey, transport challenges, aur production support. Practically, mere project mein inventory aging AMDP banaya — 5 step SQLScript with date series, CASE WHEN bucketing, COALESCE for NULL safety. Testing parallel old report ke saath compare kiya, 2 mismatches found, fix kiye. Transport mein CDS view sequence galat thi, STMS sequence adjust kiya. Iska benefit yeh hai ki specific story dene se candidate authentic aur experienced sound karta hai, generic answers ke comparison mein.",
+    "interviewScriptEnglish": "Real-time project work questions test whether the candidate has actually built and maintained AMDPs. Walk through a complete story: business requirement, design decisions, implementation challenges, testing strategy, transport planning, and production support. In our project we built an inventory aging AMDP using SERIES_GENERATE_DATE, CASE WHEN bucketing, and COALESCE for NULL safety, validated via parallel comparison with the legacy report, transported with CDS Table Function dependencies sequenced through STMS, and supported through a HANA Cockpit monitored runbook. The business value of specific stories is that interviewers can probe deeper and see the candidate's reasoning rather than generic answers.",
+    "wordByWordSamjho": [
+      { "keyword": "Multi-step transformation", "meaning": "Chained tabular variables forming complex SQLScript flow" },
+      { "keyword": "Parallel comparison", "meaning": "Running old and new logic and reconciling outputs row by row" },
+      { "keyword": "STMS sequence", "meaning": "Ordered list of transports ensuring dependencies arrive first" },
+      { "keyword": "Production support runbook", "meaning": "Document with monitoring, alerts, and remediation steps" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Giving generic AMDP descriptions instead of a specific project story",
+        "whyWrong": "Loses authenticity and the interviewer cannot probe follow-ups",
+        "correctApproach": "Pick one AMDP, narrate end-to-end with decisions, issues, and outcomes"
+      },
+      {
+        "mistake": "Skipping testing details in real-world stories",
+        "whyWrong": "Signals lack of quality discipline",
+        "correctApproach": "Describe unit tests, parallel runs, performance tests, and how defects were tracked"
+      },
+      {
+        "mistake": "Ignoring transport challenges in the story",
+        "whyWrong": "Production deployments are part of AMDP work and interviewers expect awareness",
+        "correctApproach": "Mention CDS-then-AMDP transport order, STMS, and rollback planning"
+      },
+      {
+        "mistake": "Not connecting AMDP to broader S/4HANA initiatives",
+        "whyWrong": "Misses the chance to demonstrate strategic understanding",
+        "correctApproach": "Tie the AMDP work to Fiori KPIs, real-time analytics, or month-end close improvements"
+      }
+    ],
+    "quickRevisionNotes": "What: How to narrate AMDP work convincingly in interviews using real project detail.\n\nUsed for:\n- Behavioural and project-experience questions\n- Demonstrating end-to-end ownership\n- Differentiating from textbook candidates\n\nKey syntax / tables / Tcodes:\n- Story arc: requirement, design, build, test, transport, support\n- Numbers from ST05 / PlanViz\n- Tooling: ADT, HANA Database Explorer, STMS, HANA Cockpit\n\nInterview keyword: specific story over generic theory",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "amdp-hana-023": {
+    "interviewScriptHinglish": "Sir, production incident matlab live system mein kuch break ho gaya aur real users impacted hain. AMDP production issue handle karne ka structured approach hota hai: detect karo monitoring se, classify severity, immediate workaround consider karo, root cause analysis karo HANA Database Explorer aur PlanViz se, fix banao, test karo, transport karo, post-mortem document karo. Practically, mere project mein AMDP cx_amdp_error raise kar rahi thi production mein — stale statistics ki wajah se plan galat aaya tha. UPDATE STATISTICS run ki, immediate relief mila, root cause document kiya. Iska benefit yeh hai ki structured incident management se downtime kam, communication transparent, aur recurrence prevent hoti hai.",
+    "interviewScriptEnglish": "Handling an AMDP production incident requires a structured approach: detect, classify, contain, diagnose, fix, validate, and learn. Detection comes from HANA Cockpit alerts, ST22 dumps, or user-reported issues. Classify the severity based on user impact and business criticality. Contain by adding a temporary workaround or reverting to the previous version if possible. Diagnose using PlanViz, HANA Database Explorer, and ST05 traces. Validate the fix in QA, transport via STMS with rollback plan, and conduct a post-mortem to prevent recurrence. Throughout the incident, communicate clearly with stakeholders. The business value is minimised downtime, transparent stakeholder communication, and prevented recurrence.",
+    "wordByWordSamjho": [
+      { "keyword": "cx_amdp_error", "meaning": "Exception class indicating AMDP runtime failure on HANA" },
+      { "keyword": "HANA Cockpit", "meaning": "HANA admin dashboard for alerts, memory, and performance monitoring" },
+      { "keyword": "UPDATE STATISTICS", "meaning": "HANA command refreshing optimizer table statistics" },
+      { "keyword": "Workaround", "meaning": "Temporary measure restoring service while root cause is fixed" },
+      { "keyword": "Post-mortem", "meaning": "Documented incident review identifying causes and prevention" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Jumping into code changes without diagnosing the root cause",
+        "whyWrong": "Repeats incidents and risks new defects",
+        "correctApproach": "Capture traces, plan, and data sample before changing code"
+      },
+      {
+        "mistake": "Silent communication during a high-severity incident",
+        "whyWrong": "Stakeholders lose trust and may escalate further",
+        "correctApproach": "Provide regular status updates, expected timelines, and workaround options"
+      },
+      {
+        "mistake": "Skipping post-mortem after resolution",
+        "whyWrong": "Loses the lesson and increases probability of recurrence",
+        "correctApproach": "Run a blameless post-mortem and turn findings into preventive actions"
+      },
+      {
+        "mistake": "Transporting fixes without rollback planning",
+        "whyWrong": "If the fix introduces new issues, production cannot recover quickly",
+        "correctApproach": "Prepare rollback transport and validate it in QA before go-live"
+      }
+    ],
+    "quickRevisionNotes": "What: Structured response process for AMDP production incidents.\n\nUsed for:\n- Stabilising live operations\n- Communicating with stakeholders during outages\n- Preventing recurrence with post-incident actions\n\nKey syntax / tables / Tcodes:\n- HANA Cockpit, ST22, cx_amdp_error logs\n- PlanViz, HANA Database Explorer, ST05 for diagnosis\n- STMS for fix transport with rollback plan\n- Post-mortem template with prevention items\n\nInterview keyword: detect, contain, diagnose, fix, learn",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  }
+}

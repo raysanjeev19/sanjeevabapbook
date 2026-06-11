@@ -4,70 +4,145 @@
     "hinglishMasterExplanation": "CDS View ko transport karna ek systematic process hai. Pehli baat: CDS View DDIC mein DDLS type ke object ke roop mein activate hota hai, isliye transport mein ABAP source aur DDIC activation dono include hote hain. DCL (Data Control Language) — jo authorization define karta hai — ek alag DCLS object hota hai, use separately transport karna zaroori hai warna production mein authorization errors aayenge. Transport order bahut important hai: sabse pehle base CDS views (jo koi doosra view use karta hai) transport karo, phir unn par depend karne wale views. Agar order galat hua toh activation fail ho jaayegi. SE11 transaction use karo DDIC activation verify karne ke liye transport ke baad. Agar CDS OData service ke saath use ho raha hai, toh /IWFND/MAINT_SERVICE se service bhi check karo. Har transport ke baad DEV mein unit test, QA mein integration test zaroori hai — PRD mein direct transport bahut risky hai. Transport request mein sirf zaroori objects rakho, unnecessary dependencies se bachao. Ek pro tip: transport log check karo activation errors ke liye, sirf 'import successful' enough nahi hota.",
     "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'CDS Views ko safely transport karne ke liye main pehle ensure karta hoon ki DDLS object aur agar DCL use ho raha hai toh DCLS object — jo ki ek separate transport object hai — dono ek hi transport request mein ya correct sequence mein hain. Base views pehle transport kiye jaate hain, phir dependent views, taaki activation errors na aayein. SE11 se post-transport DDIC activation verify karta hoon. OData services ke saath kaam karte time /IWFND/MAINT_SERVICE bhi check karta hoon. DEV aur QA mein test karke hi PRD mein transport bhejta hoon.'\n\nHinglish tip: Transport order aur DCL as separate object — yeh do points interviewer ko impress karte hain. Generic 'SE10 mein request create karo' answer mat dena.",
     "codeExamples": "-- SE11 mein DDIC activation check karna:\n-- Transaction SE11 > Object type: CDS Entity > Name: ZMY_CDS_VIEW > Display\n-- Status 'Active' hona chahiye post-transport\n\n-- DDLS object transport kaise dikhta hai (SE09/SE10):\n-- Object type: DDLS\n-- Object name: ZMY_CDS_VIEW\n\n-- DCL object transport:\n-- Object type: DCLS\n-- Object name: ZMY_CDS_VIEW (same name, alag type)\n\n-- Activation error check (SM21 ya SE11):\n-- Agar base view transport nahi hua pehle:\n-- Error: 'ZMY_BASE_VIEW not found or not active'\n\n-- OData service check post-transport:\n-- /IWFND/MAINT_SERVICE > Search service > Check endpoint\n\n@AbapCatalog.sqlViewName: 'ZMY_CDS_SQL'\n@AccessControl.authorizationCheck: #CHECK\ndefine view ZMY_CDS_VIEW\n  as select from zbase_view  -- base view pehle transport zaroori\n{\n  key matnr,\n      maktx\n}",
+    "interviewScriptEnglish": "To safely transport CDS views, I first ensure the DDLS object — and the DCLS object if DCL is used (which is a separate transport object) — are both included in the same transport request or moved in the correct sequence. Base views must be transported before dependent views to avoid activation errors. I verify DDIC activation in SE11 after transport. For service binding objects (SRVD/SRVB), I include them with the related CDS objects. Authorization tests via SU53 confirm DCL roles are intact in the target system. Following this discipline keeps CDS chains active across all systems and prevents production downtime.",
+    "interviewScriptHinglish": "CDS views ko safely transport karne ke liye main pehle ensure karta hoon ki DDLS object — aur DCLS object agar DCL use ho raha hai (jo ki ek alag transport object hai) — dono same transport request mein hain ya correct sequence mein move hote hain. Base views pehle transport hote hain, phir dependent views, taaki activation errors na aayein. Transport ke baad SE11 mein DDIC activation verify karta hoon. Service binding objects (SRVD/SRVB) related CDS objects ke saath include karta hoon. SU53 se authorization tests confirm karte hain ki DCL roles target system mein intact hain. Yeh discipline follow karne se CDS chains saare systems mein active rehte hain aur production downtime nahi hoti.",
+    "commonMistakesSection": [
+      {
+        "mistake": "Sirf DDLS transport karna aur DCLS bhool jaana — yeh common mistake hai.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Dono always saath mein transport karo."
+      },
+      {
+        "mistake": "Top-down order mein transport karna — pehle dependent view, baad mein base view.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Yeh guaranteed activation failure hai."
+      },
+      {
+        "mistake": "Transport job 'successful' dekh ke assume karna ki sab theek hai.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Activation status alag hota hai — always SE11 se manually verify karo."
+      },
+      {
+        "mistake": "Metadata Extension (DDLX) bhool jaana — yeh Fiori apps mein common hai.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "UI layout target system mein miss ho jaata hai."
+      }
+    ],
+    "wordByWordSamjho": [
+      {
+        "keyword": "DDLS",
+        "meaning": "Transport object class for CDS view definition (Data Definition Language Source)."
+      },
+      {
+        "keyword": "DCLS",
+        "meaning": "Transport object class for DCL (Data Control Language Source) — moves auth role separately."
+      },
+      {
+        "keyword": "SE09 / SE10",
+        "meaning": "Transport organizer transactions — verify objects present and sequence correct."
+      },
+      {
+        "keyword": "SE11 > CDS Entity",
+        "meaning": "Display-only inspection of activated CDS view; cannot edit but can confirm active status."
+      },
+      {
+        "keyword": "@AbapCatalog.sqlViewName",
+        "meaning": "Underlying SQL view name; SE11 shows this read-only after activation."
+      },
+      {
+        "keyword": "@AccessControl.authorizationCheck: #CHECK",
+        "meaning": "DCL enforcement switch — needs matching DCLS in transport for QA to work."
+      },
+      {
+        "keyword": "define view ZMY_CDS_VIEW",
+        "meaning": "CDS view definition referencing a base view that must be transported earlier."
+      },
+      {
+        "keyword": "as select from zbase_view",
+        "meaning": "Base CDS view dependency — must be active in target before this view activates."
+      },
+      {
+        "keyword": "/IWFND/MAINT_SERVICE",
+        "meaning": "OData service registration transaction — service activation NOT transported."
+      },
+      {
+        "keyword": "SM21",
+        "meaning": "System log — activation errors during transport import recorded here."
+      }
+    ],
+    "quickRevisionNotes": "What: CDS view transport moves DDLS (view), DCLS (DCL), SRVD (service definition), and SRVB (binding) as separate objects that must be released and imported in dependency order.\n\nUsed for:\n- Promoting CDS views from DEV through QAS to PRD safely\n- Avoiding activation errors caused by missing base views or DCL objects\n- Reactivating OData services per system (registration is not transported)\n\nKey syntax / tables / Tcodes:\n- Transport classes: DDLS, DCLS, SRVD, SRVB, BDEF, DDLX (extension)\n- SE09/SE10 transport organizer; SM21 system log; SE11 (display CDS as CDS Entity)\n- /IWFND/MAINT_SERVICE and SICF for OData re-activation in each system\n\nInterview keyword: Dependency order, DCLS must follow DDLS, service registration manual.",
     "followupAnswerBank": [
       {
         "question": "DDLS aur DCLS mein kya difference hai transport ke context mein?",
-        "hinglishExplanation": "DDLS CDS View ka ABAP source aur DDIC definition store karta hai. DCLS sirf access control (DCL) store karta hai. Dono alag DDIC object types hain, isliye dono ko alag-alag transport objects ke roop mein handle karna padta hai.",
+        "hinglishExplanation": "DDLS object CDS view ki definition contain karta hai aur ek DDIC entity ki tarah activate hota hai. DCLS ek separate object hai jisme sirf access control layer hota hai. Dono ko transport requests mein hona chahiye — agar DCLS missing hai, view production mein bina authorization checks ke activate ho jaati hai, jo security risk hai.",
         "interviewAnswer": "DDLS object contains the CDS view definition and is activated as a DDIC entity. DCLS is a separate object containing only the access control layer. Both need to be in transport requests — if DCLS is missing, the view activates in production without authorization checks, which is a security risk.",
         "realtimeExplanation": "Real project mein ek baar humne DDLS transport kiya lekin DCLS bhool gaye. Production mein view activate hua lekin koi authorization check nahi tha — sab users sab data dekh pa rahe the. Bahut bada security incident tha.",
         "mistakes": "Sirf DDLS transport karna aur DCLS bhool jaana — yeh common mistake hai. Dono always saath mein transport karo.",
-        "codeExample": "-- Transport request mein dono objects:\n-- DDLS  ZMY_CDS_VIEW   (view definition)\n-- DCLS  ZMY_CDS_VIEW   (access control)"
+        "codeExample": "-- Transport request mein dono objects:\n-- DDLS  ZMY_CDS_VIEW   (view definition)\n-- DCLS  ZMY_CDS_VIEW   (access control)",
+        "tier": "easy"
       },
       {
         "question": "Base view aur dependent view ka transport order kyun important hai?",
-        "hinglishExplanation": "Agar dependent view import hota hai aur uska base view target system mein exist nahi karta, toh activation fail ho jaati hai. DDIC dependency resolution ke waqt base object pehle available hona chahiye.",
+        "hinglishExplanation": "DDIC activation import time pe dependencies resolve karta hai. Agar dependent CDS view target system mein uski base view exist aur active hone se pehle transport ho jaye, activation 'object not found' jaisi error throw karta hai. Hamesha bottom-up order mein transport karo — pehle base views, phir woh views jo unke upar build hoti hain.",
         "interviewAnswer": "DDIC activation resolves dependencies at import time. If a dependent CDS view is transported before its base view exists and is active in the target system, activation throws an error like 'object not found'. Always transport in bottom-up order — base views first, then views that build on them.",
         "realtimeExplanation": "Humara procurement project mein ek interface view tha jo base table view use karta tha. Ek baar wrong order mein transport gaya — QA mein poora OData service down ho gaya kyunki base view inactive tha. Tab se hum transport request sequence strictly follow karte hain.",
         "mistakes": "Top-down order mein transport karna — pehle dependent view, baad mein base view. Yeh guaranteed activation failure hai.",
-        "codeExample": "-- Sahi order:\n-- Step 1: ZMY_BASE_VIEW transport (DDLS)\n-- Step 2: ZMY_INTERFACE_VIEW transport (depends on base)\n-- Step 3: ZMY_CONSUMPTION_VIEW transport (depends on interface)"
+        "codeExample": "-- Sahi order:\n-- Step 1: ZMY_BASE_VIEW transport (DDLS)\n-- Step 2: ZMY_INTERFACE_VIEW transport (depends on base)\n-- Step 3: ZMY_CONSUMPTION_VIEW transport (depends on interface)",
+        "tier": "easy"
       },
       {
         "question": "Post-transport verification kaise karte hain?",
-        "hinglishExplanation": "SE11 se DDIC object ka status check karo — 'Active' hona chahiye. Agar OData service hai toh /IWFND/MAINT_SERVICE se service endpoint test karo. SM21 system log mein transport errors dekho. ABAP unit tests run karo agar available hain.",
+        "hinglishExplanation": "Transport ke baad main SE11 mein verify karta hoon ki DDLS object status 'Active' hai. OData-enabled views ke liye main /IWFND/MAINT_SERVICE check karta hoon confirm karne ke liye ki service reachable hai. Main SM21 bhi check karta hoon kisi bhi activation errors ke liye jo transport ko outright fail nahi karaye honge par issues indicate kar sakte hain.",
         "interviewAnswer": "After transport I verify in SE11 that the DDLS object status is 'Active'. For OData-enabled views I check /IWFND/MAINT_SERVICE to confirm the service is reachable. I also check SM21 for any activation errors that might not have caused the transport to fail outright but could indicate issues.",
         "realtimeExplanation": "Transport 'green' dikhta hai SM37 mein, par iska matlab nahi ki activation successful tha. Ek project mein activation silently fail hua tha — SE11 check kiya toh 'Inactive' status tha. Isliye SE11 verification mandatory hai humare process mein.",
         "mistakes": "Transport job 'successful' dekh ke assume karna ki sab theek hai. Activation status alag hota hai — always SE11 se manually verify karo.",
-        "codeExample": "-- SE11 verification steps:\n-- 1. SE11 > CDS Entity > ZMY_CDS_VIEW > Display\n-- 2. Check 'Active' status in header\n-- 3. If inactive: Activate button > check errors\n\n-- /IWFND/MAINT_SERVICE:\n-- Search: ZMY_SERVICE_SRV > Check > Test endpoint"
+        "codeExample": "-- SE11 verification steps:\n-- 1. SE11 > CDS Entity > ZMY_CDS_VIEW > Display\n-- 2. Check 'Active' status in header\n-- 3. If inactive: Activate button > check errors\n\n-- /IWFND/MAINT_SERVICE:\n-- Search: ZMY_SERVICE_SRV > Check > Test endpoint",
+        "tier": "easy"
       },
       {
         "question": "Transport request mein kaunse objects include karne chahiye?",
-        "hinglishExplanation": "DDLS (view definition), DCLS (access control agar hai), aur koi bhi custom domain ya data element jo view ne use kiye hoon. Agar Metadata Extension use ki hai (@UI annotations ke liye) toh woh bhi DDLX type ka alag object hai — use bhi transport karo.",
+        "hinglishExplanation": "CDS view ke liye complete transport mein include hone chahiye: view ke liye DDLS, access control defined hai toh DCLS, UI annotations ke liye metadata extension use ho rahi ho toh DDLX, aur kisi bhi referenced custom domains ya data elements. Inme se kisi ka miss hona target system mein partial functionality cause kar sakta hai.",
         "interviewAnswer": "A complete transport for a CDS view should include: DDLS for the view itself, DCLS if access control is defined, DDLX if a metadata extension is used for UI annotations, and any custom domains or data elements referenced. Missing any of these can cause partial functionality in the target system.",
         "realtimeExplanation": "Fiori app ke liye CDS view transport kiya tha lekin DDLX (metadata extension) bhool gaye. Production mein Fiori tiles toh kaam kar rahe the lekin column headers aur labels galat the — @UI.lineItem annotations apply nahi hui thi.",
         "mistakes": "Metadata Extension (DDLX) bhool jaana — yeh Fiori apps mein common hai. UI layout target system mein miss ho jaata hai.",
-        "codeExample": "-- Complete transport object list:\n-- DDLS   ZMY_CDS_VIEW          (main view)\n-- DCLS   ZMY_CDS_VIEW          (access control)\n-- DDLX   ZMY_CDS_VIEW          (metadata extension)\n-- DOMA   ZMY_CUSTOM_DOMAIN     (custom domain if any)"
+        "codeExample": "-- Complete transport object list:\n-- DDLS   ZMY_CDS_VIEW          (main view)\n-- DCLS   ZMY_CDS_VIEW          (access control)\n-- DDLX   ZMY_CDS_VIEW          (metadata extension)\n-- DOMA   ZMY_CUSTOM_DOMAIN     (custom domain if any)",
+        "tier": "medium"
       },
       {
         "question": "DEV se PRD direct transport kyun risky hai?",
-        "hinglishExplanation": "DEV mein test data hota hai, production ka real data volume alag hota hai — performance issues DEV mein nahi aate. QA mein integration test karna zaroori hai taaki dependent systems (Fiori, OData, BW) bhi test ho sakein. Change management process bhi bypass hota hai direct transport mein.",
+        "hinglishExplanation": "Direct DEV to PRD transport QA validation bypass karta hai jahan real data volumes aur integration points test hote hain. Ek CDS view jo DEV mein small datasets ke saath well perform karti hai woh production mein timeouts cause kar sakti hai. QA ye bhi validate karta hai ki dependent Fiori apps, OData services, aur downstream consumers change ke baad correctly kaam karen.",
         "interviewAnswer": "Direct DEV to PRD transport bypasses QA validation where real data volumes and integration points are tested. A CDS view that performs well in DEV with small datasets may cause timeouts in production. QA also validates that dependent Fiori apps, OData services, and downstream consumers still work correctly after the change.",
         "realtimeExplanation": "Ek urgent fix ke liye kisi ne directly DEV se PRD transport kiya. View mein ek missing index tha jo DEV mein visible nahi tha. Production mein 50 lakh records par query 30 seconds le rahi thi — poora Fiori app hang ho gaya tha.",
         "mistakes": "Urgency ke naam par DEV-to-PRD direct transport. Ek bug fix doosra production incident create kar sakta hai.",
-        "codeExample": "-- Safe transport path:\n-- DEV (development + unit test)\n--  -> QA (integration test + performance test)\n--  -> PRE-PROD (UAT if applicable)\n--  -> PRD (with change management approval)"
+        "codeExample": "-- Safe transport path:\n-- DEV (development + unit test)\n--  -> QA (integration test + performance test)\n--  -> PRE-PROD (UAT if applicable)\n--  -> PRD (with change management approval)",
+        "tier": "medium"
       },
       {
         "question": "CDS View transport mein kya ho agar activation PRD mein fail ho?",
-        "hinglishExplanation": "Pehle SM21 ya SE11 error details dekho. Agar dependency missing hai toh missing object transport karo. Agar code issue hai toh rollback transport create karo (previous version ko wapas transport karo). Production mein direct fix kabhi mat karo — har change dev mein pehle.",
+        "hinglishExplanation": "Agar production mein activation fail ho jaye, pehle SE11 aur SM21 mein exact error check karo. Agar ye missing dependency hai, missing object transport karo. Agar code defect hai, DEV se previous working version transport karke rollback create karo. Kabhi bhi directly production mein fix mat karo — saare fixes transport landscape se jaate hain.",
         "interviewAnswer": "If activation fails in production, first check SE11 and SM21 for the exact error. If it's a missing dependency, transport the missing object. If it's a code defect, create a rollback by transporting the previous working version from DEV. Never directly fix in production — all fixes go through the transport landscape.",
         "realtimeExplanation": "Ek baar PRD mein activation fail hui kyunki ek custom function module jo CDS view use kar raha tha woh transport request mein miss ho gaya tha. Humne function module alag request mein transport kiya aur phir CDS view re-activate kiya SE11 se.",
         "mistakes": "Production system mein directly SE11 se manually activate karna bina proper transport ke — yeh system inconsistency create karta hai aur audit trail break hoti hai.",
-        "codeExample": "-- Rollback steps:\n-- 1. SE11 > Find previous active version in DEV (git/version history)\n-- 2. Restore previous code in DEV\n-- 3. Create new transport request\n-- 4. Transport through landscape again\n-- Never: SE11 > directly modify in PRD"
+        "codeExample": "-- Rollback steps:\n-- 1. SE11 > Find previous active version in DEV (git/version history)\n-- 2. Restore previous code in DEV\n-- 3. Create new transport request\n-- 4. Transport through landscape again\n-- Never: SE11 > directly modify in PRD",
+        "tier": "medium"
       },
       {
         "question": "CDS View transport aur normal ABAP program transport mein kya difference hai?",
-        "hinglishExplanation": "Normal ABAP program sirf ABAP source transport karta hai. CDS View ke liye DDIC object activation bhi hoti hai transport ke time — yeh extra step hai. Iske alawa DCL, Metadata Extension alag objects hain. ABAP program ki dependency usually function modules tak hoti hai; CDS ki dependency dusre CDS views par hoti hai jinka order maintain karna padta hai.",
+        "hinglishExplanation": "ABAP program transport sirf source code move karta hai. CDS view transport DDLS objects ki DDIC activation, potential DCLS aur DDLX objects, aur views ke beech strict dependency ordering involve karta hai. CDS views DDIC catalog ko bhi affect karte hain jo normal programs nahi karte, isliye verification steps zyada involved hain.",
         "interviewAnswer": "ABAP program transport moves source code only. CDS view transport involves DDIC activation of DDLS objects, potential DCLS and DDLX objects, and strict dependency ordering between views. CDS views also affect the DDIC catalog which normal programs don't, so verification steps are more involved.",
         "realtimeExplanation": "New team member ne assume kiya ki CDS transport same hai jaise ABAP class transport. Usne sirf DDLS transport kiya, DCLS miss kar diya. Security review mein pakda gaya ki production mein authorization check nahi tha — embarrassing aur risky situation.",
         "mistakes": "CDS transport ko simple program transport maanna. DDIC aspect aur multiple object types ko ignore karna.",
-        "codeExample": "-- ABAP Program transport:\n-- R3TR PROG ZMY_PROGRAM  (single object type)\n\n-- CDS View transport (multiple types needed):\n-- R3TR DDLS ZMY_CDS_VIEW\n-- R3TR DCLS ZMY_CDS_VIEW\n-- R3TR DDLX ZMY_CDS_VIEW"
+        "codeExample": "-- ABAP Program transport:\n-- R3TR PROG ZMY_PROGRAM  (single object type)\n\n-- CDS View transport (multiple types needed):\n-- R3TR DDLS ZMY_CDS_VIEW\n-- R3TR DCLS ZMY_CDS_VIEW\n-- R3TR DDLX ZMY_CDS_VIEW",
+        "tier": "advanced"
       },
       {
         "question": "Large project mein multiple CDS views ek saath transport kaise manage karte hain?",
-        "hinglishExplanation": "Transport request ko logically group karo — ek feature ke liye ek request. Dependency graph pehle document karo: kaun sa view kiski zaroorat rakhta hai. Import queue mein correct sequence ensure karo. Agar CI/CD pipeline hai (gCTS ya abapGit) toh automated sequence handle ho jaati hai.",
+        "hinglishExplanation": "Bahut saari CDS views wale large projects ke liye, main pehle dependency graph document karta hoon aur related views ko jab possible ho same transport request mein group karta hoon. Main import queue use karta hoon correct ordering ensure karne ke liye. Modern landscapes mein gCTS ya abapGit ke saath, dependency ordering automate ho sakti hai. Manual transports ke liye, hum apne change management process ke part ke roop mein transport sequence document maintain karte hain.",
         "interviewAnswer": "For large projects with many CDS views, I document the dependency graph first and group related views in the same transport request when possible. I use the import queue to ensure correct ordering. In modern landscapes with gCTS or abapGit, the dependency ordering can be automated. For manual transports, we maintain a transport sequence document as part of our change management process.",
         "realtimeExplanation": "S/4HANA implementation mein humare paas 50+ CDS views the. Hum Excel mein dependency matrix banate the — rows mein views, columns mein dependencies. Transport sequence is matrix se nikaalte the. Baad mein gCTS use karne laga toh yeh manual work bahut kam ho gaya.",
         "mistakes": "Sab views ek saath ek badi transport request mein daalna bina sequence document kiye — kuch views fail ho jaate hain aur debug karna mushkil hota hai.",
-        "codeExample": "-- Dependency matrix example:\n-- ZMY_BASE_VIEW       -> no dependencies\n-- ZMY_INTERFACE_VIEW  -> depends on ZMY_BASE_VIEW\n-- ZMY_CONSUMP_VIEW    -> depends on ZMY_INTERFACE_VIEW\n\n-- Transport sequence:\n-- Request 1: ZMY_BASE_VIEW (DDLS + DCLS)\n-- Request 2: ZMY_INTERFACE_VIEW (DDLS + DCLS)\n-- Request 3: ZMY_CONSUMP_VIEW (DDLS + DCLS + DDLX)"
+        "codeExample": "-- Dependency matrix example:\n-- ZMY_BASE_VIEW       -> no dependencies\n-- ZMY_INTERFACE_VIEW  -> depends on ZMY_BASE_VIEW\n-- ZMY_CONSUMP_VIEW    -> depends on ZMY_INTERFACE_VIEW\n\n-- Transport sequence:\n-- Request 1: ZMY_BASE_VIEW (DDLS + DCLS)\n-- Request 2: ZMY_INTERFACE_VIEW (DDLS + DCLS)\n-- Request 3: ZMY_CONSUMP_VIEW (DDLS + DCLS + DDLX)",
+        "tier": "advanced"
       }
     ]
   },
@@ -75,71 +150,146 @@
     "easyUnderstanding": "Simple words mein samjho: Interview mein sirf theory mat bolo — ek real project story sunao. 'Maine ek S/4HANA project mein CDS views use kiye Fiori procurement app ke liye' — yeh sunke interviewer impress hota hai. Story mein batao: kya problem tha, kaise solve kiya, kya result aaya. 40% performance improvement ek strong closing point hai.",
     "hinglishMasterExplanation": "Interview mein practical answer dena matlab ek real-world story format mein apna experience present karna. Story kuch aisi honi chahiye: 'Mujhe S/4HANA project mein ek Fiori-based procurement app banana tha jisme purchase orders aur items dikhne the.' Pehle interface view banaya — EKKO aur EKPO tables ka join, reusable layer ke roop mein. Phir consumption view banaya @UI annotations ke saath taaki Fiori Elements app seedha CDS se drive ho sake. DCL layer add ki PFCG roles ke basis par — sirf authorized users apna data dekh sakein. Performance optimize karne ke liye joins ki jagah associations use kiye — lazy evaluation ki wajah se only needed data fetch hota hai. Final result: purane ALV report se 40% faster query performance mili. Yeh story interviewer ko dikhati hai ki aapko architecture (3-layer pattern) pata hai, performance ka dhyan hai, security bhi consider kiya, aur real project experience hai.",
     "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'Mere ek S/4HANA implementation project mein, maine CDS views design kiye ek Fiori-based procurement application ke liye. Maine 3-layer architecture follow kiya: pehla, ek Interface View banaya jo EKKO aur EKPO tables join karta tha — yeh reusable layer thi jo multiple consumers use kar sakein. Doosra, ek Consumption View banaya uske upar with @UI.lineItem aur @UI.selectionField annotations — Fiori Elements app seedha is view se generate hui bina custom UI code ke. Teesra, DCL define ki PFCG authorization objects ke saath taaki har buyer sirf apne purchasing group ka data dekh sake. Performance ke liye maine joins ki jagah associations prefer kiye jahan possible tha — isse query runtime 40% better tha purane ALV report se. Interview mein ek baar yeh cheez demonstrate kar di toh follow-up questions naturally aate hain aur main confidently answer kar sakta hoon.'\n\nHinglish tip: Numbers use karo — '40% faster', '3 layers', 'EKKO EKPO join'. Vague 'maine CDS views banaye' se zyada convincing lagta hai.",
-    "codeExamples": "-- Layer 1: Interface View (EKKO + EKPO join)\n@AbapCatalog.sqlViewName: 'ZI_PO_HEADER_SQL'\n@AbapCatalog.compiler.compareFilter: true\n@AccessControl.authorizationCheck: #NOT_REQUIRED\n@VDM.viewType: #BASIC\ndefine view ZI_PO_HEADER\n  as select from ekko\n  association [0..*] to ekpo as _Items\n    on $projection.Ebeln = _Items.Ebeln\n{\n  key ebeln as Ebeln,\n      lifnr as Vendor,\n      ekgrp as PurchasingGroup,\n      _Items  -- association exposed\n}\n\n-- Layer 2: Consumption View (Fiori ready)\n@AbapCatalog.sqlViewName: 'ZC_PO_HEADER_SQL'\n@AccessControl.authorizationCheck: #CHECK\n@VDM.viewType: #CONSUMPTION\n@UI.headerInfo: { typeName: 'Purchase Order' }\ndefine view ZC_PO_HEADER\n  as select from ZI_PO_HEADER\n{\n  @UI.lineItem: [{ position: 10 }]\n  @UI.selectionField: [{ position: 10 }]\n  key Ebeln,\n\n  @UI.lineItem: [{ position: 20 }]\n  Vendor,\n\n  @UI.lineItem: [{ position: 30 }]\n  PurchasingGroup\n}\n\n-- Layer 3: DCL (PFCG based)\n@MappingRole: true\ndefine role ZC_PO_HEADER\n{\n  grant select on ZC_PO_HEADER\n    where (PurchasingGroup) =\n      aspect pfcg_auth(M_BEST_EKG, ACTVT, '03');\n}",
+    "codeExamples": "-- Layer 1: Interface View (EKKO + EKPO join)\n@AbapCatalog.sqlViewName: 'ZI_PO_HEADER_SQL'\n@AbapCatalog.compiler.compareFilter: true\n@AccessControl.authorizationCheck: #NOT_REQUIRED\n@VDM.viewType: #BASIC\ndefine view ZI_PO_HEADER\n  as select from ekko\n  association [0..*] to ekpo as _Items\n    on $projection.Ebeln = _Items.Ebeln\n{\n  key ebeln as Ebeln,\n      lifnr as Vendor,\n      ekgrp as PurchasingGroup,\n      _Items  -- association exposed\n}\n\n-- Layer 2: Consumption View (Fiori ready)\n@AbapCatalog.sqlViewName: 'ZC_PO_HEADER_SQL'\n@AccessControl.authorizationCheck: #CHECK\n@VDM.viewType: #CONSUMPTION\n@UI.headerInfo: { typeName: 'Purchase Order' }\ndefine view ZC_PO_HEADER\n  as select from ZI_PO_HEADER\n{\n  @UI.lineItem: [{ position: 10 }]\n  @UI.selectionField: [{ position: 10 }]\n  key Ebeln,\n\n  @UI.lineItem: [{ position: 20 }]\n  Vendor,\n\n  @UI.lineItem: [{ position: 30 }]\n  PurchasingGroup\n}\n\n-- Layer 3: DCL (PFCG based)\n@MappingRole: true\ndefine role ZC_PO_HEADER\n{\n  grant select on ZC_PO_HEADER\n    where (PurchasingGroup) =\n      aspect pfcg_auth(M_BEST_EKG, EKGRP, ACTVT = '03');\n}",
+    "interviewScriptEnglish": "In one S/4HANA implementation project, I designed CDS views for a Fiori-based procurement application using a three-layer architecture. First, an interface view joined EKKO and EKPO tables — a reusable layer for multiple consumers. Second, a consumption view on top with @UI.lineItem and @UI.selectionField annotations enabled the Fiori list report directly. Third, a DCL role restricted purchasing org access. This pattern delivered the Fiori app in two sprints, kept logic in CDS instead of ABAP, and gave finance team real-time analytics on open POs without custom transactional code.",
+    "interviewScriptHinglish": "Ek S/4HANA implementation project mein, maine ek Fiori-based procurement application ke liye CDS views design kiye three-layer architecture use karke. Pehla, ek interface view banaya jo EKKO aur EKPO tables join karta tha — ek reusable layer multiple consumers ke liye. Doosra, uske upar ek consumption view banaya @UI.lineItem aur @UI.selectionField annotations ke saath, jisne directly Fiori list report enable kiya. Teesra, ek DCL role purchasing org access restrict karta tha. Is pattern se Fiori app sirf do sprints mein deliver hua, logic CDS mein rakha gaya ABAP ke bajaye, aur finance team ko open POs ka real-time analytics mila bina custom transactional code ke.",
+    "commonMistakesSection": [
+      {
+        "mistake": "Ek hi flat consumption view mein sab kuch daalna — joins, UI annotations, DCL.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Yeh tightly coupled hota hai aur reuse nahi hota."
+      },
+      {
+        "mistake": "Har jagah join use karna — performance profiling ke bina.",
+        "whyWrong": "Production impact: measurable runtime degradation in ST05/SAT traces.",
+        "correctApproach": "Association tab sahi hai jab child data conditionally chahiye ho."
+      },
+      {
+        "mistake": "DCL skip karna aur consumer application layer mein authorization check karna — yeh DRY principle violate karta hai aur ek layer miss hone par security breach ho sakti hai.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Use the correct approach as described in the deep-dive section."
+      },
+      {
+        "mistake": "Bina measurement ke 'faster hai' bolna.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Always numbers aur measurement method mention karo — credibility badh jaati hai."
+      }
+    ],
+    "wordByWordSamjho": [
+      {
+        "keyword": "@VDM.viewType: #BASIC",
+        "meaning": "Interface layer marker — reusable, stable, no UI annotations expected."
+      },
+      {
+        "keyword": "@VDM.viewType: #CONSUMPTION",
+        "meaning": "Consumption layer marker — Fiori UI annotations applied here, not in interface view."
+      },
+      {
+        "keyword": "@AccessControl.authorizationCheck: #NOT_REQUIRED",
+        "meaning": "Skip DCL — acceptable on technical interface views never directly exposed."
+      },
+      {
+        "keyword": "association [0..*] to ekpo as _Items",
+        "meaning": "Lazy header-to-items relationship; consumed by Fiori object page."
+      },
+      {
+        "keyword": "$projection.Ebeln",
+        "meaning": "Self-reference to exposed key field used inside association ON condition."
+      },
+      {
+        "keyword": "@UI.headerInfo",
+        "meaning": "Fiori Elements annotation — object page title and typeName configuration."
+      },
+      {
+        "keyword": "@UI.lineItem: [{ position: 10 }]",
+        "meaning": "Column declaration for Fiori list report — position controls order."
+      },
+      {
+        "keyword": "@UI.selectionField: [{ position: 10 }]",
+        "meaning": "Filter bar field declaration for Fiori list report."
+      },
+      {
+        "keyword": "@MappingRole: true",
+        "meaning": "DCL role marker for field-based mapping to authorization aspects."
+      },
+      {
+        "keyword": "aspect pfcg_auth(M_BEST_EKG, EKGRP, ACTVT = '03')",
+        "meaning": "Purchasing group auth object with display activity — central restriction."
+      }
+    ],
+    "quickRevisionNotes": "What: A real-time CDS Fiori project layers interface views, consumption views, DCL, and OData service binding to deliver a complete authorized Fiori app.\n\nUsed for:\n- Building S/4HANA Fiori procurement, sales, finance apps end-to-end\n- Separating reusable data model (ZI_) from UI-specific layer (ZC_)\n- Adding authorization via DCL and exposing via RAP service binding\n\nKey syntax / tables / Tcodes:\n- @VDM.viewType #BASIC vs #CONSUMPTION; @UI.lineItem / selectionField / headerInfo\n- DCL define role + grant select on + aspect pfcg_auth(M_BEST_EKG, EKGRP, ACTVT = '03')\n- Service definition (SRVD) + binding (SRVB) + Fiori launchpad tile\n\nInterview keyword: Interface + consumption + DCL + binding — full layer story.",
     "followupAnswerBank": [
       {
         "question": "Tumne 3-layer architecture kyun choose kiya ek simple view se?",
-        "hinglishExplanation": "3-layer (Basic/Interface/Consumption) best practice hai SAP VDM (Virtual Data Model) ke according. Interface view reusable hota hai — ek hi join multiple consumption views use kar sakte hain. Agar DB structure change ho toh sirf interface view update karo, saare consumers automatically benefit lete hain.",
+        "hinglishExplanation": "3-layer architecture SAP ke Virtual Data Model best practice follow karta hai. Interface view ek stable reusable contract ki tarah act karta hai — agar EKKO structure change ho, main sirf interface view update karta hoon aur saari consumption views automatically benefit leti hain. Ye concerns bhi separate karta hai: interface mein data joining, consumption mein UI annotations, DCL mein authorization.",
         "interviewAnswer": "The 3-layer architecture follows SAP's Virtual Data Model best practice. The interface view acts as a stable reusable contract — if EKKO structure changes, I update only the interface view and all consumption views automatically benefit. It also separates concerns: data joining in interface, UI annotations in consumption, authorization in DCL.",
         "realtimeExplanation": "Humne pehle ek single flat view banaya tha. Jab dusri team ne same data Fiori app mein alag layout se chahiya, unhone poora join duplicate kar diya. Tab humne refactor karke interface view banaya — 3 consumption views ek interface view se. Maintenance bahut easy ho gayi.",
         "mistakes": "Ek hi flat consumption view mein sab kuch daalna — joins, UI annotations, DCL. Yeh tightly coupled hota hai aur reuse nahi hota.",
-        "codeExample": "-- Anti-pattern: sab ek view mein\ndefine view ZC_EVERYTHING  -- join + UI + logic sab\n  as select from ekko join ekpo ...\n\n-- Better: 3 layers\n-- ZI_PO_HEADER (join only)\n-- ZC_PO_LIST   (UI annotations)\n-- ZC_PO_DETAIL (different UI annotations, same base)"
+        "codeExample": "-- Anti-pattern: sab ek view mein\ndefine view ZC_EVERYTHING  -- join + UI + logic sab\n  as select from ekko join ekpo ...\n\n-- Better: 3 layers\n-- ZI_PO_HEADER (join only)\n-- ZC_PO_LIST   (UI annotations)\n-- ZC_PO_DETAIL (different UI annotations, same base)",
+        "tier": "easy"
       },
       {
         "question": "Associations vs Joins mein performance difference kaise explain karoge?",
-        "hinglishExplanation": "Join hamesha dono tables ka data fetch karta hai chahe consumer use kare ya na kare. Association lazy hota hai — sirf tab join hota hai jab consumer explicitly _AssocName navigate karta hai. Fiori list mein sirf header chahiye toh EKPO ka data hi fetch nahi hoga association ke saath.",
+        "hinglishExplanation": "Joins eagerly evaluated hote hain — dono sides hamesha fetch hote hain consumer ko kya chahiye uske regardless. Associations lazy hain — join sirf tab execute hota hai jab consumer association navigate kare. Sirf header data dikhane wali procurement list mein, items ke liye association use karna matlab item data fetch hi nahi hota, result set aur database load significantly reduce karte hue.",
         "interviewAnswer": "Joins are eagerly evaluated — both sides are always fetched regardless of what the consumer needs. Associations are lazy — the join only executes when the consumer navigates the association. In a procurement list showing only header data, using an association to items means item data is not fetched at all, significantly reducing the result set and database load.",
         "realtimeExplanation": "Humari procurement list mein pehle EKKO-EKPO join tha. List page par 1000 headers ke saath 15000 line items bhi fetch ho rahe the — user ko sirf header columns dikhne the. Association switch kiya toh same list 40% faster ho gayi kyunki EKPO fetch hi nahi hua tab tak jab tak user ek specific order open na kare.",
         "mistakes": "Har jagah join use karna — performance profiling ke bina. Association tab sahi hai jab child data conditionally chahiye ho.",
-        "codeExample": "-- Join: hamesha EKPO fetch hoga\ndefine view ZI_WITH_JOIN as\n  select from ekko inner join ekpo\n    on ekko.ebeln = ekpo.ebeln { ... }\n\n-- Association: sirf jab navigate karein\ndefine view ZI_WITH_ASSOC as\n  select from ekko\n  association [0..*] to ekpo as _Items\n    on $projection.Ebeln = _Items.Ebeln\n{ key ebeln as Ebeln, _Items }"
+        "codeExample": "-- Join: hamesha EKPO fetch hoga\ndefine view ZI_WITH_JOIN as\n  select from ekko inner join ekpo\n    on ekko.ebeln = ekpo.ebeln { ... }\n\n-- Association: sirf jab navigate karein\ndefine view ZI_WITH_ASSOC as\n  select from ekko\n  association [0..*] to ekpo as _Items\n    on $projection.Ebeln = _Items.Ebeln\n{ key ebeln as Ebeln, _Items }",
+        "tier": "easy"
       },
       {
         "question": "PFCG authorization DCL mein kaise implement ki?",
-        "hinglishExplanation": "DCL mein `aspect pfcg_auth` use karte hain — yeh PFCG role ka authorization object check karta hai. User ke role mein jo purchasing group assign hai, sirf usi ka data filter hoga. Row-level security automatically apply hoti hai bina ABAP WHERE clause likhe.",
+        "hinglishExplanation": "DCL mein maine pfcg_auth aspect use kiya jo PFCG roles mein ek authorization object pe map hota hai. Purchasing group scenario ke liye, DCL authorization object M_BEST_EKG ko activity 03 (display) ke saath check karta hai. Apne role mein woh purchasing group wale users sirf matching records dekhte hain. Ye row-level security hai jo declaratively bina kisi ABAP code ke apply hoti hai.",
         "interviewAnswer": "In the DCL I used the pfcg_auth aspect which maps to an authorization object in PFCG roles. For the purchasing group scenario, the DCL checks authorization object M_BEST_EKG with activity 03 (display). Users with that purchasing group in their role see only matching records. This is row-level security applied declaratively without any ABAP code.",
         "realtimeExplanation": "Pehle humara ABAP report mein manually `AUTHORITY-CHECK` kar ke data filter karte the — 200 lines ka code tha. CDS DCL ne wahi kaam 8 lines mein kar diya. Aur yeh automatically OData service aur Fiori app pe bhi apply hota hai — har jagah alag code likhne ki zaroorat nahi.",
         "mistakes": "DCL skip karna aur consumer application layer mein authorization check karna — yeh DRY principle violate karta hai aur ek layer miss hone par security breach ho sakti hai.",
-        "codeExample": "define role ZC_PO_HEADER\n{\n  grant select on ZC_PO_HEADER\n    where (PurchasingGroup) =\n      aspect pfcg_auth(\n        M_BEST_EKG,  -- auth object\n        ACTVT,       -- field\n        '03'         -- display activity\n      );\n}"
+        "codeExample": "define role ZC_PO_HEADER\n{\n  grant select on ZC_PO_HEADER\n    where (PurchasingGroup) =\n      aspect pfcg_auth(\n        M_BEST_EKG,    -- auth object\n        EKGRP,         -- field mapping (CDS field to auth-object field)\n        ACTVT = '03'   -- literal restriction for activity\n      );\n}",
+        "tier": "easy"
       },
       {
         "question": "40% performance improvement kaise measure kiya?",
-        "hinglishExplanation": "SE30 (ABAP Runtime Analysis) ya ST05 (SQL Trace) se before/after compare kiya. Old ALV report ka DB access time note kiya, phir CDS-based Fiori app ka. Runtime difference calculate kiya. Production-like data volume par test karna important tha — dev mein sab fast hota hai.",
+        "hinglishExplanation": "Maine ST05 SQL trace use kiya same data volume ke saath dono purane ALV report aur naye CDS-based approach ke liye actual database execution time capture karne ke liye. Purane report mein loop ke andar nested SELECT thi — classic N+1 problem. Single optimized query wali CDS view ne use eliminate kar diya. 100,000 purchase orders test data pe response time ~5 seconds se ~3 seconds tak gir gaya, roughly 40% improvement.",
         "interviewAnswer": "I used ST05 SQL trace to capture the actual database execution time for both the old ALV report and the new CDS-based approach with the same data volume. The old report had a nested SELECT in a loop — classic N+1 problem. The CDS view with a single optimized query eliminated that. On 100,000 purchase orders test data the response time dropped from ~5 seconds to ~3 seconds, roughly 40% improvement.",
         "realtimeExplanation": "Performance number bina proof ke bolna risky hai interview mein. Humne actual ST05 screenshots save kiye the — total DB time, number of DB calls. Old code mein 10,000 records ke liye 10,001 DB calls the (loop mein SELECT). New CDS mein ek single call. Yeh data interviewer ko confident answer dene mein help karta hai.",
         "mistakes": "Bina measurement ke 'faster hai' bolna. Always numbers aur measurement method mention karo — credibility badh jaati hai.",
-        "codeExample": "-- ST05 trace comparison:\n-- OLD ABAP report:\n--   DB calls: 10,001 (1 header + 10,000 item selects in loop)\n--   Total DB time: ~4800ms\n\n-- NEW CDS approach:\n--   DB calls: 1 (single optimized query)\n--   Total DB time: ~2900ms\n--   Improvement: ~40%\n\n-- Anti-pattern that was replaced:\n-- SELECT * FROM ekko INTO TABLE lt_ekko.\n-- LOOP AT lt_ekko.\n--   SELECT * FROM ekpo WHERE ebeln = lv_ebeln. \"N+1!\"\n-- ENDLOOP."
+        "codeExample": "-- ST05 trace comparison:\n-- OLD ABAP report:\n--   DB calls: 10,001 (1 header + 10,000 item selects in loop)\n--   Total DB time: ~4800ms\n\n-- NEW CDS approach:\n--   DB calls: 1 (single optimized query)\n--   Total DB time: ~2900ms\n--   Improvement: ~40%\n\n-- Anti-pattern that was replaced:\n-- SELECT * FROM ekko INTO TABLE lt_ekko.\n-- LOOP AT lt_ekko.\n--   SELECT * FROM ekpo WHERE ebeln = lv_ebeln. \"N+1!\"\n-- ENDLOOP.",
+        "tier": "medium"
       },
       {
         "question": "Fiori Elements app CDS view se kaise generate ki bina custom UI code ke?",
-        "hinglishExplanation": "CDS consumption view mein @UI annotations daalo — @UI.lineItem, @UI.selectionField, @UI.headerInfo etc. Phir OData service generate karo CDS se (SEGW ya automatic exposure). Fiori Elements List Report template select karo SAP Business Application Studio mein — woh annotations read karke automatically UI generate kar deta hai.",
+        "hinglishExplanation": "Maine consumption view ko @UI.lineItem se columns ke liye, @UI.selectionField se filter fields ke liye, aur @UI.headerInfo se page title ke liye annotate kiya. Phir view ko OData V4 service ke roop mein expose kiya. SAP Business Application Studio mein, maine ek Fiori Elements List Report application create kiya jo is OData service ko point karta hai — app entirely annotations se generate hua, koi custom TypeScript/JavaScript UI code nahi chahiye tha.",
         "interviewAnswer": "I annotated the consumption view with @UI.lineItem for columns, @UI.selectionField for filter fields, and @UI.headerInfo for the page title. Then I exposed the view as an OData V4 service. In SAP Business Application Studio, I created a Fiori Elements List Report application pointing to this OData service — the app was generated entirely from annotations, no custom TypeScript/JavaScript UI code was needed.",
         "realtimeExplanation": "Pehle hum Fiori apps freestyle banate the — HTML5, Controller code, XML views. Bahut time lagta tha. CDS + Fiori Elements approach se procurement list app 3 din mein ready ho gayi jisme 90% time CDS design mein tha, UI code bilkul nahi tha. Client bahut impressed tha.",
         "mistakes": "UI annotations consumption view ki bajaye interface view mein daalna — interface view reusable hoti hai, UI-specific annotations wahan galat jagah hain.",
-        "codeExample": "@VDM.viewType: #CONSUMPTION\n@UI.headerInfo: {\n  typeName: 'Purchase Order',\n  typeNamePlural: 'Purchase Orders'\n}\ndefine view ZC_PO_HEADER as select from ZI_PO_HEADER\n{\n  @UI.lineItem: [{ position: 10, label: 'PO Number' }]\n  @UI.selectionField: [{ position: 10 }]\n  key Ebeln,\n\n  @UI.lineItem: [{ position: 20, label: 'Vendor' }]\n  Vendor\n}"
+        "codeExample": "@VDM.viewType: #CONSUMPTION\n@UI.headerInfo: {\n  typeName: 'Purchase Order',\n  typeNamePlural: 'Purchase Orders'\n}\ndefine view ZC_PO_HEADER as select from ZI_PO_HEADER\n{\n  @UI.lineItem: [{ position: 10, label: 'PO Number' }]\n  @UI.selectionField: [{ position: 10 }]\n  key Ebeln,\n\n  @UI.lineItem: [{ position: 20, label: 'Vendor' }]\n  Vendor\n}",
+        "tier": "medium"
       },
       {
         "question": "Agar interviewer pooche ki tumhare project mein kya challenge tha?",
-        "hinglishExplanation": "Challenge honestly batao — over-fetching problem (joins ki jagah associations ka switch), DCL debugging (SE16N se data dikha lekin Fiori mein nahi — DCL issue tha), ya transport sequence issues. Real challenges batane se interviewer ko pata chalta hai ki tumne actually kaam kiya hai.",
+        "hinglishExplanation": "Ek challenge tha debug karna kyun data SE16N mein dikhta tha par Fiori app mein nahi. Investigation ke baad maine paaya DCL correctly filter kar rahi thi — test user ke PFCG role mein right purchasing group assigned nahi tha. Doosra challenge transport sequence tha — humne initially interface view se pehle consumption view transport ki, jisse QA mein activation failure hua. Hum us incident ke baad dependency order document karne lage.",
         "interviewAnswer": "One challenge was debugging why data appeared in SE16N but not in the Fiori app. After investigation I found the DCL was filtering correctly — the test user's PFCG role didn't have the right purchasing group assigned. Another challenge was the transport sequence — we initially transported the consumption view before the interface view, causing activation failure in QA. We documented the dependency order after that incident.",
         "realtimeExplanation": "Yeh type ke real challenges interview mein bahut zyada value add karte hain. 'Sab smoothly hua' bolne wale log junior lagte hain. Senior developer woh hota hai jo challenges face kiya, debug kiya, aur sikh ke process improve kiya.",
         "mistakes": "Koi challenge nahi batana ya generic 'performance issue tha' bolna. Specific technical challenge aur uska resolution zyada convincing hai.",
-        "codeExample": "-- DCL debugging scenario:\n-- Problem: SE16N mein data visible, Fiori mein blank screen\n-- Root cause: User ki PFCG role mein purchasing group assign nahi tha\n\n-- Debug steps:\n-- 1. SU53 - check failed authorization check\n-- 2. PFCG - add purchasing group to user role\n-- 3. SU25 - profile regenerate\n-- Result: Data visible in Fiori app"
+        "codeExample": "-- DCL debugging scenario:\n-- Problem: SE16N mein data visible, Fiori mein blank screen\n-- Root cause: User ki PFCG role mein purchasing group assign nahi tha\n\n-- Debug steps:\n-- 1. SU53 - check failed authorization check\n-- 2. PFCG - add purchasing group to user role\n-- 3. SU25 - profile regenerate\n-- Result: Data visible in Fiori app",
+        "tier": "medium"
       },
       {
         "question": "CDS Views ko OData service ke saath kaise expose kiya?",
-        "hinglishExplanation": "S/4HANA 1909+ mein @OData.publish: true annotation kaafi hai automatic exposure ke liye. Purane approach mein SEGW mein manually service create karte the. /IWFND/MAINT_SERVICE pe service activate karni padti hai. V4 annotation @OData.entityType.name bhi use kar sakte hain finer control ke liye.",
+        "hinglishExplanation": "S/4HANA mein maine automatic OData V2 exposure ke liye consumption view pe @OData.publish: true annotation use kiya. OData V4 ke liye maine RAP (RESTful ABAP Programming) ko behavior definitions ke saath use kiya. Activation ke baad, maine service ko /IWFND/MAINT_SERVICE mein register kiya aur metadata endpoint verify kiya. Fiori app phir SAP BTP mein configured destination ke through is service ko consume karta hai.",
         "interviewAnswer": "In S/4HANA I used the @OData.publish: true annotation on the consumption view for automatic OData V2 exposure. For OData V4 I used RAP (RESTful ABAP Programming) with behavior definitions. After activation, I registered the service in /IWFND/MAINT_SERVICE and verified the metadata endpoint. The Fiori app then consumed this service via a destination configured in SAP BTP.",
         "realtimeExplanation": "Pehle project mein SEGW se manually service banate the — bahut time lagta tha, baar baar regenerate karna padta tha. @OData.publish: true se automatic exposure ne woh effort 80% reduce kar diya. Sirf /IWFND/MAINT_SERVICE pe activate karna tha.",
         "mistakes": "Service activate karna /IWFND/MAINT_SERVICE pe bhool jaana — view exposed hota hai lekin service accessible nahi hoti Fiori se.",
-        "codeExample": "-- Automatic OData V2 exposure:\n@OData.publish: true\n@VDM.viewType: #CONSUMPTION\ndefine view ZC_PO_HEADER\n  as select from ZI_PO_HEADER\n{ key Ebeln, Vendor }\n\n-- /IWFND/MAINT_SERVICE steps:\n-- 1. Add Service > search ZC_PO_HEADER_CDS\n-- 2. Add system alias (LOCAL)\n-- 3. Test: /sap/opu/odata/sap/ZC_PO_HEADER_CDS/$metadata"
+        "codeExample": "-- Automatic OData V2 exposure:\n@OData.publish: true\n@VDM.viewType: #CONSUMPTION\ndefine view ZC_PO_HEADER\n  as select from ZI_PO_HEADER\n{ key Ebeln, Vendor }\n\n-- /IWFND/MAINT_SERVICE steps:\n-- 1. Add Service > search ZC_PO_HEADER_CDS\n-- 2. Add system alias (LOCAL)\n-- 3. Test: /sap/opu/odata/sap/ZC_PO_HEADER_CDS/$metadata",
+        "tier": "advanced"
       },
       {
         "question": "Interview ke end mein interviewer ne pooch: 'Kuch aur add karna chahoge apne experience ke baare mein?'",
-        "hinglishExplanation": "Yeh golden opportunity hai apna overall learning summarize karne ki. CDS Views sirf technical skill nahi — yeh S/4HANA development ka core hai. Batao ki tumne architecture sochi, team ko guide kiya, aur business outcome deliver kiya. Soft skills + technical depth = strong impression.",
+        "hinglishExplanation": "Main add karunga ki CDS Views ke saath kaam karne ne mujhe code-first ke bajaye architecture-first sochna sikhaya. Ek bhi line likhne se pehle, main layer structure design karta hoon, reuse opportunities identify karta hoon, aur authorization requirements plan karta hoon. Is shift se hamara rework significantly reduce hua. Maine junior developers ke liye CDS patterns pe knowledge sessions bhi conduct kiye — teaching ne meri khud ki understanding reinforce ki. Procurement app abhi 200+ users daily use karte hain aur performance improvement ne directly purane system ke baare mein user complaints reduce ki.",
         "interviewAnswer": "I'd add that working with CDS Views taught me to think architecture-first rather than code-first. Before writing a single line, I design the layer structure, identify reuse opportunities, and plan authorization requirements. This shift reduced our rework significantly. I also conducted knowledge sessions for junior developers on CDS patterns — teaching reinforced my own understanding. The procurement app is now used by 200+ users daily and the performance improvement directly reduced user complaints about the old system.",
         "realtimeExplanation": "Interview ke aakhir mein yeh answer ek strong closing statement hai. Numbers (200+ users, 40% faster), leadership angle (team training), aur business impact — yeh teen cheezein milke ek complete picture banati hain jo sirf technical candidate se zyada dikhata hai.",
         "mistakes": "Sirf 'nahi, bas itna hi' bolna. Closing opportunity waste karna — interviewer ne deliberately space diya tha apna best point add karne ke liye.",
-        "codeExample": "-- Summary of what you demonstrated in the interview:\n-- Technical: 3-layer CDS architecture\n-- Performance: Associations > Joins (40% improvement)\n-- Security: DCL with PFCG authorization\n-- Transport: Correct sequence (base first)\n-- Integration: OData + Fiori Elements\n-- Soft skill: Team training, architecture thinking"
+        "codeExample": "-- Summary of what you demonstrated in the interview:\n-- Technical: 3-layer CDS architecture\n-- Performance: Associations > Joins (40% improvement)\n-- Security: DCL with PFCG authorization\n-- Transport: Correct sequence (base first)\n-- Integration: OData + Fiori Elements\n-- Soft skill: Team training, architecture thinking",
+        "tier": "advanced"
       }
     ]
   }

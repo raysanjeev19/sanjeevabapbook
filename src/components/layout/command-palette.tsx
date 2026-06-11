@@ -5,6 +5,7 @@ import { BookOpen, CornerDownLeft, FileText, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { allQuestions, chapters } from "@/lib/content";
+import { cn } from "@/lib/utils";
 
 type Item = {
   id: string;
@@ -187,7 +188,7 @@ export function CommandPaletteButton({ className }: { className?: string }) {
       type="button"
       aria-label="Search (Cmd+K)"
       onClick={() => window.dispatchEvent(new Event("open-command-palette"))}
-      className={`inline-flex h-10 items-center gap-2 rounded-md border border-border bg-surface px-3 text-muted transition-colors hover:border-border-strong hover:text-foreground ${className ?? ""}`}
+      className={cn("inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-border bg-surface px-3 text-muted transition-colors hover:border-border-strong hover:text-foreground", className)}
     >
       <Search size={15} />
       <span className="hidden text-xs sm:inline">Search</span>

@@ -3,71 +3,146 @@
     "easyUnderstanding": "Yaar, ye question thoda alag hai — ye pooch raha hai ki interviewer kaunse traps lagata hai taki tum galat jawab do. Socho ek senior developer chai pe tumhe bata raha hai: 'Sunno, interviewer deliberately confusing questions puchta hai — ye test karta hai ki tum surface knowledge wale ho ya deep understanding wale.' Sabse bada trap hai CLEAR ka — log sochte hain CLEAR lt_table se table empty ho jaati hai, par aisa nahi hota! Sirf header (work area) clear hoti hai, table body waisi rehti hai. Iske alawa SELECT * ka trap — 'SELECT * kya problem karta hai HANA pe?' HANA column store mein SELECT * poora row fetch karta hai, performance barbad. Aur LOOP AT WHERE — log sochte hain standard table pe WHERE filter fast karta hai, par standard table mein linear scan hi hoti hai, isliye sorted table chahiye sorted key ke saath. Ye sab traps hain jahan 80% candidates fail hote hain. Tum ready raho to ace karo.",
     "hinglishMasterExplanation": "Interviewer Traps — Ek Mentor Ki Nazar Se:\n\n**Trap 1: sy-subrc kya hota hai?**\nCorrect answer: 0 = success. Non-zero = failure. Sabse common failure code hai 4 — jab SELECT mein koi record nahi milta. Interviewer ka real question hota hai: 'Tum sy-subrc check karte ho ya nahi?' Jo nahi karte woh bugs laate hain production mein.\n\n**Trap 2: SELECT * se kya problem hai?**\nCorrect answer: HANA column store mein SELECT * inefficient hai — sirf needed columns fetch karo. Network overhead bhi badhta hai aur memory bhi waste hoti hai. Interview mein yeh bhi bolna: 'In my project, I always specify required fields in SELECT list.'\n\n**Trap 3: LOOP AT WHERE aur standard table?**\nBadhiya trap hai yeh. LOOP WHERE filter karta hai ABAP layer pe — lekin standard table pe WHERE condition linear scan karti hai. Real optimization ke liye sorted table use karo with sorted key — tab binary search hogi automatically.\n\n**Trap 4: DELETE vs REFRESH internal table?**\nDELETE WHERE = specific rows delete karo condition ke basis pe. REFRESH = poori table ke saare rows delete karo. Ye alag hain — interview mein clearly distinguish karo.\n\n**Trap 5: MODIFY inside LOOP INTO work area?**\nYe ek classic trap hai. LOOP AT lt_tab INTO lv_wa ke andar MODIFY TABLE karna sahi nahi — changes reflect nahi hoge properly. Sahi tarika: ASSIGNING FIELD-SYMBOL use karo, phir directly <fs>-field = value. Ya phir LOOP INTO + field change + MODIFY lt_tab FROM lv_wa.\n\n**Trap 6: CLEAR internal table?**\nSabse common galti: CLEAR lt_table — ye sirf header line (work area) clear karti hai old-style tables mein. Table body ke rows waise hi rehte hain. Rows clear karne ke liye: REFRESH lt_table ya CLEAR lt_table[].\n\n**Trap 7: SELECT ke baad sy-subrc = 4 kab aata hai?**\nJab WHERE clause se koi matching record nahi milta. Simple — par interview mein galat bolte hain kai log.\n\n**Trap 8: PERFORM deprecated hai?**\nNahi, PERFORM deprecated nahi hai. Lekin Clean ABAP guidelines kehti hain methods prefer karo — object-oriented approach better hai maintainability ke liye. Diplomatic answer dena: 'PERFORM still works but Clean ABAP guidelines prefer methods for better testability and encapsulation.'",
     "interviewMeKyaBolnaHai": "When asked about ABAP trap questions, structure your answer like this:\n\n'These are classic ABAP trap areas that catch many developers. Let me walk through the key ones.'\n\n'First, CLEAR on internal table: CLEAR lt_table only clears the header line — it does NOT delete rows from the table body. To clear all rows, you must use REFRESH lt_table or CLEAR lt_table[]. This is one of the most common production bugs I have seen.'\n\n'Second, SELECT star on HANA: SELECT star fetches the entire row from column store, which defeats HANA's columnar performance advantage. Always specify only required fields.'\n\n'Third, sy-subrc: zero means success, non-zero — typically four — means failure, usually no records found after SELECT.'\n\nHinglish tips: Jab trap question aaye, pehle ek second ruko aur bolo 'That is actually a common trap area.' Yeh dikhata hai tum aware ho. CLEAR wala answer sabse important hai — isko word-for-word yaad karo. Interviewer is ek answer se hi samajh jaata hai ki tum practical experience wale ho ya sirf theory wale.",
-    "codeExamples": "REPORT zdemo_traps.\n\nDATA: lt_orders TYPE TABLE OF vbak,\n      lv_wa     TYPE vbak.\n\n\" Trap 1: sy-subrc check karna zaroori hai\nSELECT * FROM vbak INTO TABLE @lt_orders WHERE vkorg = '1000'.\nIF sy-subrc <> 0.            \" 0 = success, 4 = no data found\n  MESSAGE 'No orders found' TYPE 'W'.\n  RETURN.\nENDIF.\n\n\" Trap 2: CLEAR vs REFRESH\nCLEAR lt_orders.             \" Sirf header clear hoti hai — rows still there!\nREFRESH lt_orders.           \" Correct: poore rows delete hote hain\n\n\" Trap 3: MODIFY inside LOOP — sahi tarika\nLOOP AT lt_orders ASSIGNING FIELD-SYMBOL(<order>).\n  <order>-vkorg = '2000'.    \" Direct field-symbol assignment — correct!\nENDLOOP.\n\n\" Galat tarika (avoid):\nLOOP AT lt_orders INTO lv_wa.\n  lv_wa-vkorg = '2000'.\n  \" MODIFY lt_orders FROM lv_wa.  \" Explicit MODIFY needed here\nENDLOOP.",
+    "codeExamples": "REPORT zdemo_traps.\n\nDATA: lt_orders TYPE TABLE OF vbak,\n      lv_wa     TYPE vbak.\n\n\" Trap 1: sy-subrc check karna zaroori hai\nSELECT * FROM vbak INTO TABLE @lt_orders WHERE vkorg = '1000'.\nIF sy-subrc <> 0.            \" 0 = success, 4 = no data found\n  MESSAGE 'No orders found' TYPE 'W'.\n  RETURN.\nENDIF.\n\n\" Trap 2: CLEAR vs REFRESH (modern table without header line)\nCLEAR lt_orders.             \" Modern table (no header line): CLEAR = REFRESH, saari rows delete\nREFRESH lt_orders.           \" Same effect: poore rows delete\n\" Note: Legacy OCCURS / header-line tables mein CLEAR sirf header clear karta hai\n\" — wahan rows delete karne ke liye REFRESH ya CLEAR lt_orders[] use karo.\n\n\" Trap 3: MODIFY inside LOOP — sahi tarika\nLOOP AT lt_orders ASSIGNING FIELD-SYMBOL(<order>).\n  <order>-vkorg = '2000'.    \" Direct field-symbol assignment — correct!\nENDLOOP.\n\n\" Galat tarika (avoid):\nLOOP AT lt_orders INTO lv_wa.\n  lv_wa-vkorg = '2000'.\n  \" MODIFY lt_orders FROM lv_wa.  \" Explicit MODIFY needed here\nENDLOOP.",
+    "interviewScriptHinglish": "ABAP interviews mein kayi classic trap questions hote hain jo deeper understanding test karne ke liye design kiye gaye hain. Sabse bada hai CLEAR vs REFRESH internal tables pe: CLEAR akele rows ko body pe untouched chhod sakta hai, full reset ke liye REFRESH ya CLEAR lt_table[] chahiye. Doosra trap hai FOR ALL ENTRIES empty driver table ke saath, jo silently full table scan trigger kar deta hai. Teesra hai missing SY-SUBRC checks, jo initial values ko business logic mein flow karne dete hain. Yeh primarily candidate ki production maturity gauge karne ke liye use hota hai memorised syntax se aage.",
+    "interviewScriptEnglish": "ABAP interviews include several classic trap questions designed to test deeper understanding. The biggest is CLEAR vs REFRESH on internal tables: CLEAR alone may leave rows untouched on the body, REFRESH or CLEAR lt_table[] is needed for full reset. Another trap is FOR ALL ENTRIES with an empty driver table, which silently triggers a full table scan. A third is missing SY-SUBRC checks, which lets initial values flow into business logic. It is primarily used to gauge a candidate's production maturity beyond memorised syntax.",
+    "wordByWordSamjho": [
+      {
+        "keyword": "REPORT",
+        "meaning": "Declares the executable ABAP report."
+      },
+      {
+        "keyword": "DATA",
+        "meaning": "Declares a variable or internal table."
+      },
+      {
+        "keyword": "TYPE TABLE OF vbak",
+        "meaning": "Internal table typed like rows of the VBAK sales header."
+      },
+      {
+        "keyword": "SELECT *",
+        "meaning": "Reads all columns; expensive on HANA and flagged by ATC."
+      },
+      {
+        "keyword": "INTO TABLE @lt_orders",
+        "meaning": "Stores the result rows in the @-escaped internal table."
+      },
+      {
+        "keyword": "sy-subrc",
+        "meaning": "Return code of the last operation; 0 means success."
+      },
+      {
+        "keyword": "CLEAR",
+        "meaning": "Resets a variable, structure, or work area to initial values."
+      },
+      {
+        "keyword": "REFRESH",
+        "meaning": "Deletes all rows from an internal table while keeping memory allocated."
+      },
+      {
+        "keyword": "LOOP AT ... ASSIGNING FIELD-SYMBOL",
+        "meaning": "Iterates with a field symbol so writes update the underlying row in place."
+      },
+      {
+        "keyword": "MODIFY",
+        "meaning": "Updates a row in an internal table at a specified index or matching key."
+      }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Using CLEAR lt_table expecting all rows to vanish",
+        "whyWrong": "In several contexts CLEAR only resets the header line, so the body still contains rows and downstream loops behave incorrectly.",
+        "correctApproach": "Use REFRESH lt_table or CLEAR lt_table[] to remove all rows; reserve plain CLEAR for variables and work areas."
+      },
+      {
+        "mistake": "Running FOR ALL ENTRIES without checking the driver table is non-empty",
+        "whyWrong": "Empty driver tables drop the IN restriction in some patterns, so the SELECT scans the entire transparent table and may dump.",
+        "correctApproach": "Wrap with IF lt_driver IS NOT INITIAL, also SORT and DELETE ADJACENT DUPLICATES to keep the bulk SELECT efficient."
+      },
+      {
+        "mistake": "Using MODIFY lt_table FROM ls_wa without INDEX or TRANSPORTING",
+        "whyWrong": "Without an index or TRANSPORTING list the wrong row may be updated or every column is replaced, masking the intended change.",
+        "correctApproach": "Use ASSIGNING FIELD-SYMBOL and assign fields directly, or use MODIFY ... INDEX sy-tabix TRANSPORTING field1 field2."
+      },
+      {
+        "mistake": "Saying MESSAGE TYPE 'I' stops processing in AT SELECTION-SCREEN",
+        "whyWrong": "Information messages only display a popup; control returns to START-OF-SELECTION with invalid input and produces wrong output.",
+        "correctApproach": "Use MESSAGE TYPE 'E' to truly block selection-screen submission and keep the cursor on the offending field."
+      }
+    ],
+    "quickRevisionNotes": "What: Common ABAP interview traps that distinguish surface knowledge from production experience.\n\nUsed for:\n- Demonstrating defensive coding habits\n- Code reviews and ATC remediation focus areas\n- Onboarding new developers to project standards\n\nKey syntax / tables / Tcodes:\n- REFRESH / CLEAR lt_table[] for full reset\n- IF lt_driver IS NOT INITIAL before FOR ALL ENTRIES\n- IF sy-subrc <> 0 after every operation\n- MESSAGE TYPE 'E' to truly block, 'I' is non-blocking\n\nInterview keyword: REFRESH vs CLEAR, FAE empty driver, SY-SUBRC discipline.",
     "followupAnswerBank": [
       {
         "question": "What is sy-subrc and when is it 4?",
-        "hinglishExplanation": "sy-subrc SAP ka return code hai — 0 matlab kaam hua, non-zero matlab kuch problem. SELECT ke baad sy-subrc = 4 aata hai jab WHERE condition se koi row match nahi hoti database mein. Har SELECT ke baad ye check karna professional coding standard hai.",
+        "hinglishExplanation": "sy-subrc system return code hai. Zero matlab success. Four — most common non-zero value — matlab SELECT statement ke baad koi records nahi mile. Main hamesha SELECT, OPEN DATASET, CALL FUNCTION, aur READ TABLE ke baad sy-subrc check karta hoon saare scenarios safely handle karne ke liye.",
         "interviewAnswer": "sy-subrc is the system return code. Zero means success. Four — the most common non-zero value — means no records found after a SELECT statement. I always check sy-subrc after SELECT, OPEN DATASET, CALL FUNCTION, and READ TABLE to handle all scenarios safely.",
         "realtimeExplanation": "Production mein bina sy-subrc check ke code bhejne se wrong data processing hoti hai — jaise empty work area pe calculation karna aur result display karna jo actually meaningless hai.",
         "mistakes": "Sirf SELECT ke baad check karna yaad rakhna — CALL FUNCTION, READ TABLE ke baad bhi sy-subrc check karna zaroori hai, jaise CALL FUNCTION me EXCEPTIONS block.",
-        "codeExample": "SELECT SINGLE vbeln netwr FROM vbak\n  WHERE vbeln = @lv_order INTO @DATA(ls_order).\nIF sy-subrc = 0.\n  WRITE: / 'Order:', ls_order-vbeln.\nELSE.\n  MESSAGE 'Order not found' TYPE 'E'.\nENDIF."
+        "codeExample": "SELECT SINGLE vbeln netwr FROM vbak\n  WHERE vbeln = @lv_order INTO @DATA(ls_order).\nIF sy-subrc = 0.\n  WRITE: / 'Order:', ls_order-vbeln.\nELSE.\n  MESSAGE 'Order not found' TYPE 'E'.\nENDIF.",
+        "tier": "easy"
       },
       {
         "question": "Why is SELECT * a problem on SAP HANA?",
-        "hinglishExplanation": "HANA ek column store database hai — iska matlab hai data columns mein store hota hai, rows mein nahi. Agar tum SELECT * karte ho toh HANA ko poora row reconstruct karna padta hai — yeh uski columnar optimization ka fayda khatam kar deta hai. Network mein bhi zyada data jaata hai. Isliye sirf necessary fields SELECT karo.",
+        "hinglishExplanation": "SAP HANA pe, SELECT star inefficient hai kyunki HANA ek columnar database hai. Saare columns fetch karna HANA ko entire rows reconstruct karne ke liye force karta hai, columnar performance advantages defeat karta hai. Yeh network payload bhi increase karta hai. Best practice yeh hai ki SELECT field list mein hamesha sirf required fields specify karo.",
         "interviewAnswer": "On SAP HANA, SELECT star is inefficient because HANA is a columnar database. Fetching all columns forces HANA to reconstruct entire rows, defeating columnar performance advantages. It also increases network payload. Best practice is to always specify only the required fields in the SELECT field list.",
         "realtimeExplanation": "Performance issue analyze karte waqt ST05 mein SELECT * queries clearly dikhti hain — unka data volume zyada hota hai. Simple fix: select only needed columns — sometimes 10x improvement milta hai.",
         "mistakes": "Ye mat bolna ki SELECT * sirf storage waste karta hai — asli problem HANA column store performance aur network overhead hai, storage nahi.",
-        "codeExample": "\" Galat: SELECT *\nSELECT * FROM mara INTO TABLE @DATA(lt_all).     \" Wastes memory\n\n\" Sahi: Sirf zaroori fields\nSELECT matnr mtart matkl meins\n  FROM mara\n  INTO TABLE @DATA(lt_mat)\n  WHERE matkl = 'ROH'."
+        "codeExample": "\" Galat: SELECT *\nSELECT * FROM mara INTO TABLE @DATA(lt_all).     \" Wastes memory\n\n\" Sahi: Sirf zaroori fields\nSELECT matnr mtart matkl meins\n  FROM mara\n  INTO TABLE @DATA(lt_mat)\n  WHERE matkl = 'ROH'.",
+        "tier": "medium"
       },
       {
         "question": "What is the difference between DELETE and REFRESH on internal tables?",
-        "hinglishExplanation": "DELETE WHERE specific rows ko condition ke basis pe delete karta hai — table mein baaki rows rehti hain. REFRESH poori table empty kar deta hai — ek bhi row nahi bachti. Dono alag use cases ke liye hain. Ek aur cheez: FREE statement memory bhi release karta hai jo REFRESH nahi karta.",
+        "hinglishExplanation": "DELETE WHERE specific rows delete karta hai jo condition match karte hain — dusre rows rehte hain. REFRESH internal table se saare rows delete karta hai lekin table variable ko memory mein keep karta hai. FREE aage jaata hai aur memory release karta hai. Targeted cleanup ke liye DELETE WHERE use karo, processing cycles ke beech full table reset ke liye REFRESH.",
         "interviewAnswer": "DELETE WHERE deletes specific rows matching a condition — other rows remain. REFRESH deletes all rows from the internal table but keeps the table variable in memory. FREE goes further and releases the memory. Use DELETE WHERE for targeted cleanup, REFRESH for full table reset between processing cycles.",
         "realtimeExplanation": "Real project mein: ek loop ke baad naya client ke liye processing start karna ho toh REFRESH use karo. Sirf cancelled orders remove karne ho toh DELETE WHERE status = 'X' use karo.",
         "mistakes": "CLEAR lt_table use karna jab poori table clear karni ho — ye sirf header clear karta hai, rows nahi. REFRESH ya CLEAR lt_table[] use karo rows clear karne ke liye.",
-        "codeExample": "DATA lt_items TYPE TABLE OF vbap.\n\" Poore table ke rows delete\nREFRESH lt_items.               \" All rows gone\n\n\" Specific condition pe delete\nDELETE lt_items WHERE kwmeng = 0. \" Zero qty rows removed\n\n\" Memory bhi free karna ho\nFREE lt_items.                  \" Rows + memory released"
+        "codeExample": "DATA lt_items TYPE TABLE OF vbap.\n\" Poore table ke rows delete\nREFRESH lt_items.               \" All rows gone\n\n\" Specific condition pe delete\nDELETE lt_items WHERE kwmeng = 0. \" Zero qty rows removed\n\n\" Memory bhi free karna ho\nFREE lt_items.                  \" Rows + memory released",
+        "tier": "easy"
       },
       {
         "question": "How do you correctly modify records inside a LOOP?",
-        "hinglishExplanation": "LOOP INTO work area karte ho toh wo ek copy hoti hai — changes directly table mein reflect nahi hote unless MODIFY statement explicitly likho. Lekin ASSIGNING FIELD-SYMBOL use karo toh direct table memory ka reference milta hai — seedha change hota hai, MODIFY ki zaroorat nahi. FIELD-SYMBOL approach faster bhi hai.",
+        "hinglishExplanation": "LOOP ke andar records modify karne ka correct way ASSIGNING FIELD-SYMBOL use karna hai. Yeh table entry ka direct reference deta hai — changes turant reflect hote hain bina explicit MODIFY statement ke. LOOP INTO work-area use karne ko har change ke baad ek explicit MODIFY table FROM wa chahiye, jo error-prone aur slower hai.",
         "interviewAnswer": "The correct way to modify records inside LOOP is to use ASSIGNING FIELD-SYMBOL. This gives a direct reference to the table entry — changes are immediately reflected without needing an explicit MODIFY statement. Using LOOP INTO work-area requires an explicit MODIFY table FROM wa after each change, which is error-prone and slower.",
         "realtimeExplanation": "Ek common production bug: LOOP INTO wa, field change kiya, MODIFY bhool gaye — result: zero updates. FIELD-SYMBOL se ye bug eliminate ho jaata hai.",
         "mistakes": "LOOP INTO lv_wa ke andar sirf lv_wa-field change karna aur MODIFY nahi likhna — table unchanged rehti hai. Always FIELD-SYMBOL prefer karo modification ke liye.",
-        "codeExample": "\" Sahi tarika: FIELD-SYMBOL\nLOOP AT lt_orders ASSIGNING FIELD-SYMBOL(<ord>).\n  IF <ord>-netwr > 100000.\n    <ord>-zflag = 'X'.   \" Direct table update\n  ENDIF.\nENDLOOP.\n\n\" Alternative: INTO + MODIFY\nLOOP AT lt_orders INTO DATA(lv_ord).\n  lv_ord-zflag = 'X'.\n  MODIFY lt_orders FROM lv_ord.  \" Explicit MODIFY needed!\nENDLOOP."
+        "codeExample": "\" Sahi tarika: FIELD-SYMBOL\nLOOP AT lt_orders ASSIGNING FIELD-SYMBOL(<ord>).\n  IF <ord>-netwr > 100000.\n    <ord>-zflag = 'X'.   \" Direct table update\n  ENDIF.\nENDLOOP.\n\n\" Alternative: INTO + MODIFY\nLOOP AT lt_orders INTO DATA(lv_ord).\n  lv_ord-zflag = 'X'.\n  MODIFY lt_orders FROM lv_ord.  \" Explicit MODIFY needed!\nENDLOOP.",
+        "tier": "advanced"
       },
       {
         "question": "When does LOOP AT WHERE help and when does it not?",
-        "hinglishExplanation": "LOOP AT lt_tab WHERE condition ABAP layer pe filter karta hai — database pe nahi. Standard table mein WHERE condition ke saath bhi linear scan hoti hai — sab rows check hoti hain. Real speedup chahiye toh sorted table use karo sorted key ke saath — tab ABAP binary search karta hai automatically. Ya phir hashed table use karo direct key access ke liye.",
+        "hinglishExplanation": "LOOP AT WHERE ABAP layer pe filter karta hai, database pe nahi. Standard tables ke liye, yeh abhi bhi saare entries ke through linear scan karta hai — loop ke andar check karne se koi performance gain nahi. Real optimization: WHERE field ko sorted key ke roop mein ek sorted table use karo, jo binary search trigger karta hai. Ya unique key ke saath ek hashed table use karo key se direct access ke liye.",
         "interviewAnswer": "LOOP AT WHERE filters at the ABAP layer, not the database. For standard tables, it still does a linear scan through all entries — no performance gain over checking inside the loop. Real optimization: use a sorted table with the WHERE field as a sorted key, which triggers binary search. Or use a hashed table with a unique key for direct access by key.",
         "realtimeExplanation": "Interview mein yeh trap dikhta hai: 'LOOP WHERE faster hai na?' — wrong assumption hai standard table ke liye. Table type matter karta hai — standard, sorted, hashed — sahi choose karo use case ke basis pe.",
         "mistakes": "Ye assume karna ki LOOP WHERE automatically fast hai — table type pe depend karta hai. Standard table ke liye WHERE sirf syntactic sugar hai, no binary search.",
-        "codeExample": "\" Standard table: linear scan even with WHERE\nLOOP AT lt_std_orders WHERE vkorg = '1000'.\n  WRITE: / lv_item-vbeln.\nENDLOOP.\n\n\" Sorted table: binary search with WHERE on key\nTYPES: tt_sorted TYPE SORTED TABLE OF vbak\n                 WITH UNIQUE KEY vkorg vbeln.\nDATA lt_fast TYPE tt_sorted.\n\" Now LOOP WHERE vkorg = ... uses binary search"
+        "codeExample": "\" Standard table: linear scan even with WHERE\nLOOP AT lt_std_orders WHERE vkorg = '1000'.\n  WRITE: / lv_item-vbeln.\nENDLOOP.\n\n\" Sorted table: binary search with WHERE on key\nTYPES: tt_sorted TYPE SORTED TABLE OF vbak\n                 WITH UNIQUE KEY vkorg vbeln.\nDATA lt_fast TYPE tt_sorted.\n\" Now LOOP WHERE vkorg = ... uses binary search",
+        "tier": "easy"
       },
       {
         "question": "Is PERFORM deprecated in modern ABAP?",
-        "hinglishExplanation": "PERFORM deprecated nahi hai — abhi bhi valid ABAP syntax hai. Lekin Clean ABAP guidelines strongly prefer methods over subroutines. Methods unit testable hote hain, proper parameters hote hain (importing/exporting/changing/returning), aur OO design principles follow karte hain. Naye programs mein PERFORM use karna technically sahi hai lekin professionally weak dikhta hai.",
+        "hinglishExplanation": "PERFORM deprecated nahi hai — yeh abhi bhi valid ABAP syntax hai. Lekin, Clean ABAP guidelines methods ko subroutines se prefer karne ki recommend karte hain kyunki methods proper parameter typing support karte hain, ABAP Unit ke saath unit testable hain, aur modern OO design ke saath align karte hain. Mere projects mein, main saare new development ke liye FORM routines ki jagah methods ke saath local classes use karta hoon.",
         "interviewAnswer": "PERFORM is not deprecated — it is still valid ABAP syntax. However, Clean ABAP guidelines recommend using methods over subroutines because methods support proper parameter typing, are unit testable with ABAP Unit, and align with modern OO design. In my projects, I use local classes with methods instead of FORM routines for all new development.",
         "realtimeExplanation": "Legacy code mein hazaron FORM routines milte hain — unhe samajhna padta hai. Naya code likhna ho toh method prefer karo aur is choice ka reason bhi bolna interview mein.",
         "mistakes": "Ye bolna ki 'PERFORM is deprecated and should never be used' — wrong. It still works. Correct statement: 'Clean ABAP guidelines prefer methods for better testability and encapsulation.'",
-        "codeExample": "\" Old style: FORM subroutine\nFORM display_order USING iv_vbeln TYPE vbeln_va.\n  WRITE: / iv_vbeln.\nENDFORM.\n\n\" Modern style: Method in local class\nCLASS lcl_orders DEFINITION.\n  PUBLIC SECTION.\n    METHODS display_order IMPORTING iv_vbeln TYPE vbeln_va.\nENDCLASS.\nCLASS lcl_orders IMPLEMENTATION.\n  METHOD display_order.\n    WRITE: / iv_vbeln.\n  ENDMETHOD.\nENDCLASS."
+        "codeExample": "\" Old style: FORM subroutine\nFORM display_order USING iv_vbeln TYPE vbeln_va.\n  WRITE: / iv_vbeln.\nENDFORM.\n\n\" Modern style: Method in local class\nCLASS lcl_orders DEFINITION.\n  PUBLIC SECTION.\n    METHODS display_order IMPORTING iv_vbeln TYPE vbeln_va.\nENDCLASS.\nCLASS lcl_orders IMPLEMENTATION.\n  METHOD display_order.\n    WRITE: / iv_vbeln.\n  ENDMETHOD.\nENDCLASS.",
+        "tier": "medium"
       },
       {
         "question": "How do you handle the CLEAR internal table trap in real projects?",
-        "hinglishExplanation": "Real project mein ye bug bahut dangerous hai — ek module ke baad CLEAR lt_orders kiya, soch ke ki table empty ho gayi, phir naya data add kiya. Result: purana aur naya data dono table mein hain! Bug reproduce karna mushkil hota hai kyunki kabhi kabhi purana data overwrite ho jaata hai. Code review mein specifically ye pattern dhundte hain.",
+        "hinglishExplanation": "Real projects mein, internal table pe CLEAR sirf implicit work area header reset karta hai — table rows rehte hain. Yeh subtle bugs cause karta hai jahan stale data processing loops ke across accumulate hota hai. Main hamesha REFRESH ya CLEAR lt_table[] use karta hoon rows clear karne ke liye. Code reviews mein, main specifically internal tables pe CLEAR usage ko ek mandatory correction point ke roop mein flag karta hoon.",
         "interviewAnswer": "In real projects, CLEAR on an internal table only resets the implicit work area header — table rows remain. This causes subtle bugs where stale data accumulates across processing loops. I always use REFRESH or CLEAR lt_table[] to clear rows. In code reviews, I specifically flag CLEAR usage on internal tables as a mandatory correction point.",
         "realtimeExplanation": "Debugging scene: user bola results duplicate aa rahe hain. ST22 nahi tha. Code dekha — CLEAR lt_result tha loop ke baad, REFRESH nahi. Purana data accumulated ho raha tha har run mein.",
         "mistakes": "Ye trap sirf theoretical nahi — production mein ye bug financial reports mein duplicate amounts dikhata hai. Sab tables ke liye CLEAR ki jagah REFRESH use karo jab rows delete karni ho.",
-        "codeExample": "\" Bug: CLEAR sirf header clear karta hai\nDATA lt_results TYPE TABLE OF zresult.\nCLEAR lt_results.             \" WRONG: rows still present!\n\n\" Fix 1: REFRESH\nREFRESH lt_results.           \" All rows cleared\n\n\" Fix 2: Bracket syntax\nCLEAR lt_results[].           \" Same as REFRESH\n\n\" Check: After REFRESH, LINES should be 0\nIF lines( lt_results ) > 0.\n  MESSAGE 'Table not cleared!' TYPE 'E'.\nENDIF."
+        "codeExample": "\" Bug: CLEAR sirf header clear karta hai\nDATA lt_results TYPE TABLE OF zresult.\nCLEAR lt_results.             \" WRONG: rows still present!\n\n\" Fix 1: REFRESH\nREFRESH lt_results.           \" All rows cleared\n\n\" Fix 2: Bracket syntax\nCLEAR lt_results[].           \" Same as REFRESH\n\n\" Check: After REFRESH, LINES should be 0\nIF lines( lt_results ) > 0.\n  MESSAGE 'Table not cleared!' TYPE 'E'.\nENDIF.",
+        "tier": "medium"
       },
       {
         "question": "How do you prepare for unexpected trap questions in ABAP interviews?",
-        "hinglishExplanation": "Best preparation: ABAP hai toh har statement ke liye edge case socho. SELECT ke baad — sy-subrc check? CLEAR ke baad — rows gone ya nahi? LOOP INTO ya ASSIGNING — kab kya? Ye sab mental checklists banao. Interview mein jab confusing question aaye toh ek second ruko, socho, phir clearly answer do. Rushing mein galat bolna interviewer ko signal karta hai ki surface knowledge hai.",
+        "hinglishExplanation": "ABAP trap questions ke liye prepare karne ke liye, main har fundamental statement ke edge cases review karta hoon: SELECT ke baad no results ke saath kya hota hai, CLEAR versus REFRESH kya karta hai, LOOP mein FIELD-SYMBOL versus work area kab use karna hai. Interviews mein, jab trap question aata hai, main pause karta hoon, acknowledge karta hoon ki yeh ek nuanced area hai, phir precise answer deta hoon. Trap ke awareness khud senior-level thinking demonstrate karta hai.",
         "interviewAnswer": "To prepare for ABAP trap questions, I review edge cases for every fundamental statement: what happens after SELECT with no results, what CLEAR does versus REFRESH, when to use FIELD-SYMBOL versus work area in LOOP. In interviews, when a trap question comes, I pause, acknowledge it is a nuanced area, then give the precise answer. Showing awareness of the trap itself demonstrates senior-level thinking.",
         "realtimeExplanation": "Interview preparation shortcut: take any ABAP statement and ask yourself 'what can go wrong here?' — CLEAR, SELECT *, LOOP INTO, MODIFY, sy-subrc check missing. These are your trap preparation list.",
         "mistakes": "Panic karna ya guess karna jab answer yaad nahi — better hai bolna 'let me think through this carefully' than giving a wrong confident answer.",
-        "codeExample": "\" Mental checklist for every SELECT:\nSELECT matnr maktx FROM makt\n  INTO TABLE @DATA(lt_desc)\n  WHERE spras = 'EN'.\n\" Check 1: sy-subrc = 0?\n\" Check 2: lt_desc empty hogi agar no match\n\" Check 3: SELECT * nahi likha na?\n\" Check 4: WHERE pe indexed field use hua?\nIF sy-subrc <> 0. RETURN. ENDIF."
+        "codeExample": "\" Mental checklist for every SELECT:\nSELECT matnr maktx FROM makt\n  INTO TABLE @DATA(lt_desc)\n  WHERE spras = 'EN'.\n\" Check 1: sy-subrc = 0?\n\" Check 2: lt_desc empty hogi agar no match\n\" Check 3: SELECT * nahi likha na?\n\" Check 4: WHERE pe indexed field use hua?\nIF sy-subrc <> 0. RETURN. ENDIF.",
+        "tier": "advanced"
       }
     ]
   },
@@ -76,70 +151,145 @@
     "hinglishMasterExplanation": "ABAP Technical Design Documentation — Structured Guide:\n\n**TS Document Kya Hota Hai?**\nTechnical Specification document ek formal document hai jo functional spec (FS) ke baad developer likhta hai. Ye bridge hai business requirement aur actual code ke beech.\n\n**TS Mein Kya Sections Hote Hain:**\n1. Program Details: Program name (ZXXX), object type (report/function module/class/BAdI), transport request number\n2. Purpose: Business requirement ek para mein — kya problem solve ho rahi hai\n3. Input/Output: Selection screen parameters kya hain, output format kya hai (ALV/PDF/IDoc)\n4. Table/Field References: Kaunse database tables use ho rahe hain, kaunse key fields join condition mein hain\n5. Logic Description: Step-by-step processing — data fetch kaise, calculations kaise, error handling kaise\n6. Exception Handling: Kaunsi errors possible hain, user ko kya message dikhega\n7. Test Cases: Positive scenarios, negative scenarios (no data, wrong input)\n8. Transport Info: Development → QA → UAT → Production path, change log\n\n**Code Ke Andar Documentation:**\nABAP Doc comment: prefix se method ki documentation Eclipse/ADT mein visible hoti hai.\nProgram header: author, date, purpose, change history — ek standard template.\nInline comments: complex logic ke saath explain karna ki 'kyun' kiya, 'kya' toh code khud batata hai.\n\n**SE80 Documentation Tab:**\nSE80 mein har ABAP object ke saath ek documentation tab hota hai — short description aur extended help wahan store kar sakte ho.\n\n**Real Project Reality:**\nTS document Solution Manager ya SharePoint pe save hoti hai. Audit ke waqt TS mandatory hoti hai. Change requests ke liye pehle TS review hoti hai phir code. Knowledge transfer mein TS sabse important artifact hai.",
     "interviewMeKyaBolnaHai": "Answer this way in interviews:\n\n'Technical design documentation in my projects follows a structured approach. For every new development, I create a Technical Specification covering: program name and object type, business purpose, input parameters from selection screen, database tables and key fields used, step-by-step processing logic, error handling approach, and test cases covering both positive and negative scenarios.'\n\n'For code-level documentation, I add a program header with author, date, and change log. For methods and function modules, I use ABAP Doc comments so documentation is visible in ADT. Inline comments explain the why, not just the what.'\n\n'After completion, the TS is updated with the transport number and tested scenario outcomes. The TS is stored in our project SharePoint for knowledge transfer.'\n\nHinglish tip: Documentation ka question sunke mat sochna ki ye easy question hai — ye ek senior-level question hai. Jo structured answer deta hai — sections bolta hai, real tools bolta hai — wo alag dikhta hai. 'I document my code' sirf bolna weak hai. 'Here is what I document and where I store it' strong hai.",
     "codeExamples": "REPORT zdemo_documented\n  \" Program : ZDEMO_DOCUMENTED\n  \" Author  : Developer Name\n  \" Date    : 2026-06-01\n  \" Purpose : Custom sales order ALV report by region\n  \" Tables  : VBAK (header), VBAP (items), KNA1 (customer)\n  \" Changes : CR#001 - 2026-06-01 - Initial build.\n\n\" ABAP Doc comment for method documentation\n\"! <p class='shorttext synchronized'>Fetch sales orders</p>\n\"! @parameter iv_vkorg | Sales organization\n\"! @parameter rt_orders | Sales order table\nMETHODS fetch_orders\n  IMPORTING iv_vkorg  TYPE vkorg\n  RETURNING VALUE(rt_orders) TYPE tt_vbak.\n\n\" Inline comment: explain WHY not just WHAT\nSELECT vbeln erdat netwr kunnr\n  FROM vbak\n  INTO TABLE @DATA(lt_orders)\n  WHERE vkorg = @iv_vkorg\n    AND erdat >= @lv_from_date.  \" Only recent orders per TS scope",
+    "interviewScriptHinglish": "mere projects mein technical design documentation ek structured approach follow karti hai. Har naye development ke liye main ek Technical Specification create karta hoon jo program name aur object type, business purpose, selection screen inputs, database tables key fields ke saath, step-by-step processing logic, error handling, aur positive aur negative test cases cover karti hai. Code level pe, har program mein author, date, change request, aur tables list ke saath header hota hai, methods ke upar ABAP Doc comments, aur inline comments jo why explain karte hain, what nahi. Yeh primarily maintainability, knowledge transfer, aur audit compliance ke liye use hota hai.",
+    "interviewScriptEnglish": "Technical design documentation in my projects follows a structured approach. For every new development I create a Technical Specification covering program name and object type, business purpose, selection screen inputs, database tables with key fields, step-by-step processing logic, error handling, and positive and negative test cases. At code level, every program has a header with author, date, change request, and tables list, ABAP Doc comments above methods, and inline comments that explain why, not what. It is primarily used for maintainability, knowledge transfer, and audit compliance.",
+    "wordByWordSamjho": [
+      {
+        "keyword": "REPORT",
+        "meaning": "Declares the executable ABAP report."
+      },
+      {
+        "keyword": "ABAP Doc \"!",
+        "meaning": "Special comment style consumed by SAP documentation tools to describe methods and parameters."
+      },
+      {
+        "keyword": "@parameter",
+        "meaning": "ABAP Doc tag describing a method parameter for ABAP Doc viewer."
+      },
+      {
+        "keyword": "METHODS",
+        "meaning": "Declares an instance method in a class."
+      },
+      {
+        "keyword": "IMPORTING",
+        "meaning": "Marks a method parameter as input."
+      },
+      {
+        "keyword": "RETURNING VALUE(rt_orders)",
+        "meaning": "Declares a single return value passed by value."
+      },
+      {
+        "keyword": "TYPE vkorg",
+        "meaning": "Uses the SAP standard sales organization data element for typing."
+      },
+      {
+        "keyword": "SELECT",
+        "meaning": "Open SQL read statement against a database table."
+      },
+      {
+        "keyword": "INTO TABLE @DATA(lt_orders)",
+        "meaning": "Inline-declares the result internal table."
+      },
+      {
+        "keyword": "WHERE",
+        "meaning": "Filters which database rows the SELECT returns."
+      }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Skipping the Technical Specification because 'the code is simple'",
+        "whyWrong": "Small changes accumulate undocumented decisions; in support six months later no one remembers the why, and rework is expensive.",
+        "correctApproach": "Maintain a short TS for every object even small ones, focused on purpose, tables, logic outline, and test scenarios."
+      },
+      {
+        "mistake": "Writing comments that restate the code",
+        "whyWrong": "Comments like 'increment counter' add noise but no value; readers must still understand the underlying intent from context.",
+        "correctApproach": "Comment the why — business rule, edge case, performance choice — not the what; let well-named variables describe the what."
+      },
+      {
+        "mistake": "Leaving the SE80 documentation tab empty",
+        "whyWrong": "Standard SAP documentation tools, BAPI explorers, and support teams expect a one-paragraph object description; emptiness hurts maintainability.",
+        "correctApproach": "Fill the SE80 documentation tab with purpose, key tables, and dependent objects so future developers can navigate the system."
+      },
+      {
+        "mistake": "Not versioning the TS along with the transport request",
+        "whyWrong": "Production code and TS drift apart; audits and rollback reviews cannot establish what was deployed and why.",
+        "correctApproach": "Track TS in source control or a knowledge base linked to the change request and update it on every transport, including hotfixes."
+      }
+    ],
+    "quickRevisionNotes": "What: Technical design documentation captures the why and how of an ABAP development so it remains maintainable and auditable.\n\nUsed for:\n- New developments and major change requests\n- Code reviews and knowledge transfer\n- Production support and audit trails\n- Onboarding new project members\n\nKey syntax / tables / Tcodes:\n- Program header block (author, date, CR, tables, purpose)\n- ABAP Doc \"! comments for classes and methods\n- SE80 documentation tab per object\n- TS template in Confluence / SharePoint linked to CR\n\nInterview keyword: TS template + header + ABAP Doc + comment the why.",
     "followupAnswerBank": [
       {
         "question": "What is the difference between TS and FS in SAP projects?",
-        "hinglishExplanation": "FS — Functional Specification — functional consultant likhta hai. Ye business requirement batata hai: kya chahiye, kaunse fields dikhne chahiye, kya validations honi chahiye. TS — Technical Specification — developer likhta hai FS ke baad. Ye batata hai: kaise implement karenge, kaunse tables use honge, kaunsa ABAP object type best hai, performance approach kya hoga.",
+        "hinglishExplanation": "FS functional consultant likhta hai aur describe karta hai ki business kya chahti hai — screens, fields, validations, output format. TS ABAP developer likhta hai aur describe karta hai ki ise kaise implement karna hai — ABAP object type, database tables, logic steps, error handling, aur test cases. FS input hai, TS technical blueprint hai.",
         "interviewAnswer": "FS is written by the functional consultant and describes what the business wants — screens, fields, validations, output format. TS is written by the ABAP developer and describes how to implement it — ABAP object type, database tables, logic steps, error handling, and test cases. FS is the input, TS is the technical blueprint.",
         "realtimeExplanation": "Project reality: sometimes FS aadhura hota hai — tab developer FS author se clarifications leke TS mein document karta hai. TS client ke saath review hoti hai before coding starts.",
         "mistakes": "TS mein sirf code likha hua dikhana — TS code nahi hai, design document hai. Test cases aur table references TS ka important part hain.",
-        "codeExample": "\" TS Table Reference Section Example:\n\" Table   | Key Fields       | Usage\n\" VBAK    | VBELN, VKORG     | Order header fetch\n\" VBAP    | VBELN, POSNR     | Order items\n\" KNA1    | KUNNR            | Customer name\n\" Join: VBAK-KUNNR = KNA1-KUNNR"
+        "codeExample": "\" TS Table Reference Section Example:\n\" Table   | Key Fields       | Usage\n\" VBAK    | VBELN, VKORG     | Order header fetch\n\" VBAP    | VBELN, POSNR     | Order items\n\" KNA1    | KUNNR            | Customer name\n\" Join: VBAK-KUNNR = KNA1-KUNNR",
+        "tier": "easy"
       },
       {
         "question": "How do you write ABAP Doc comments for methods?",
-        "hinglishExplanation": "ABAP Doc comments method ke upar likhte hain double quote exclamation mark prefix ke saath. Ye ADT (Eclipse) mein method hover karne pe visible hota hai. Isme shorttext, parameter descriptions aur exceptions document kar sakte hain. Ye code documentation ka modern tarika hai — se80 pe bhi kuch visible hota hai.",
+        "hinglishExplanation": "ABAP Doc comments special prefix use karte hain aur class definition mein method declarations ke directly upar likhe jaate hain. Inmein method purpose ke liye shorttext, har importing aur exporting parameter ke liye parameter tags, aur exception tags shaamil hain. Yeh ADT mein method calls pe hover karne pe visible hote hain, code ko self-documenting banate hain.",
         "interviewAnswer": "ABAP Doc comments use the special prefix and are written directly above method declarations in the class definition. They include shorttext for the method purpose, parameter tags for each importing and exporting parameter, and exception tags. These are visible in ADT when hovering over method calls, making the code self-documenting.",
         "realtimeExplanation": "Team mein naya developer aaya — usne code khola, method pe hover kiya, ABAP Doc comment se pura context mila bina code padhne ke. Ye documentation ka real value hai.",
         "mistakes": "ABAP Doc sirf class methods ke liye hai — function modules ke liye inka documentation SE37 mein hota hai, parameter documentation tab mein. Confuse mat karo.",
-        "codeExample": "CLASS zcl_order_processor DEFINITION.\n  PUBLIC SECTION.\n\"! <p class='shorttext synchronized'>Calculate order total</p>\n\"! @parameter it_items   | Line items table\n\"! @parameter rv_total   | Calculated net total\n\"! @raising   zcx_order  | Raised if items empty\n    METHODS calc_total\n      IMPORTING it_items  TYPE tt_vbap\n      RETURNING VALUE(rv_total) TYPE netwr\n      RAISING   zcx_order.\nENDCLASS."
+        "codeExample": "CLASS zcl_order_processor DEFINITION.\n  PUBLIC SECTION.\n\"! <p class='shorttext synchronized'>Calculate order total</p>\n\"! @parameter it_items   | Line items table\n\"! @parameter rv_total   | Calculated net total\n\"! @raising   zcx_order  | Raised if items empty\n    METHODS calc_total\n      IMPORTING it_items  TYPE tt_vbap\n      RETURNING VALUE(rv_total) TYPE netwr\n      RAISING   zcx_order.\nENDCLASS.",
+        "tier": "medium"
       },
       {
         "question": "Where is TS stored in real SAP projects?",
-        "hinglishExplanation": "Real projects mein TS ka storage tool pe depend karta hai. Agar client SAP Solution Manager use karta hai toh TS Charm (Change Request Management) mein documents attach hoti hai. Agar Solution Manager nahi toh SharePoint, Confluence, ya simple network drive. Kuch projects mein TS Word/Excel template hoti hai jo project folder mein version-controlled hoti hai.",
+        "hinglishExplanation": "Mere project experience mein, TS documents SAP Solution Manager mein corresponding change request ke under store hote hain, ya SharePoint mein PROGRAM_NAME_TS_V1.0.docx jaise version-controlled naming convention ke saath. Production tak transport ke baad, TS final transport number aur go-live date ke saath completion record ke roop mein update hota hai.",
         "interviewAnswer": "In my project experience, TS documents are stored in SAP Solution Manager under the corresponding change request, or in SharePoint with a version-controlled naming convention like PROGRAM_NAME_TS_V1.0.docx. After transport to production, the TS is updated with the final transport number and go-live date as the completion record.",
         "realtimeExplanation": "Audit season mein — SAP auditor ya internal audit team — developer ko har change ke liye TS present karni padti hai. Bina TS ke change approved nahi hota in regulated industries like pharma or finance.",
         "mistakes": "Ye bolna ki 'we don't document TS in our project' — even if true, interviewer expects best practice answer. Say what should be done.",
-        "codeExample": "\" TS Change Log Section (in program header):\n\" Version | Date       | Author | Change Description\n\" 1.0     | 2026-01-15 | Dev1   | Initial build CR#001\n\" 1.1     | 2026-03-10 | Dev1   | Add region filter CR#045\n\" Transport: DEV->QA: DEVK900123, QA->PRD: DEVK900124"
+        "codeExample": "\" TS Change Log Section (in program header):\n\" Version | Date       | Author | Change Description\n\" 1.0     | 2026-01-15 | Dev1   | Initial build CR#001\n\" 1.1     | 2026-03-10 | Dev1   | Add region filter CR#045\n\" Transport: DEV->QA: DEVK900123, QA->PRD: DEVK900124",
+        "tier": "easy"
       },
       {
         "question": "What test cases should be documented in a TS?",
-        "hinglishExplanation": "TS mein test cases do categories mein hote hain: positive aur negative. Positive: expected data diya, expected output aaya. Negative: wrong input diya (blank matnr, future date), no data scenario, authorization missing. Boundary cases bhi: maximum records, special characters in input. Ye sab TS mein table format mein likhte hain — test case ID, input, expected output, actual result.",
+        "hinglishExplanation": "TS test cases positive scenarios cover karte hain — expected output ke saath valid input, negative scenarios — koi data nahi mila, invalid input, missing authorization, aur boundary cases — maximum record volume, special characters. Har test case mein ek ID, input values, expected result, aur testing ke baad fill kiya gaya actual result hota hai. Yeh unit test sign-off ka basis form karta hai.",
         "interviewAnswer": "TS test cases cover positive scenarios — valid input with expected output, negative scenarios — no data found, invalid input, missing authorization, and boundary cases — maximum record volume, special characters. Each test case has an ID, input values, expected result, and actual result filled after testing. This forms the basis of unit test sign-off.",
         "realtimeExplanation": "Unit testing karte waqt TS ka test case table bharo — actual result column fill karo. Ye UAT ke liye evidence banta hai ki developer ne apna testing properly kiya.",
         "mistakes": "Sirf happy path test karna — production bugs mostly negative scenarios se aate hain: no data, empty input, authorization issue. Ye sab TS mein explicitly cover karo.",
-        "codeExample": "\" Test Case Structure Example (in comments or TS doc):\n\" TC01: Valid material, language EN -> Description displayed\n\" TC02: Invalid material -> 'Not found' message shown\n\" TC03: No selection input -> 'Enter material' validation\n\" TC04: 10000 materials -> Performance < 5 seconds\n\" TC05: User without auth -> Authorization error message"
+        "codeExample": "\" Test Case Structure Example (in comments or TS doc):\n\" TC01: Valid material, language EN -> Description displayed\n\" TC02: Invalid material -> 'Not found' message shown\n\" TC03: No selection input -> 'Enter material' validation\n\" TC04: 10000 materials -> Performance < 5 seconds\n\" TC05: User without auth -> Authorization error message",
+        "tier": "advanced"
       },
       {
         "question": "How do you document error handling in ABAP programs?",
-        "hinglishExplanation": "Error handling documentation do levels pe hoti hai: TS mein (kaunsi errors possible hain, user ko kya message dikhega, program kaisa behave karega) aur code mein (inline comments batate hain ki is error pe kya karenge). Message types yaad rakho: E = error (stops), W = warning (continues), I = info, S = success.",
+        "hinglishExplanation": "TS mein, main har error scenario document karta hoon: ise kya trigger karta hai, message class aur number, message type (Error/Warning/Info), aur kya processing rukni chahiye ya continue honi chahiye. Code mein, inline comments explain karte hain ki specific error handling approach kyun choose kiya gaya. Critical programs ke liye, main rollback behavior bhi document karta hoon — ROLLBACK WORK kab use karna hai.",
         "interviewAnswer": "In TS, I document each error scenario: what triggers it, the message class and number, message type (Error/Warning/Info), and whether processing should stop or continue. In code, inline comments explain why a specific error handling approach was chosen. For critical programs, I also document rollback behavior — when to use ROLLBACK WORK.",
         "realtimeExplanation": "Production support aata hai: user ne bola 'mujhe error aa raha hai.' TS mein error handling section dekho — wo message number se map karo, code mein wo section find karo, debug karo.",
         "mistakes": "Sirf MESSAGE likhna bina comment ke ki kab trigger hoga — future developer ya support team ko context nahi milta. Error handling ka reason document karo.",
-        "codeExample": "\" Error handling documented in code\nSELECT SINGLE * FROM kna1 WHERE kunnr = @iv_kunnr INTO @DATA(ls_cust).\nIF sy-subrc <> 0.\n  \" TC-ERR-01: Customer not in master — user must verify input\n  MESSAGE e001(zmsg) WITH iv_kunnr.  \" 'Customer & not found'\nENDIF.\n\n\" Rollback on critical failure\nIF lv_critical_error = abap_true.\n  ROLLBACK WORK.  \" Undo all DB changes this LUW\n  RETURN.\nENDIF."
+        "codeExample": "\" Error handling documented in code\nSELECT SINGLE * FROM kna1 WHERE kunnr = @iv_kunnr INTO @DATA(ls_cust).\nIF sy-subrc <> 0.\n  \" TC-ERR-01: Customer not in master — user must verify input\n  MESSAGE e001(zmsg) WITH iv_kunnr.  \" 'Customer & not found'\nENDIF.\n\n\" Rollback on critical failure\nIF lv_critical_error = abap_true.\n  ROLLBACK WORK.  \" Undo all DB changes this LUW\n  RETURN.\nENDIF.",
+        "tier": "easy"
       },
       {
         "question": "What is the SE80 documentation tab used for?",
-        "hinglishExplanation": "SE80 — Object Navigator — mein har ABAP object (program, function module, class) ke liye ek documentation tab hota hai. Wahan short description aur extended documentation likhte hain. Ye SAP system ke andar built-in documentation hai. Jab user F1 help press karta hai kuch jagah pe, ya when browsing SE80, ye documentation visible hoti hai.",
+        "hinglishExplanation": "SE80 ka documentation tab SAP system ke andar ABAP objects ko directly short text aur extended documentation add karne ki allow karta hai. Yeh system-native documentation hai jo repository browse karne wale anyone ke liye visible hai. Programs ke liye, short description SE38 mein appear hota hai. Function modules ke liye, documentation SE37 ke documentation tab mein appear hota hai. Yeh external TS documents ko in-system context ke saath complement karta hai.",
         "interviewAnswer": "SE80's documentation tab allows adding short text and extended documentation directly to ABAP objects within the SAP system. This is system-native documentation visible to anyone browsing the repository. For programs, the short description appears in SE38. For function modules, documentation appears in SE37's documentation tab. It complements external TS documents with in-system context.",
         "realtimeExplanation": "SE80 documentation practice: har program aur function module ki short description fill karo — even just one line. Ye basis hai future developers ke liye jo SE80 mein object browse karte hain.",
         "mistakes": "SE80 documentation blank chhodna — it is a two-minute task that saves hours of investigation for future developers and auditors.",
-        "codeExample": "\" SE80 Short Description Examples:\n\" ZFIN_VENDOR_AGING  -> 'Vendor Aging Report - FI Module'\n\" ZFUN_CALC_TAX      -> 'Calculate Input Tax for PO Items'\n\" ZCL_ORDER_PROC     -> 'Sales Order Processing Class'\n\n\" Program header must match SE80 description\nREPORT zfin_vendor_aging.\n\" Short description: Vendor Aging Report - FI Module"
+        "codeExample": "\" SE80 Short Description Examples:\n\" ZFIN_VENDOR_AGING  -> 'Vendor Aging Report - FI Module'\n\" ZFUN_CALC_TAX      -> 'Calculate Input Tax for PO Items'\n\" ZCL_ORDER_PROC     -> 'Sales Order Processing Class'\n\n\" Program header must match SE80 description\nREPORT zfin_vendor_aging.\n\" Short description: Vendor Aging Report - FI Module",
+        "tier": "medium"
       },
       {
         "question": "How does documentation help during knowledge transfer?",
-        "hinglishExplanation": "Knowledge transfer scene socho: tum project chhor ke ja rahe ho, naya developer aaya. Agar TS hai toh wo padhe — 1 din mein context samajh le. Agar nahi hai toh wo code padhe — 1 hafte mein bhi shayad poora na samjhe. Code comments, header information, ABAP Doc — sab milake ek picture banate hain jo naye developer ko onboard karta hai without needing original author.",
+        "hinglishExplanation": "Documentation knowledge transfer ka foundation hai. Jab ek developer ek project se transition off karta hai, TS explain karta hai ki program kya karta hai aur design decisions kyun ki gayi thi. Code-level comments complex logic explain karte hain. Change log evolution history dikhata hai. Documentation ke bina, new developer ko code se business logic reverse-engineer karna padta hai — jo weeks leta hai aur regression risk introduce karta hai.",
         "interviewAnswer": "Documentation is the foundation of knowledge transfer. When a developer transitions off a project, the TS explains what the program does and why design decisions were made. Code-level comments explain complex logic. The change log shows evolution history. Without documentation, the new developer must reverse-engineer business logic from code — which takes weeks and introduces regression risk.",
         "realtimeExplanation": "Real scenario: developer left, no documentation. New developer spent 3 weeks understanding a 500-line ABAP report. With TS it would have been 2 days. Documentation ka ROI sirf maintenance cost mein nahi, knowledge transfer speed mein bhi hai.",
         "mistakes": "Ye attitude rakhna ki 'code khud documentation hai' — code batata hai WHAT, documentation batata hai WHY. Business logic decisions, trade-offs, excluded requirements — ye code mein nahi hote.",
-        "codeExample": "\" Good knowledge-transfer comment example:\n\" NOTE: We use VBAK not ACDOCA here intentionally —\n\" client's S/4HANA is on 1909, ACDOCA SD join not stable.\n\" Revisit in next upgrade project (CR#REF-2025-089).\nSELECT vbeln erdat netwr FROM vbak   \" Intentional table choice\n  INTO TABLE @DATA(lt_orders)\n  WHERE vkorg = @p_vkorg."
+        "codeExample": "\" Good knowledge-transfer comment example:\n\" NOTE: We use VBAK not ACDOCA here intentionally —\n\" client's S/4HANA is on 1909, ACDOCA SD join not stable.\n\" Revisit in next upgrade project (CR#REF-2025-089).\nSELECT vbeln erdat netwr FROM vbak   \" Intentional table choice\n  INTO TABLE @DATA(lt_orders)\n  WHERE vkorg = @p_vkorg.",
+        "tier": "medium"
       },
       {
         "question": "What is the role of the change log in ABAP documentation?",
-        "hinglishExplanation": "Change log program ke andar header mein hota hai — table format mein: version number, date, developer ka naam, aur change ka description. Ye batata hai ki program pehle kaisa tha, kab kab change hua, kyun change hua. Agar production bug aaya aur last change 2 weeks pehle tha, change log se seedha pata chalta hai ki kya change hua tha — debugging ka pehla clue.",
+        "hinglishExplanation": "Program header mein ek change log har modification track karta hai: version number, date, developer name, change request number, aur kya change hua iska brief description. Yeh directly code mein audit trail provide karta hai. Jab recent change ke baad ek production issue hota hai, change log immediately identify karta hai ki kaunse modification ko investigate karna hai — yeh root cause analysis mein first clue hai.",
         "interviewAnswer": "A change log in the program header tracks every modification: version number, date, developer name, change request number, and a brief description of what changed. This provides an audit trail directly in the code. When a production issue occurs after a recent change, the change log immediately identifies which modification to investigate — it is the first clue in root cause analysis.",
         "realtimeExplanation": "Production issue aaya — user ne bola 'kal tak sahi tha, aaj galat aa raha hai.' Change log dekha — kal CR#122 ka transport gaya tha. Directly us change ko investigate kiya — 30 min mein RCA complete.",
         "mistakes": "Change log mein sirf 'bug fix' ya 'enhancement' likhna — specific hona chahiye: 'Added region filter to WHERE clause as per CR#045' — future mein helpful hota hai.",
-        "codeExample": "REPORT zfin_vendor_report.\n\"============================================\n\" CHANGE LOG\n\"--------------------------------------------\n\" Ver  | Date       | Author | CR      | Desc\n\" 1.0  | 2025-01-15 | Dev1   | CR#001  | Initial\n\" 1.1  | 2025-06-20 | Dev2   | CR#045  | Add region filter\n\" 1.2  | 2026-03-10 | Dev1   | CR#089  | Fix: aging bucket 90+\n\"============================================"
+        "codeExample": "REPORT zfin_vendor_report.\n\"============================================\n\" CHANGE LOG\n\"--------------------------------------------\n\" Ver  | Date       | Author | CR      | Desc\n\" 1.0  | 2025-01-15 | Dev1   | CR#001  | Initial\n\" 1.1  | 2025-06-20 | Dev2   | CR#045  | Add region filter\n\" 1.2  | 2026-03-10 | Dev1   | CR#089  | Fix: aging bucket 90+\n\"============================================",
+        "tier": "advanced"
       }
     ]
   },
@@ -148,70 +298,141 @@
     "hinglishMasterExplanation": "ABAP Effort Estimation — Complete Framework:\n\n**Step 1: Requirement Samjho Pehle**\nFS completely padho. Unclear points clarify karo. Scope creep ka sabse bada karan hai incomplete requirement understanding. 'I estimate only after reading and understanding the complete FS' — yeh bolna maturity dikhata hai.\n\n**Step 2: Complexity Classify Karo**\n- Simple (S): 1-2 tables, direct SELECT, ALV report, no complex logic — 1 to 2 days\n- Medium (M): 2-4 table joins, function module calls, validations, SmartForm — 3 to 5 days\n- Complex (L): BAdI, BAPI, IDoc interface, workflow, external API — 1 to 2 weeks\n- Very Complex (XL): Cross-module integration, architecture change, migration — 2+ weeks\n\n**Step 3: Existing Code Check Karo**\nReuse is faster than build. Agar similar program hai toh copy + modify approach — effort 40-50% kam ho jaata hai. Change Request (CR) for an existing program — even faster than new build.\n\n**Step 4: Testing Time Add Karo**\nUnit testing = 30% to 40% of development time. Ek 3-day development pe 1 day testing — 4 days total. Testing me positive, negative, boundary cases sab cover karo.\n\n**Step 5: Transport Cycle Buffer**\nDevelopment complete — transport to QA — functional team testing — UAT sign-off — transport to production. QA to UAT typically 1 to 2 days buffer. Production transport window — sometimes only weekends in some clients.\n\n**Step 6: Risk Buffer Add Karo**\nUnknowns: missing FS details, SAP basis upgrade, third-party interface dependency. Add 20% buffer on total estimate for unknowns. Isko 'contingency' bolte hain formally.\n\n**Real Project T-shirt Sizing:**\nAgile teams mein T-shirt size pehle estimate karte hain — S=1-2 days, M=3-5 days, L=1-2 weeks, XL=2+ weeks — phir detailed breakdown planning mein karte hain.",
     "interviewMeKyaBolnaHai": "Answer this confidently in interviews:\n\n'When I receive a new requirement, I follow a structured estimation approach. First, I read the functional spec completely and clarify any gaps. Then I check if a similar program already exists that I can reuse or modify.'\n\n'For a new ABAP report with two to three table joins and ALV output — which is a medium complexity requirement — my estimate is typically three to four days including unit testing. I break it down: two days for development, one day for unit testing covering positive and negative scenarios, and half a day for transport and documentation update.'\n\n'I always add twenty percent buffer for unknowns like missing spec details or environment issues. For complex requirements involving BAdIs or interfaces, I escalate to senior developer to validate the estimate before committing.'\n\nHinglish tip: Interview mein exact numbers bolna — '3 to 4 days' — bahut strong impression deta hai. Vague bolna 'depends on complexity' weak hai. Complexity classify karo, phir number do. Aur hamesha 20% buffer ka mention karo — ye real project experience dikhata hai.",
     "codeExamples": "REPORT zdemo_estimation_example.\n\" Estimation Context: Medium complexity ALV report\n\" Tables: VBAK (orders) + VBAP (items) + KNA1 (customer)\n\" Estimate: Dev=2 days, Test=1 day, Transport=0.5 day\n\" Total: 3.5 days + 20% buffer = ~4 days\n\n\" Step 1: Data fetch (1 day effort)\nSELECT a~vbeln a~erdat a~netwr b~matnr b~kwmeng c~name1\n  FROM vbak AS a\n  INNER JOIN vbap AS b ON a~vbeln = b~vbeln\n  INNER JOIN kna1 AS c ON a~kunnr = c~kunnr\n  INTO TABLE @DATA(lt_report)\n  WHERE a~vkorg = @p_vkorg\n    AND a~erdat BETWEEN @p_from AND @p_to.\n\n\" Step 2: Process + display (1 day effort)\nIF sy-subrc = 0.\n  \" ALV display logic here\n  WRITE: / 'Records:', lines( lt_report ).\nELSE.\n  MESSAGE 'No data for selection' TYPE 'W'.\nENDIF.",
+    "interviewScriptHinglish": "main effort estimation ke liye ek structured approach follow karta hoon. Pehle, main functional spec puri padhta hoon aur koi gaps clarify karta hoon. Phir check karta hoon ki koi similar program reuse ke liye exist karta hai. Ek naye ABAP report ke liye jisme do ya teen table joins aur ALV output ho, jo medium complexity hai, mera estimate typically teen se chaar din hota hai including unit testing — do din development, ek din testing, aadha din transport aur documentation. Main 20 percent buffer add karta hoon unknowns ke liye. Yeh primarily delivery commitments realistic rakhne aur sprint planning support karne ke liye use hota hai.",
+    "interviewScriptEnglish": "I follow a structured approach for effort estimation. First, I read the functional spec completely and clarify any gaps. Then I check if a similar program exists for reuse. For a new ABAP report with two or three table joins and ALV output, which is medium complexity, my estimate is typically three to four days including unit testing — two days for development, one for testing, half day for transport and documentation. I add a 20 percent buffer for unknowns. It is primarily used to keep delivery commitments realistic and to support sprint planning.",
+    "wordByWordSamjho": [
+      {
+        "keyword": "REPORT",
+        "meaning": "Declares the executable ABAP report."
+      },
+      {
+        "keyword": "SELECT",
+        "meaning": "Open SQL read statement reading from one or more tables."
+      },
+      {
+        "keyword": "vbak",
+        "meaning": "Sales document header table."
+      },
+      {
+        "keyword": "vbap",
+        "meaning": "Sales document item table joined to VBAK by VBELN."
+      },
+      {
+        "keyword": "kna1",
+        "meaning": "Customer master general data table."
+      },
+      {
+        "keyword": "INNER JOIN ... ON",
+        "meaning": "Joins tables and keeps only rows that match on the ON condition."
+      },
+      {
+        "keyword": "INTO TABLE @DATA(lt_report)",
+        "meaning": "Inline-declares the joined result internal table."
+      },
+      {
+        "keyword": "BETWEEN @p_from AND @p_to",
+        "meaning": "Open SQL range filter on a date or numeric field."
+      },
+      {
+        "keyword": "lines( )",
+        "meaning": "Built-in function returning the row count of an internal table."
+      }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Estimating without reading the functional spec end to end",
+        "whyWrong": "Missed requirements appear later as 'small changes', blow up the schedule, and force unplanned overtime or rejected scope.",
+        "correctApproach": "Read the FS fully, list assumptions and open questions, and only then size each component with documented complexity rationale."
+      },
+      {
+        "mistake": "Estimating only development effort and forgetting testing, documentation, and transport",
+        "whyWrong": "Real delivery includes unit tests, TS, code review, ATC fixes, and STMS imports; ignoring these makes 'two-day' estimates miss by days.",
+        "correctApproach": "Break the estimate into development, testing, documentation, transport, and support buffer so the total reflects end-to-end delivery."
+      },
+      {
+        "mistake": "Skipping the buffer for unknowns",
+        "whyWrong": "Hidden complexity in customising, missing master data, or ATC findings always surfaces and pushes the schedule past commitment.",
+        "correctApproach": "Add a 15-20 percent contingency buffer and clearly mark it as such; reduce only when you have a confirmed precedent for the requirement."
+      },
+      {
+        "mistake": "Quoting effort without listing assumptions",
+        "whyWrong": "Clients expect the quoted number; any later 'I assumed' looks like an excuse and erodes trust in future estimates.",
+        "correctApproach": "Send the estimate with an explicit assumptions list (data volume, table availability, FS frozen) so changes trigger formal re-estimation."
+      }
+    ],
+    "quickRevisionNotes": "What: ABAP effort estimation is a structured way to size a development including dev, test, documentation, transport, and buffer.\n\nUsed for:\n- Sprint planning and release commitments\n- Client quotations and change-request sizing\n- Risk-aware delivery promises\n\nKey syntax / tables / Tcodes:\n- Complexity tiers: simple (1-2d), medium (3-5d), complex (6-10d)\n- Always add 15-20 percent buffer for unknowns\n- Reuse check via SE80 / SE38 / repository search\n- Document assumptions alongside the estimate\n\nInterview keyword: Read FS, size by complexity, break into phases, add buffer, list assumptions.",
     "followupAnswerBank": [
       {
         "question": "How do you estimate ABAP effort for a completely new requirement?",
-        "hinglishExplanation": "Naya requirement aaya: pehle FS completely padho, phir check karo ki similar kuch existing hai ya nahi. Phir complexity classify karo — S/M/L/XL. Development time estimate karo, testing ke liye 30-40% add karo, transport ke liye 1-2 din buffer. Sab add karo aur 20% contingency lagao. Ye total estimate hai.",
+        "hinglishExplanation": "Ek new requirement ke liye, main pehle FS thoroughly padhta hoon aur complexity categorize karta hoon. Simple reports one to two days development lete hain, medium complexity three to five days, complex enhancements one to two weeks. Main testing ke liye thirty percent, ek one-day transport buffer, aur unknowns ke liye twenty percent contingency add karta hoon. Main estimate range communicate karta hoon, single day nahi — for example, four to five days — uncertainty account karne ke liye.",
         "interviewAnswer": "For a new requirement, I first read the FS thoroughly and categorize complexity. Simple reports take one to two days development, medium complexity three to five days, complex enhancements one to two weeks. I add thirty percent for testing, a one-day transport buffer, and twenty percent contingency for unknowns. I communicate the estimate range, not a single day — for example, four to five days — to account for uncertainty.",
         "realtimeExplanation": "Client ne bola 'ye report kab milega?' — tum seedha 'I need to check the FS and give you a proper estimate by tomorrow' bolna. Never guess on the spot. Take time, give structured estimate.",
         "mistakes": "On-the-spot estimate dena bina FS padhe — almost always wrong. Also, sirf development time estimate karna aur testing forget karna — client ko surprise milta hai.",
-        "codeExample": "\" Estimation Checklist Comment Block:\n\" Req: Custom GR report by plant and material group\n\" Tables: MKPF + MSEG (2 tables = simple-medium)\n\" Logic: GROUP BY + SUM netwr = moderate\n\" Output: ALV with subtotals\n\" Complexity: M (3-5 days)\n\" Dev: 3 days, Test: 1 day, Transport: 0.5 day\n\" Buffer (20%): 0.9 day -> Total: ~5.5 days"
+        "codeExample": "\" Estimation Checklist Comment Block:\n\" Req: Custom GR report by plant and material group\n\" Tables: MKPF + MSEG (2 tables = simple-medium)\n\" Logic: GROUP BY + SUM netwr = moderate\n\" Output: ALV with subtotals\n\" Complexity: M (3-5 days)\n\" Dev: 3 days, Test: 1 day, Transport: 0.5 day\n\" Buffer (20%): 0.9 day -> Total: ~5.5 days",
+        "tier": "easy"
       },
       {
         "question": "What is T-shirt sizing in ABAP project estimation?",
-        "hinglishExplanation": "T-shirt sizing ek quick estimation technique hai jo Agile projects mein use hoti hai. S (Small) = 1-2 din, M (Medium) = 3-5 din, L (Large) = 1-2 hafte, XL (Extra Large) = 2+ hafte. Sprint planning ke waqt team milke har requirement ko size assign karta hai — bina specific hours ke. Baad mein detail planning mein exact breakdown hoti hai.",
+        "hinglishExplanation": "T-shirt sizing Agile projects mein use ki jaane wali ek quick estimation method hai. Small matlab one to two days, Medium three to five days, Large one to two weeks, aur Extra Large two or more weeks. Sprint planning mein, team collectively discussion aur consensus ke through har requirement ko ek size assign karti hai. Detailed hour-level breakdown sirf upcoming sprint ke items ke liye hota hai.",
         "interviewAnswer": "T-shirt sizing is a quick estimation method used in Agile projects. Small means one to two days, Medium three to five days, Large one to two weeks, and Extra Large two or more weeks. In sprint planning, the team collectively assigns a size to each requirement through discussion and consensus. Detailed hour-level breakdown happens only for items in the upcoming sprint.",
         "realtimeExplanation": "Sprint planning mein product owner ne 15 requirements rakhe — T-shirt sizing se 30 min mein sab size ho gaye. Detailed breakdown sirf next sprint ke items ke liye kari — 2 ghante mein complete.",
         "mistakes": "T-shirt sizing ko final commitment samajhna — ye rough estimate hai sprint planning ke liye. Client ko T-shirt size as commitment mat dena, detailed breakdown ke baad refined estimate dena.",
-        "codeExample": "\" T-shirt to Days Conversion Guide:\n\" S = 1-2 days  -> Simple report, 1-2 tables, direct output\n\" M = 3-5 days  -> Joins, validations, FM calls, ALV\n\" L = 1-2 weeks -> BAdI, SmartForm, IDoc, workflow\n\" XL = 2+ weeks -> Interface, migration, architecture\n\n\" Story Point alternative (if team uses Fibonacci):\n\" 1 point = 0.5 day, 2 = 1 day, 3 = 1.5 days, 5 = 3 days\n\" 8 = 5 days, 13 = 1+ week (split if possible)"
+        "codeExample": "\" T-shirt to Days Conversion Guide:\n\" S = 1-2 days  -> Simple report, 1-2 tables, direct output\n\" M = 3-5 days  -> Joins, validations, FM calls, ALV\n\" L = 1-2 weeks -> BAdI, SmartForm, IDoc, workflow\n\" XL = 2+ weeks -> Interface, migration, architecture\n\n\" Story Point alternative (if team uses Fibonacci):\n\" 1 point = 0.5 day, 2 = 1 day, 3 = 1.5 days, 5 = 3 days\n\" 8 = 5 days, 13 = 1+ week (split if possible)",
+        "tier": "medium"
       },
       {
         "question": "How do you estimate effort for a change request vs new development?",
-        "hinglishExplanation": "Change request (CR) existing program mein change hai — naya development nahi. CR ke liye effort kam hota hai kyunki: program already samjha hua hai, existing logic reuse hoti hai, testing scope limited hai sirf changed functionality ke liye. New development mein zero se shuru karte ho — design, code, full testing sab. CR typically 30-50% less effort hota hai same complexity ke comparison mein.",
+        "hinglishExplanation": "Ek change request existing functionality modify karta hai, isliye yeh new development se kam effort require karta hai. Existing program already samjha gaya hai, existing logic reuse ho sakta hai, aur testing sirf changed aur impacted areas pe focus karta hai. Typically ek CR equivalent new development se thirty se fifty percent kam effort leta hai. Main hamesha impact analyze karta hoon: kya change dusre programs ya interfaces ko affect karta hai? Impact analysis kuch estimation time wapas add karta hai.",
         "interviewAnswer": "A change request modifies existing functionality, so it requires less effort than new development. The existing program is already understood, existing logic can be reused, and testing focuses only on changed and impacted areas. Typically a CR takes thirty to fifty percent less effort than equivalent new development. I always analyze impact: does the change affect other programs or interfaces? Impact analysis adds back some estimation time.",
         "realtimeExplanation": "CR aaya — existing ALV report mein ek new column add karna. New development hota toh 3 din. CR hai — 1 din impact analysis + code change + regression test. Estimate: 1.5 days with buffer.",
         "mistakes": "CR ko always 'quick fix' samajhna — kuch CRs highly impactful hote hain. Impact analysis karna estimate ka pehla step hai, last nahi.",
-        "codeExample": "\" CR Estimation Example:\n\" CR: Add 'Delivery Date' column to existing sales ALV\n\" Impact Analysis: VBEP table join needed (new)\n\" Code change: SELECT add VBEP join, ALV field add\n\" Test: Existing columns still show? New column correct?\n\" CR Estimate: 1 day (vs 3 days new build same complexity)\n\" Impact scope: Only this report, no downstream effect"
+        "codeExample": "\" CR Estimation Example:\n\" CR: Add 'Delivery Date' column to existing sales ALV\n\" Impact Analysis: VBEP table join needed (new)\n\" Code change: SELECT add VBEP join, ALV field add\n\" Test: Existing columns still show? New column correct?\n\" CR Estimate: 1 day (vs 3 days new build same complexity)\n\" Impact scope: Only this report, no downstream effect",
+        "tier": "easy"
       },
       {
         "question": "How do you account for transport cycle time in estimation?",
-        "hinglishExplanation": "Transport cycle ka matlab: development client mein code complete hua, phir QA client mein transport karo, functional team test kare, UAT sign off, phir production transport. Har step mein time lagta hai. QA transport ke baad functional team available hogi kab? Sometimes 2-3 din wait karna padta hai. Production transport kuch clients mein sirf Friday raat ko hota hai. Ye sab buffer mein count karna zaroori hai.",
+        "hinglishExplanation": "Transport cycle time include karta hai: development se QA tak transport — usually same day, QA mein functional testing — team availability pe depend karke one to three days, UAT sign-off, aur final production transport — jo kuch clients weekends ya change freeze windows tak restrict karte hain. Main hamesha transport coordination ke liye one to two days buffer add karta hoon. Deadline-critical situations mein, main explicitly transport dependencies upfront flag karta hoon.",
         "interviewAnswer": "Transport cycle time includes: transport from development to QA — usually same day, functional testing in QA — one to three days depending on team availability, UAT sign-off, and final production transport — which some clients restrict to weekends or change freeze windows. I always add one to two days buffer for transport coordination. In deadline-critical situations, I explicitly flag transport dependencies upfront.",
         "realtimeExplanation": "Project mein tha: code 5 din mein complete tha, par client ka production transport window sirf Friday night tha. Go-live Tuesday ke liye tha — 10 din pehle transport request banana pada. Transport time is a hard dependency, not a soft buffer.",
         "mistakes": "Transport time ko estimation mein ignore karna — client ko surprise milta hai jab code ready hai par production mein jane mein 5 din aur lag rahe hain.",
-        "codeExample": "\" Transport Timeline Planning:\n\" Day 1-3: Development + Unit Test (DEV client)\n\" Day 4:   Transport to QA (SE10 -> STMS release)\n\" Day 5-6: Functional team testing in QA\n\" Day 7:   UAT sign-off, CR approved\n\" Day 8:   Production transport request raised\n\" Day 10:  Weekend production transport window\n\" Total elapsed: 10 days (dev effort: 4 days)"
+        "codeExample": "\" Transport Timeline Planning:\n\" Day 1-3: Development + Unit Test (DEV client)\n\" Day 4:   Transport to QA (SE10 -> STMS release)\n\" Day 5-6: Functional team testing in QA\n\" Day 7:   UAT sign-off, CR approved\n\" Day 8:   Production transport request raised\n\" Day 10:  Weekend production transport window\n\" Total elapsed: 10 days (dev effort: 4 days)",
+        "tier": "advanced"
       },
       {
         "question": "What is the 20% buffer rule in ABAP estimation?",
-        "hinglishExplanation": "20% buffer rule simple hai: jo estimate aaya hai uska 20% add karo unknowns ke liye. Unknown examples: FS mein scope baad mein clear hua, koi aur table join ki zaroorat nikli, SAP patch ne kuch change kar diya, testing mein naya scenario nikla. Ye buffer professionally 'contingency' ya 'risk buffer' bolte hain. Client ke saath estimate share karte waqt buffer include karo, separately mat batao.",
+        "hinglishExplanation": "Twenty percent buffer development ke dauran emerge hone wale unknowns account karta hai: incomplete FS details jinhe clarification chahiye, deeper analysis ke baad needed additional tables, testing ke dauran found regression issues, ya environment delays. Professionally ise contingency kehte hain. Main ise apne estimate mein upfront include karta hoon baad mein extensions maangne ki jagah. Agar kaam expected se simpler hai, main remaining buffer ko additional testing coverage ke liye use karta hoon.",
         "interviewAnswer": "The twenty percent buffer accounts for unknowns that emerge during development: incomplete FS details that need clarification, additional tables needed after deeper analysis, regression issues found during testing, or environment delays. Professionally this is called contingency. I include it in my estimate upfront rather than asking for extensions later. If the work is simpler than expected, I use remaining buffer for additional testing coverage.",
         "realtimeExplanation": "Without buffer: estimated 3 days, a new requirement detail emerged on day 2, finished in 4 days, client unhappy about delay. With buffer: estimated 4 days (3 + 20%), same situation, finished in 4 days, client satisfied. Same outcome, different perception.",
         "mistakes": "Buffer ko separately bolna 'I need 3 days plus 20% buffer' — include it in the total. Say 'my estimate is 4 days' not '3 days plus contingency.'",
-        "codeExample": "\" Estimation with Buffer Calculation:\n\" Base Development: 3 days\n\" Unit Testing (30%): 1 day\n\" Transport: 0.5 day\n\" Subtotal: 4.5 days\n\" Risk Buffer (20%): 0.9 days\n\" TOTAL ESTIMATE: 5.5 days (~6 days communicated)\n\n\" Interview formula:\n\" (Dev + Test + Transport) * 1.2 = Final Estimate"
+        "codeExample": "\" Estimation with Buffer Calculation:\n\" Base Development: 3 days\n\" Unit Testing (30%): 1 day\n\" Transport: 0.5 day\n\" Subtotal: 4.5 days\n\" Risk Buffer (20%): 0.9 days\n\" TOTAL ESTIMATE: 5.5 days (~6 days communicated)\n\n\" Interview formula:\n\" (Dev + Test + Transport) * 1.2 = Final Estimate",
+        "tier": "easy"
       },
       {
         "question": "How do you handle estimation when requirements are unclear?",
-        "hinglishExplanation": "Unclear requirements ka sabse bada risk: estimate diya, baad mein scope change hua, effort double ho gaya. Best approach: pehle clarification lo, phir estimate do. Agar time pressure hai toh range estimation karo: 'Best case 3 days if requirement is as described, worst case 6 days if X and Y are also needed.' Assumptions clearly document karo estimate ke saath.",
+        "hinglishExplanation": "Jab requirements unclear hain, main pehle saare open questions identify aur list karta hoon aur estimating se pehle functional consultant ko bhejta hoon. Agar immediate estimate chahiye, main ek range deta hoon: minimal scope assume karte huye best case, full scope assume karte huye worst case, explicit assumptions documented ke saath. Main yeh bhi flag karta hoon ki kaunsi assumptions change hone par estimate ko significantly change kar sakti hain — yeh client expectations ko proactively manage karta hai.",
         "interviewAnswer": "When requirements are unclear, I first identify and list all open questions and send them to the functional consultant before estimating. If immediate estimate is needed, I give a range: best case assuming minimal scope, worst case assuming full scope, with explicit assumptions documented. I also flag which assumptions could significantly change the estimate if they change — this manages client expectations proactively.",
         "realtimeExplanation": "FS aadhura tha — mujhe 5 din estimate dena tha. Maine 3 open questions identify kiye, answers aane ke baad revised estimate diya: 4 days. Client ne appreciate kiya ki maine pehle questions puche instead of wrong estimate diya.",
         "mistakes": "Unclear FS pe estimate dena without assumptions — baad mein scope creep ke liye koi accountability nahi hoti. Written assumptions protect both developer and client.",
-        "codeExample": "\" Estimation Assumptions Template:\n\" ESTIMATE: 4-6 days (range due to open items)\n\" Assumption 1: Only plant 1000 data in scope\n\" Assumption 2: ALV output, no PDF needed\n\" Assumption 3: No authorization object changes\n\" RISK: If cross-plant needed -> add 2 days\n\" RISK: If PDF SmartForm needed -> add 3 days\n\" Open Q1: Is real-time update needed or batch?\n\" Open Q2: Archiving logic in scope?"
+        "codeExample": "\" Estimation Assumptions Template:\n\" ESTIMATE: 4-6 days (range due to open items)\n\" Assumption 1: Only plant 1000 data in scope\n\" Assumption 2: ALV output, no PDF needed\n\" Assumption 3: No authorization object changes\n\" RISK: If cross-plant needed -> add 2 days\n\" RISK: If PDF SmartForm needed -> add 3 days\n\" Open Q1: Is real-time update needed or batch?\n\" Open Q2: Archiving logic in scope?",
+        "tier": "medium"
       },
       {
         "question": "How does estimation differ for ABAP reports versus enhancements?",
-        "hinglishExplanation": "ABAP report aur enhancement estimation mein key difference hai: report mein tum control mein ho — apna logic, apni structure. Enhancement mein (BAdI, user exit, substitution) tum SAP standard code ke saath kaam kar rahe ho — existing behavior samajhna padta hai pehle. Isliye enhancement estimation mein analysis time alag se count karo. BAdI ke liye: which BAdI, which method, existing implementations check — ye sab 20-30% time analysis mein jaata hai.",
+        "hinglishExplanation": "ABAP reports self-contained hain — estimation straightforward hai: development plus testing. Enhancements ko additional upfront analysis chahiye: correct BAdI ya user exit identify karna, existing implementations samajhna jo conflict kar sakte hain, us enhancement point pe standard SAP flow samajhna. Enhancements ke liye, main development estimate ke upar analysis ke liye thirty percent add karta hoon. Ek BAdI implementation jo development mein two days lega proper analysis ke saath total three days leta hai.",
         "interviewAnswer": "ABAP reports are self-contained — estimation is straightforward: development plus testing. Enhancements require additional upfront analysis: identifying the correct BAdI or user exit, understanding existing implementations that might conflict, understanding the standard SAP flow at that enhancement point. For enhancements, I add thirty percent for analysis on top of development estimate. A BAdI implementation that would take two days in development takes three days total with proper analysis.",
         "realtimeExplanation": "BAdI implement karna tha — pehle check kiya ki existing implementations hain ya nahi SE18 mein. Thi ek — uske saath conflict check kiya. Analysis mein 4 ghante gaye. Bina is analysis ke estimate wrong hota.",
         "mistakes": "Enhancement estimation mein analysis time forget karna — ye most commonly underestimated part hai. Always SAY 'I need X hours for analysis before I can give final estimate for this enhancement.'",
-        "codeExample": "\" Enhancement Estimation Breakdown:\n\" Requirement: Custom validation on PO save via BAdI\n\" Analysis (find correct BAdI, check existing impls): 0.5 day\n\" Development (implement method with logic): 1.5 days\n\" Unit Test (trigger PO save with various scenarios): 0.5 day\n\" Transport + regression: 0.5 day\n\" Buffer 20%: 0.6 day\n\" TOTAL: ~4 days\n\" vs Simple report same complexity: ~3 days"
+        "codeExample": "\" Enhancement Estimation Breakdown:\n\" Requirement: Custom validation on PO save via BAdI\n\" Analysis (find correct BAdI, check existing impls): 0.5 day\n\" Development (implement method with logic): 1.5 days\n\" Unit Test (trigger PO save with various scenarios): 0.5 day\n\" Transport + regression: 0.5 day\n\" Buffer 20%: 0.6 day\n\" TOTAL: ~4 days\n\" vs Simple report same complexity: ~3 days",
+        "tier": "medium"
       },
       {
         "question": "When should you escalate an estimate to a senior developer?",
-        "hinglishExplanation": "Escalation ke scenarios: requirement completely new hai aur tumne pehle aisa kuch implement nahi kiya — senior ki review leni chahiye. Estimate bahut bada lag raha hai (XL category) — senior confirm kare. Architecture level decision hai — senior ya architect decide kare. Client ka estimate accept nahi ho raha — senior negotiate kare. Escalation weakness nahi hai, maturity hai.",
+        "hinglishExplanation": "Main senior developer ko escalate karta hoon jab: requirement mein ek technology involved hai jo maine pehle use nahi ki jaise specific BAdI ya IDoc type, estimate two weeks exceed karta hai high complexity indicate karte huye, requirement mein cross-module impact hai jisme architectural review chahiye, ya jab client mere estimate ko dispute karta hai aur ek second opinion credibility add karta hai. Right time pe escalating under-estimation aur quality issues prevent karta hai.",
         "interviewAnswer": "I escalate to a senior developer when: the requirement involves a technology I haven't used before such as a specific BAdI or IDoc type, the estimate exceeds two weeks indicating high complexity, the requirement has cross-module impact that needs architectural review, or when the client disputes my estimate and a second opinion adds credibility. Escalating at the right time prevents under-estimation and quality issues.",
         "realtimeExplanation": "XL requirement aaya — complex workflow integration. Maine estimate kiya lekin unsure tha. Senior developer ko involve kiya — usne 2 risks identify kiye jo mujhe nahi dikhे. Final estimate 40% zyada tha jo accurate nikla. Escalation ne project save kiya.",
         "mistakes": "Over-confidence se XL requirement khud estimate dena aur commit karna — phir scope creep mein fas jaana. Escalation pe ego mat rakho.",
-        "codeExample": "\" Escalation Trigger Checklist:\n\" [ ] Requirement uses technology new to me\n\" [ ] Estimate > 10 days (XL category)\n\" [ ] Cross-module impact (FI + MM + SD together)\n\" [ ] Performance critical (real-time, high volume)\n\" [ ] Client disputes estimate\n\" Action: Loop in senior/architect for review\n\" Document: 'Estimate reviewed and validated by [Senior]'"
+        "codeExample": "\" Escalation Trigger Checklist:\n\" [ ] Requirement uses technology new to me\n\" [ ] Estimate > 10 days (XL category)\n\" [ ] Cross-module impact (FI + MM + SD together)\n\" [ ] Performance critical (real-time, high volume)\n\" [ ] Client disputes estimate\n\" Action: Loop in senior/architect for review\n\" Document: 'Estimate reviewed and validated by [Senior]'",
+        "tier": "advanced"
       }
     ]
   }

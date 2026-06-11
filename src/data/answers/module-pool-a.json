@@ -3,71 +3,154 @@
     "easyUnderstanding": "Module Pool Programming ko functional consultant ko samjhao toh sabse acha analogy yeh hai: 'Jaise tum SAP mein VA01 kholo toh ek screen aata hai — customer name, order date, material — sab enter karte ho, Save karte ho, order create ho jaata hai. Exactly waisa hi custom screen hum module pool se banate hain.' Matlab hum SAP ke andar apna khud ka transaction create karte hain — ek unique T-code milta hai, user usse run karta hai, screen aata hai, data enter karta hai, validation hoti hai, save hota hai. Functional consultant ke liye key message: Module Pool = Custom Transaction = Custom SAP Screen, exactly like the standard ones you use every day. Do main events yaad rakho: PBO (Process Before Output) = screen display hone se pehle kya karo, jaise default values set karo, fields enable/disable karo. PAI (Process After Input) = user ne Enter ya button click kiya tab kya karo, jaise validate karo, save karo, navigate karo. Use cases jo functional ko samajh aate hain: complex purchase approval screen, custom goods issue screen with extra validations, data maintenance screen for custom Z-table. Aur access karna simple hai — SE93 se ek T-code banaate hain aur sab users wohi T-code use karte hain.",
     "hinglishMasterExplanation": "Module Pool programming — jise Dialog Programming bhi kehte hain — SAP ka woh technique hai jisse hum custom interactive screens banate hain. Standard transactions jaise VA01, ME21N, MM01 SAP ne isi technique se banaye hain. Hum bhi same technology use karke apna custom screen bana sakte hain specific business requirements ke liye.\n\nArchitecture samjho: ek module pool program hota hai (PROGRAM statement se shuru, Report nahi), aur uske saath Dynpro screens hoti hain (Screen Painter SE51 mein design). Program aur screen milke kaam karte hain.\n\nDo critical events: PBO (Process Before Output) module screen display karne se pehle chalata hai — yahaan default values set karte hain, field attributes change karte hain, authorization check karte hain. PAI (Process After Input) module tab chalta hai jab user Enter dabata hai ya koi button click karta hai — yahaan OKCODE check karte hain, validation karte hain, DB save karte hain, next screen pe navigate karte hain.\n\nNavigation flow: SET SCREEN 200 se next screen pe jaate hain, LEAVE SCREEN se current screen exit karte hain, SET SCREEN 0 with LEAVE SCREEN se module pool se baahar nikalte hain.\n\nFunction keys aur buttons ke liye GUI status banate hain — SE41 mein. Har button ek function code generate karta hai jo PAI mein CASE ok_code se handle hota hai.\n\nSE93 se ek T-code create karte hain jo is module pool ke starting screen ko launch karta hai. User wohi T-code run karta hai — bilkul VA01 jaise.\n\nReal project use cases: custom vendor payment approval screen, inbound delivery custom screen with plant-level validation, Z-table maintenance screen for configuration data.",
     "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'Module Pool programming, also called Dialog programming, is SAP's technique for building custom interactive screens — similar to standard transactions like VA01 or ME21N, but designed for specific business requirements. It consists of a module pool ABAP program and Dynpro screens created in SE51. The two critical events are PBO, which runs before the screen displays and is used for setting defaults and field attributes, and PAI, which runs after the user presses Enter or a button and is used for OKCODE handling, validation, and save logic. The transaction is assigned a T-code in SE93 so end users can launch it like any standard SAP transaction.'\n\nHinglish tip: 'Functional consultant ke saath conversation mein technical jargon avoid karo. Bolne ka best way: Jaise tum VA01 pe sales order create karte ho — same feel, same SAP environment — bas uske fields aur logic tumhare business process ke hisaab se hain. Ye analogy immediately connect karti hai.'",
-    "codeExamples": "PROGRAM zmodule_pool_demo MESSAGE-ID zmsg.\n\nTABLES: zcustom_tab.\nDATA: ok_code TYPE sy-ucomm.\n\n\" PBO Module — runs before screen 0100 is displayed\nMODULE pbo_0100 OUTPUT.\n  SET PF-STATUS 'MAIN_STATUS'.\n  SET TITLEBAR 'TITLE_0100'.\n  \" Set default values if needed\n  IF zcustom_tab-werks IS INITIAL.\n    zcustom_tab-werks = '1000'.\n  ENDIF.\nENDMODULE.\n\n\" PAI Module — runs after user input on screen 0100\nMODULE pai_0100 INPUT.\n  SAVE_OK_CODE ok_code.\n  CLEAR ok_code.\n  CASE ok_code.\n    WHEN 'SAVE'.\n      PERFORM validate_and_save.\n    WHEN 'BACK' OR 'EXIT' OR 'CANCEL'.\n      SET SCREEN 0. LEAVE SCREEN.\n  ENDCASE.\nENDMODULE.",
+    "codeExamples": "PROGRAM zmodule_pool_demo MESSAGE-ID zmsg.\n\nTABLES: zcustom_tab.\nDATA: ok_code TYPE sy-ucomm.\n\n\" PBO Module — runs before screen 0100 is displayed\nMODULE pbo_0100 OUTPUT.\n  SET PF-STATUS 'MAIN_STATUS'.\n  SET TITLEBAR 'TITLE_0100'.\n  \" Set default values if needed\n  IF zcustom_tab-werks IS INITIAL.\n    zcustom_tab-werks = '1000'.\n  ENDIF.\nENDMODULE.\n\n\" PAI Module — runs after user input on screen 0100\nMODULE pai_0100 INPUT.\n  SAVE_OK_CODE ok_code.\n  CASE ok_code.\n    WHEN 'SAVE'.\n      PERFORM validate_and_save.\n    WHEN 'BACK' OR 'EXIT' OR 'CANCEL'.\n      SET SCREEN 0. LEAVE SCREEN.\n  ENDCASE.\nENDMODULE.",
+    "interviewScriptEnglish": "Module Pool programming, also called Dialog programming, is SAP's technique for building custom interactive screens — similar to standard transactions like VA01 or ME21N, but designed for specific business requirements. It consists of a module pool ABAP program and Dynpro screens created in SE51. The two critical events are PBO, which runs before the screen displays and is used for setting defaults and field attributes, and PAI, which runs after the user presses Enter or a button and is used for OKCODE handling, validation, and save logic. The transaction is assigned a T-code in SE93 so end users can launch it like any standard SAP transaction.",
+    "interviewScriptHinglish": "Module Pool programming, jise Dialog programming bhi kehte hain, SAP ki technique hai custom interactive screens build karne ke liye — standard transactions jaise VA01 ya ME21N ki tarah, lekin specific business requirements ke liye designed. Yeh ek module pool ABAP program aur SE51 mein create kiye gaye Dynpro screens se milkar banta hai. Do critical events hain — PBO, jo screen display hone se pehle run hota hai aur defaults aur field attributes set karne ke liye use hota hai, aur PAI, jo user ke Enter ya button press karne ke baad run hota hai aur OKCODE handling, validation aur save logic ke liye use hota hai. Transaction ko SE93 mein ek T-code assign hota hai taaki end users ise standard SAP transaction ki tarah launch kar sakein.",
+    "commonMistakesSection": [
+      {
+        "mistake": "Kuch developers sochte hain ki SELECTION-SCREEN wala program bhi Module Pool hai — nahi hai.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Module Pool PROGRAM statement se start hota hai, REPORT se nahi."
+      },
+      {
+        "mistake": "PBO mein database save karna galat hai — save logic sirf PAI mein hoti hai.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "PBO sirf display preparation ke liye hai."
+      },
+      {
+        "mistake": "SET SCREEN set karna but LEAVE SCREEN bhool jaana — toh next screen set hoti hai but current screen atak jaati hai.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Dono saath use karo."
+      },
+      {
+        "mistake": "CASE ok_code mein sirf SAVE handle karna aur BACK/EXIT bhool jaana — user Back button dabata hai aur kuch nahi hota, screen atak jaati hai.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Production bug guaranteed."
+      }
+    ],
+    "wordByWordSamjho": [
+      {
+        "keyword": "PROGRAM",
+        "meaning": "Module pool program declaration — Type 'M' dialog program, not REPORT"
+      },
+      {
+        "keyword": "TABLES",
+        "meaning": "Links DDIC table to screen so its fields auto-transport between screen and program"
+      },
+      {
+        "keyword": "MODULE ... OUTPUT",
+        "meaning": "PBO module block — code that runs before the Dynpro screen is rendered"
+      },
+      {
+        "keyword": "MODULE ... INPUT",
+        "meaning": "PAI module block — code that runs after user submits the screen"
+      },
+      {
+        "keyword": "SET PF-STATUS",
+        "meaning": "Activates the GUI status (toolbar, menu, function keys) defined in SE41"
+      },
+      {
+        "keyword": "SET TITLEBAR",
+        "meaning": "Sets the screen's title bar text from a title element in SE41"
+      },
+      {
+        "keyword": "ok_code / SY-UCOMM",
+        "meaning": "Function code captured from the user's button or menu action"
+      },
+      {
+        "keyword": "SAVE_OK_CODE",
+        "meaning": "Copies SY-UCOMM into a work variable and clears system field to avoid double-trigger"
+      },
+      {
+        "keyword": "CASE ok_code",
+        "meaning": "Standard PAI dispatcher to route each function code to its action"
+      },
+      {
+        "keyword": "PERFORM",
+        "meaning": "Calls a FORM subroutine — typical pattern for save/validate logic in module pool"
+      },
+      {
+        "keyword": "SET SCREEN 0",
+        "meaning": "Marks next screen as zero, signalling exit from the call stack"
+      },
+      {
+        "keyword": "LEAVE SCREEN",
+        "meaning": "Actually exits the current Dynpro and triggers navigation to the screen set above"
+      }
+    ],
+    "quickRevisionNotes": "What: Module Pool (Dialog) programming is the SAP technique for building custom interactive transactions with PBO/PAI events and Dynpro screens.\n\nUsed for:\n- Building Z transactions when standard SAP screens cannot meet a business need\n- Custom maintenance screens for Z tables and approval workflows\n- Multi-screen data entry with header, items, and confirmation flows\n\nKey syntax / tables / Tcodes:\n- PROGRAM (Type M), MODULE OUTPUT / MODULE INPUT, SET PF-STATUS, SET TITLEBAR\n- SAVE_OK_CODE, CASE ok_code, SET SCREEN n + LEAVE SCREEN, LEAVE PROGRAM\n- SE80 workbench, SE51 Screen Painter, SE41 Menu Painter, SE93 to register the T-code\n\nInterview keyword: PBO prepares, PAI reacts — and SE93 makes it a transaction like VA01.",
     "followupAnswerBank": [
       {
         "question": "What is the difference between a Report and a Module Pool program?",
-        "hinglishExplanation": "Report ek baar chalta hai — selection screen, phir START-OF-SELECTION, phir output list. User sirf dekhta hai, interactive nahi. Module Pool mein user actively kaam karta hai — data enter karta hai, buttons click karta hai, next screen pe jaata hai, save karta hai. Report = read only output; Module Pool = full interactive transaction.",
+        "hinglishExplanation": "Report program linearly chalta hai — selection screen, data fetch, output display. Module Pool program event-driven aur interactive hai: users data enter karte hain, screens ke beech navigate karte hain, aur buttons ke through actions trigger karte hain. Reports START-OF-SELECTION use karte hain; Module Pool Dynpro screens ke saath PBO aur PAI events use karta hai.",
         "interviewAnswer": "A Report program runs linearly — selection screen, data fetch, output display. A Module Pool program is event-driven and interactive: users enter data, navigate between screens, and trigger actions via buttons. Reports use START-OF-SELECTION; Module Pool uses PBO and PAI events with Dynpro screens.",
         "realtimeExplanation": "Project mein choose karte waqt: agar user sirf data dekhta hai toh Report/ALV. Agar user data enter karega, validate karega, save karega, navigate karega — toh Module Pool.",
         "mistakes": "Kuch developers sochte hain ki SELECTION-SCREEN wala program bhi Module Pool hai — nahi hai. Module Pool PROGRAM statement se start hota hai, REPORT se nahi.",
-        "codeExample": "\" Report program start\nREPORT zdemo_report.\n\n\" Module Pool program start — note PROGRAM not REPORT\nPROGRAM zdemo_module_pool.\nTABLES: zcustom_tab."
+        "codeExample": "\" Report program start\nREPORT zdemo_report.\n\n\" Module Pool program start — note PROGRAM not REPORT\nPROGRAM zdemo_module_pool.\nTABLES: zcustom_tab.",
+        "tier": "easy"
       },
       {
         "question": "What is PBO and PAI in Module Pool? Explain with flow.",
-        "hinglishExplanation": "PBO = Process Before Output. Screen display hone SE PEHLE chalta hai. Yahaan kya karte hain: GUI status set, title set, default values fill, field attributes set (editable/display mode), authorization check. PAI = Process After Input. User ne Enter ya button dabaya USKE BAAD chalta hai. Yahaan: OKCODE read karo, CASE statement se action decide karo, validation karo, save karo ya navigate karo.",
+        "hinglishExplanation": "PBO screen render hone se pehle chalta hai — yahaan main GUI status, title bar, default field values set karta hoon, aur FIELD aur CHAIN commands use karke field editability control karta hoon. PAI user ke Enter ya function key press karne ke baad chalta hai — main OKCODE capture karta hoon, CASE statement use karke save, validate, navigate, ya exit logic ko route karta hoon.",
         "interviewAnswer": "PBO runs before the screen renders — here I set the GUI status, title bar, default field values, and control field editability using FIELD and CHAIN commands. PAI runs after the user presses Enter or a function key — I capture the OKCODE, use a CASE statement to route to save, validate, navigate, or exit logic.",
         "realtimeExplanation": "Real project mein PBO mein auth check lagaate hain — AUTHORITY-CHECK OBJECT. Agar user authorized nahi toh MESSAGE E aur screen 0. PAI mein SAVE ke pehle mandatory field check karte hain.",
         "mistakes": "PBO mein database save karna galat hai — save logic sirf PAI mein hoti hai. PBO sirf display preparation ke liye hai.",
-        "codeExample": "MODULE pbo_0100 OUTPUT.\n  SET PF-STATUS 'ZSTATUS'.\n  SET TITLEBAR 'ZTITLE'.\n  MOVE sy-datum TO zcustom_tab-erdat.\nENDMODULE.\n\nMODULE pai_0100 INPUT.\n  CASE ok_code.\n    WHEN 'SAVE'. PERFORM do_save.\n    WHEN 'BACK'. SET SCREEN 0. LEAVE SCREEN.\n  ENDCASE.\nENDMODULE."
+        "codeExample": "MODULE pbo_0100 OUTPUT.\n  SET PF-STATUS 'ZSTATUS'.\n  SET TITLEBAR 'ZTITLE'.\n  MOVE sy-datum TO zcustom_tab-erdat.\nENDMODULE.\n\nMODULE pai_0100 INPUT.\n  CASE ok_code.\n    WHEN 'SAVE'. PERFORM do_save.\n    WHEN 'BACK'. SET SCREEN 0. LEAVE SCREEN.\n  ENDCASE.\nENDMODULE.",
+        "tier": "easy"
       },
       {
         "question": "How do you handle navigation between screens in Module Pool?",
-        "hinglishExplanation": "Navigation commands: SET SCREEN 200 se next screen number set karte hain — screen display hogi current screen ke baad. LEAVE SCREEN se current screen se immediately exit hote hain. SET SCREEN 0 + LEAVE SCREEN = poora module pool exit. CALL SCREEN 300 = screen 300 ko modal dialog box ki tarah call karo, wapas same screen pe aao. SUPPRESS DIALOG = current screen skip karo, seedha next screen pe jao.",
+        "hinglishExplanation": "Navigation SET SCREEN ke baad LEAVE SCREEN use karta hai next screen pe move karne ke liye. LEAVE SCREEN ke saath SET SCREEN 0 module pool ko entirely exit karta hai. CALL SCREEN ek screen ko modal dialog ke roop mein open karta hai aur calling screen pe return karta hai. Main inhe OKCODE ke based pe PAI modules mein use karta hoon — for example, WHEN 'NEXT' next screen number set karta hai.",
         "interviewAnswer": "Navigation uses SET SCREEN followed by LEAVE SCREEN to move to the next screen. SET SCREEN 0 with LEAVE SCREEN exits the module pool entirely. CALL SCREEN opens a screen as a modal dialog and returns to the calling screen. I use these in PAI modules based on the OKCODE — for example, WHEN 'NEXT' sets the next screen number.",
         "realtimeExplanation": "Multi-screen module pool mein: screen 100 = header data, screen 200 = item data, screen 300 = confirmation popup. PAI mein OKCODE check karke SET SCREEN decide karte hain.",
         "mistakes": "SET SCREEN set karna but LEAVE SCREEN bhool jaana — toh next screen set hoti hai but current screen atak jaati hai. Dono saath use karo.",
-        "codeExample": "MODULE pai_0100 INPUT.\n  CASE ok_code.\n    WHEN 'NEXT'.        \" Go to screen 200\n      SET SCREEN 200.\n      LEAVE SCREEN.\n    WHEN 'POPUP'.       \" Modal dialog\n      CALL SCREEN 300 STARTING AT 10 5.\n    WHEN 'EXIT'.\n      SET SCREEN 0. LEAVE SCREEN.\n  ENDCASE.\nENDMODULE."
+        "codeExample": "MODULE pai_0100 INPUT.\n  CASE ok_code.\n    WHEN 'NEXT'.        \" Go to screen 200\n      SET SCREEN 200.\n      LEAVE SCREEN.\n    WHEN 'POPUP'.       \" Modal dialog\n      CALL SCREEN 300 STARTING AT 10 5.\n    WHEN 'EXIT'.\n      SET SCREEN 0. LEAVE SCREEN.\n  ENDCASE.\nENDMODULE.",
+        "tier": "easy"
       },
       {
         "question": "What is OKCODE and GUI Status in Module Pool?",
-        "hinglishExplanation": "GUI Status (SE41 mein create karta hai) = screen ke top pe dikhne wali toolbar aur menu. Har button ya function key ek Function Code generate karta hai jab user press karta hai. Woh function code PAI mein ok_code variable mein aata hai. OKCODE ya ok_code variable mein capture karte hain. Agar CASE statement mein iska WHEN clause nahi hai toh SAP koi error nahi deta — screen silently same pe rehti hai. Ye ek common bug hai.",
+        "hinglishExplanation": "GUI Status SE41 mein banaya jaata hai aur screen ke liye menu, toolbar, aur function key assignments define karta hai. Har button ek function code generate karta hai jo PAI mein ok_code variable mein capture hota hai. Main hamesha CASE statement mein saare expected function codes handle karta hoon including BACK, EXIT, aur CANCEL clean navigation ensure karne ke liye.",
         "interviewAnswer": "GUI Status is created in SE41 and defines the menu, toolbar, and function key assignments for a screen. Each button generates a function code that is captured in the ok_code variable in PAI. I always handle all expected function codes in a CASE statement including BACK, EXIT, and CANCEL to ensure clean navigation.",
         "realtimeExplanation": "SE41 mein GUI Status banao, function codes assign karo. PAI mein SAVE_OK_CODE se ok_code mein capture karo, phir CLEAR ok_code. CASE mein har expected action handle karo warna silent bug.",
         "mistakes": "CASE ok_code mein sirf SAVE handle karna aur BACK/EXIT bhool jaana — user Back button dabata hai aur kuch nahi hota, screen atak jaati hai. Production bug guaranteed.",
-        "codeExample": "MODULE pai_0100 INPUT.\n  SAVE_OK_CODE ok_code.   \" Capture and clear\n  CLEAR ok_code.\n  CASE ok_code.\n    WHEN 'SAVE'.   PERFORM validate_and_save.\n    WHEN 'BACK'.   SET SCREEN 0. LEAVE SCREEN.\n    WHEN 'EXIT'.   LEAVE PROGRAM.\n    WHEN 'CANCEL'. SET SCREEN 0. LEAVE SCREEN.\n  ENDCASE.\nENDMODULE."
+        "codeExample": "MODULE pai_0100 INPUT.\n  SAVE_OK_CODE ok_code.   \" Captures function code\n  CASE ok_code.\n    WHEN 'SAVE'.   PERFORM validate_and_save.\n    WHEN 'BACK'.   SET SCREEN 0. LEAVE SCREEN.\n    WHEN 'EXIT'.   LEAVE PROGRAM.\n    WHEN 'CANCEL'. SET SCREEN 0. LEAVE SCREEN.\n  ENDCASE.\nENDMODULE.",
+        "tier": "medium"
       },
       {
         "question": "How do you handle Table Controls in Module Pool?",
-        "hinglishExplanation": "Table Control ek grid/table dikhane ka component hai SAP Dynpro mein — jaise spreadsheet rows. Screen Painter (SE51) mein Table Control draw karte hain. ABAP mein ek internal table hoti hai jo rows provide karti hai. PBO mein LOOP AT lt_table ... ENDLOOP lagana padta hai screen pe. PAI mein bhi LOOP AT ... ENDLOOP lagana padta hai user ke changes capture karne ke liye. Loop table control ke har row ke liye PBO/PAI baar baar chalta hai.",
+        "hinglishExplanation": "Table Control Dynpro screen mein ek grid component hai jo tabular data display karta hai. PBO mein, main LOOP AT lt_items INTO ls_item WITH CONTROL tc_items use karta hoon har row populate karne ke liye. PAI mein, main same LOOP structure use karta hoon user edits row by row capture karne ke liye. LOOP statement automatically table control ke saath sync mein visible rows pe iterate karta hai.",
         "interviewAnswer": "Table Control is a grid component in the Dynpro screen that displays tabular data. In PBO, I use LOOP AT lt_items INTO ls_item WITH CONTROL tc_items to populate each row. In PAI, I use the same LOOP structure to capture user edits row by row. The LOOP statement automatically iterates over visible rows in sync with the table control.",
         "realtimeExplanation": "Table control ke bina LOOP AT nahi lagaya toh screen pe blank rows dikhenge — data nahi. Ye beginner mistake hai. CONTROL keyword table control ke naam se match karna zaroori hai.",
         "mistakes": "Table control screen pe draw ki, internal table populate ki, but PBO mein LOOP AT WITH CONTROL nahi lagaya — result: blank table on screen, no data visible. Always LOOP in both PBO and PAI.",
-        "codeExample": "\" In PBO module for screen with table control TC_ITEMS\nMODULE pbo_0200 OUTPUT.\n  LOOP AT lt_items INTO ls_item WITH CONTROL tc_items.\n    \" Data auto-populated from internal table to screen\n  ENDLOOP.\nENDMODULE.\n\n\" In PAI module\nMODULE pai_0200 INPUT.\n  LOOP AT lt_items INTO ls_item WITH CONTROL tc_items.\n    MODIFY lt_items FROM ls_item.\n  ENDLOOP.\nENDMODULE."
+        "codeExample": "\" In PBO module for screen with table control TC_ITEMS\nMODULE pbo_0200 OUTPUT.\n  LOOP AT lt_items INTO ls_item WITH CONTROL tc_items.\n    \" Data auto-populated from internal table to screen\n  ENDLOOP.\nENDMODULE.\n\n\" In PAI module\nMODULE pai_0200 INPUT.\n  LOOP AT lt_items INTO ls_item WITH CONTROL tc_items.\n    MODIFY lt_items FROM ls_item.\n  ENDLOOP.\nENDMODULE.",
+        "tier": "medium"
       },
       {
         "question": "How do you perform field validation in Module Pool PAI?",
-        "hinglishExplanation": "PAI mein validation karte hain SAVE se pehle. Mandatory field check karo — agar empty hai toh MESSAGE E (error) do aur FIELD statement se cursor us field pe laao. MESSAGE E type ka message screen pe error bar mein dikhta hai aur screen dobara display hoti hai — user ko correct karne ka chance milta hai. MESSAGE A (abend) = poora session close. MESSAGE W (warning) = warning but continue. MESSAGE I (information) = info popup.",
+        "hinglishExplanation": "PAI mein, save routine call karne se pehle, main mandatory fields aur business rules validate karta hoon. Main error messages ke liye MESSAGE TYPE 'E' use karta hoon, jo correction ke liye screen redisplay karta hai. Screen flow logic mein FIELD statement cursor ko erroneous field pe place karta hai. Complex multi-field validations ke liye main screen flow logic mein CHAIN-FIELD-ENDCHAIN use karta hoon.",
         "interviewAnswer": "In PAI, before calling the save routine, I validate mandatory fields and business rules. I use MESSAGE TYPE 'E' for error messages, which redisplays the screen for correction. The FIELD statement in the screen flow logic places the cursor on the erroneous field. For complex multi-field validations I use CHAIN-FIELD-ENDCHAIN in screen flow logic.",
         "realtimeExplanation": "Validation order: first check mandatory fields, then check cross-field logic (e.g., date range), then check referential integrity (does the plant exist in T001W), finally save. MESSAGE E stops processing; user fixes and presses Enter again.",
         "mistakes": "MESSAGE A type use karna validation ke liye — ye poora SAP session crash kar deta hai, abend hota hai. Validation ke liye sirf MESSAGE E use karo. MESSAGE A sirf critical unrecoverable errors ke liye hai.",
-        "codeExample": "MODULE pai_0100 INPUT.\n  CASE ok_code.\n    WHEN 'SAVE'.\n      \" Validate mandatory fields\n      IF zcustom_tab-kunnr IS INITIAL.\n        MESSAGE e001(zmsg) WITH 'Customer is mandatory'.\n        \" Screen redisplays, cursor on error field\n      ENDIF.\n      IF zcustom_tab-werks IS INITIAL.\n        MESSAGE e002(zmsg) WITH 'Plant is mandatory'.\n      ENDIF.\n      PERFORM save_to_db.  \" Only if no errors\n  ENDCASE.\nENDMODULE."
+        "codeExample": "MODULE pai_0100 INPUT.\n  CASE ok_code.\n    WHEN 'SAVE'.\n      \" Validate mandatory fields\n      IF zcustom_tab-kunnr IS INITIAL.\n        MESSAGE e001(zmsg) WITH 'Customer is mandatory'.\n        \" Screen redisplays, cursor on error field\n      ENDIF.\n      IF zcustom_tab-werks IS INITIAL.\n        MESSAGE e002(zmsg) WITH 'Plant is mandatory'.\n      ENDIF.\n      PERFORM save_to_db.  \" Only if no errors\n  ENDCASE.\nENDMODULE.",
+        "tier": "medium"
       },
       {
         "question": "How do you create a Transaction Code for a Module Pool?",
-        "hinglishExplanation": "SE93 transaction mein jaao. New transaction code enter karo — e.g., ZDEMO_MP. Transaction type choose karo: 'Program and screen (dialog transaction)'. Program name dalo — apna module pool program ka naam. Screen number dalo — starting screen number (usually 100). Authorization group optional. Save karo, transport karo. Ab users ZDEMO_MP run kar sakte hain — exactly VA01 jaisa feel.",
-        "interviewAnswer": "In SE93, I create a dialog transaction by providing the transaction code, selecting 'Program and selection screen' type, entering the module pool program name and the initial screen number. After saving and transporting, users can execute the custom screen by entering the T-code in the command field — same as any standard SAP transaction.",
+        "hinglishExplanation": "SE93 mein, main dialog transaction banata hoon transaction code provide karke, 'Program and selection screen' type select karke, module pool program name aur initial screen number enter karke. Save aur transport ke baad, users command field mein T-code enter karke custom screen execute kar sakte hain — kisi bhi standard SAP transaction ki tarah.",
+        "interviewAnswer": "In SE93, I create a dialog transaction by providing the transaction code, selecting 'Dialog Transaction (Program and screen)' type, entering the module pool program name and the initial screen number. After saving and transporting, users can execute the custom screen by entering the T-code in the command field — same as any standard SAP transaction.",
         "realtimeExplanation": "Production mein T-code PFCG se authorization role mein add karna padta hai taaki sirf authorized users access kar sakein. Transport sequence: module pool program first, then screen, then GUI status, then T-code.",
         "mistakes": "Module pool bana liya but SE93 mein transaction type galat choose kiya — 'Report transaction' select kiya 'Dialog transaction' ki jagah. Dialog transaction wala select karna mandatory hai module pool ke liye.",
-        "codeExample": "\" SE93 settings for Module Pool T-code:\n\" Transaction Code : ZDEMO_MP\n\" Type            : Program and screen (dialog transaction)\n\" Program         : ZDEMO_MODULE_POOL\n\" Screen Number   : 0100\n\n\" After creation, assign to role in PFCG:\n\" PFCG → Role → Menu tab → Add T-code ZDEMO_MP"
+        "codeExample": "\" SE93 settings for Module Pool T-code:\n\" Transaction Code : ZDEMO_MP\n\" Type            : Program and screen (dialog transaction)\n\" Program         : ZDEMO_MODULE_POOL\n\" Screen Number   : 0100\n\n\" After creation, assign to role in PFCG:\n\" PFCG → Role → Menu tab → Add T-code ZDEMO_MP",
+        "tier": "advanced"
       },
       {
         "question": "What is the role of SET PF-STATUS and SET TITLEBAR in Module Pool?",
-        "hinglishExplanation": "SET PF-STATUS 'STATUS_NAME' = screen ke toolbar aur menu bar set karta hai PBO mein. Iska GUI Status SE41 mein create karna padta hai. Isme function codes buttons ke saath assign karte hain. SET TITLEBAR 'TITLE_NAME' = screen ke top bar mein title set karta hai — user ko pata chale kaunsa screen hai. Dono PBO mein set karte hain. Agar SET PF-STATUS nahi lagaya toh screen pe koi toolbar nahi hogi — user ke paas koi button nahi, kuch kar hi nahi sakta.",
+        "hinglishExplanation": "PBO module mein SET PF-STATUS GUI status activate karta hai — toolbar, menu, aur function key assignments — jo main SE41 mein define karta hoon. SET TITLEBAR title bar mein visible screen title set karta hai. SET PF-STATUS ke bina, screen ke paas koi toolbar nahi hota aur users koi action perform nahi kar sakte. Main hamesha PBO mein dono set karta hoon correct screen behavior ensure karne ke liye.",
         "interviewAnswer": "SET PF-STATUS in the PBO module activates the GUI status — the toolbar, menu, and function key assignments — that I define in SE41. SET TITLEBAR sets the screen title visible in the title bar. Without SET PF-STATUS, the screen has no toolbar and users cannot perform any action. I always set both in PBO to ensure correct screen behavior.",
         "realtimeExplanation": "Multi-screen module pool mein different screens ko different GUI status mil sakti hai. Screen 100 ko 'STATUS_HEADER', screen 200 ko 'STATUS_ITEMS' — alag alag buttons visible honge alag screens pe.",
         "mistakes": "PBO mein SET PF-STATUS bhool jaana — screen blank toolbar ke saath aata hai, user ke paas Save/Back karne ka koi button nahi. Ye functionality complete block kar deta hai.",
-        "codeExample": "MODULE pbo_0100 OUTPUT.\n  SET PF-STATUS 'ZSTATUS_MAIN'.  \" GUI Status from SE41\n  SET TITLEBAR 'ZTITLE_MAIN'     \" Title from SE41\n    WITH 'Customer Order Entry'  \" Dynamic title variable\n         sy-mandt.\nENDMODULE."
+        "codeExample": "MODULE pbo_0100 OUTPUT.\n  SET PF-STATUS 'ZSTATUS_MAIN'.  \" GUI Status from SE41\n  SET TITLEBAR 'ZTITLE_MAIN'     \" Title from SE41\n    WITH 'Customer Order Entry'  \" Dynamic title variable\n         sy-mandt.\nENDMODULE.",
+        "tier": "advanced"
       }
     ]
   },
@@ -76,142 +159,300 @@
     "hinglishMasterExplanation": "S/4HANA mein Module Pool programming ka future samajhna important hai, especially interview mein jab S/4HANA experience poocha jaaye.\n\nPehli baat: Module Pool officially deprecated nahi hua. S/4HANA on-premise mein existing module pool programs bina kisi change ke chalte hain. Transport karo, run karo — sab kaam karta hai. Toh purane programs ke liye koi panic nahi.\n\nDusri baat: Naya module pool development strongly discouraged hai. SAP ka Clean Core initiative kehta hai ki custom code extensibility APIs ke through honi chahiye — BAdI, RAP, Fiori Elements. Dialog programs (module pool) Clean Core ke bahar hain.\n\nTeesri baat: S/4HANA Public Cloud — yahan module pool bilkul nahi. SAP GUI hi nahi milta. Customer sirf browser use karta hai, toh sirf Fiori apps chalti hain. Ye restriction interview mein clearly bolna chahiye — shows S/4HANA cloud knowledge.\n\nChaurthi baat: Screen Personas — yeh S/4HANA ka powerful feature hai existing Dynpro screens ke liye. Bina ABAP code touch kiye fields hide karo, layout change karo, scripts add karo. HR ya finance team bina developer ke apna screen simplify kar sakti hai. Low-code approach existing module pool ke liye.\n\nPaanchvi baat: Migration path. Agar purana module pool program functionally complex hai, uski RAP mein rewrite discuss karo. RAP (ABAP RESTful Application Programming) = Business Object + CDS Views + Fiori Elements UI. Interview mein yeh direction dikhana maturity ki nishani hai.\n\nChheevi baat: Agar absolutely zarurat hai module pool use karne ki on-premise S/4HANA mein — CL_GUI_CONTAINER, OO approach, ABAP Unit tests ke saath karo. Legacy code maintain karte waqt ye best practices follow karo.",
     "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'In S/4HANA, SAP recommends Fiori apps built using the RAP model for all new development instead of module pool programs. Existing module pool programs continue to work in S/4HANA on-premise with no code changes needed. However, in S/4HANA Public Cloud, module pool is completely unavailable since SAP GUI is not provided — only browser-based Fiori apps are supported. For new business requirements, I would build a Fiori Elements application using RAP. For existing module pool programs that need UI improvements without code changes, S/4HANA Screen Personas can simplify the screen layout and hide unnecessary fields.'\n\nHinglish tip: 'Interview mein cloud vs on-premise distinction clearly karo — yahi dikhata hai ki tumhe S/4HANA deployment models pata hain. Bolne ka tarika: On-premise pe module pool chalega, but public cloud mein bilkul nahi — wahan sirf Fiori. Phir Screen Personas mention karo purane screens ke liye — ye shows practical knowledge beyond just theory.'",
     "codeExamples": "\" OLD APPROACH: Module Pool dialog program (ECC / S/4HANA on-premise only)\nPROGRAM zold_vendor_screen.\nMODULE pbo_0100 OUTPUT.\n  SET PF-STATUS 'ZSTATUS'.\nENDMODULE.\nMODULE pai_0100 INPUT.\n  CASE ok_code.\n    WHEN 'SAVE'. PERFORM save_vendor_data.\n  ENDCASE.\nENDMODULE.\n\n\" NEW APPROACH: RAP Business Object (S/4HANA, cloud-ready)\n\" CDS View as data model\n@AbapCatalog.sqlViewName: 'ZVENDOR_V'\n@AccessControl.authorizationCheck: #CHECK\ndefine root view entity ZVendorBO\n  as select from lfa1 {\n    key lifnr as Vendor,\n        name1 as VendorName,\n        land1 as Country\n  }\n\" BDEF defines behavior: create, update, delete\n\" Fiori Elements app generated from metadata",
+    "interviewScriptEnglish": "In S/4HANA, SAP recommends Fiori apps built using the RAP model for all new development instead of module pool programs. Existing module pool programs continue to work in S/4HANA on-premise with no code changes needed. However, in S/4HANA Public Cloud, module pool is completely unavailable since SAP GUI is not provided — only browser-based Fiori apps are supported. For new business requirements, I would build a Fiori Elements application using RAP. For existing module pool programs that need UI improvements without code changes, S/4HANA Screen Personas can simplify the screen layout and hide unnecessary fields.",
+    "interviewScriptHinglish": "S/4HANA mein SAP recommend karta hai ki saari new development RAP model use karke Fiori apps mein build ho module pool programs ke bajaye. Existing module pool programs S/4HANA on-premise mein bina kisi code change ke continue karte hain. However, S/4HANA Public Cloud mein module pool completely unavailable hai kyunki SAP GUI provided nahi hota — sirf browser-based Fiori apps supported hain. New business requirements ke liye, main ek Fiori Elements application build karunga RAP use karke. Existing module pool programs ke liye jinhe UI improvements chahiye bina code changes ke, S/4HANA Screen Personas screen layout simplify kar sakta hai aur unnecessary fields hide kar sakta hai.",
+    "commonMistakesSection": [
+      {
+        "mistake": "ECC se module pool directly S/4HANA pe transport karna bina ATC scan ke — deprecated statements se runtime errors aa sakte hain production mein.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Use the correct approach as described in the deep-dive section."
+      },
+      {
+        "mistake": "Screen Personas ko S/4HANA Cloud mein bhi available samajhna.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Screen Personas sirf S/4HANA on-premise ke liye hai jahan SAP GUI available hota hai. Cloud mein Fiori app hi option hai."
+      },
+      {
+        "mistake": "RAP sirf UI ke liye samajhna — galat.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "RAP mein business logic bhi hoti hai: validations, determinations, actions, side effects. Poori business layer CDS + BDEF mein hoti hai."
+      },
+      {
+        "mistake": "Clean Core = zero customization samajhna.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Galat. Clean Core = proper extensibility APIs use karo. BAdI implement karna Clean Core compliant hai. Module pool banana Clean Core non-compliant hai."
+      }
+    ],
+    "wordByWordSamjho": [
+      {
+        "keyword": "PROGRAM",
+        "meaning": "Classic module pool start — still allowed on S/4HANA on-premise"
+      },
+      {
+        "keyword": "MODULE ... OUTPUT",
+        "meaning": "PBO block — legacy dialog UI prep, replaced by CDS annotations in RAP"
+      },
+      {
+        "keyword": "MODULE ... INPUT",
+        "meaning": "PAI block — legacy save/validate logic, replaced by RAP behavior pool"
+      },
+      {
+        "keyword": "SET PF-STATUS",
+        "meaning": "Activates SAP GUI toolbar — not available in S/4HANA Public Cloud"
+      },
+      {
+        "keyword": "ok_code",
+        "meaning": "Dialog function code — Fiori uses OData action key instead"
+      },
+      {
+        "keyword": "@AbapCatalog.sqlViewName",
+        "meaning": "CDS annotation that defines the underlying SQL view name for the entity"
+      },
+      {
+        "keyword": "@AccessControl.authorizationCheck",
+        "meaning": "CDS annotation that enforces DCL-based authorization at runtime"
+      },
+      {
+        "keyword": "define root view entity",
+        "meaning": "RAP CDS declaration that makes the view the root of a business object"
+      },
+      {
+        "keyword": "as select from",
+        "meaning": "CDS projection clause — analogous to old SELECT in module pool save logic"
+      },
+      {
+        "keyword": "BDEF (behavior definition)",
+        "meaning": "RAP artefact that replaces PAI logic — create, update, delete, validations, determinations"
+      },
+      {
+        "keyword": "Fiori Elements",
+        "meaning": "Auto-generated UI driven by CDS UI annotations — the modern replacement for Dynpro"
+      }
+    ],
+    "quickRevisionNotes": "What: Module Pool in S/4HANA is supported only on-premise; SAP recommends RAP plus Fiori Elements for all new development.\n\nUsed for:\n- Maintaining legacy custom dialog transactions in S/4HANA on-premise\n- Discussing migration strategy from Dynpro to RAP and Fiori\n- Modernising existing screens with Screen Personas without ABAP changes\n\nKey syntax / tables / Tcodes:\n- ATC (transaction ATC) for S/4HANA readiness scans, /SDF/SCI_SCAN custom code worklist\n- CDS root view entity, BDEF, Service Definition and Binding for OData\n- Screen Personas (Flavors), Fiori Launchpad tile instead of SE93 T-code\n\nInterview keyword: Clean Core — module pool stays on-prem, RAP and Fiori are cloud-ready.",
     "followupAnswerBank": [
       {
         "question": "Can Module Pool programs be transported to S/4HANA?",
-        "hinglishExplanation": "Haan, S/4HANA on-premise mein module pool programs normally transport ho jaate hain. Transport mechanism same hai — STMS, same transport landscape. Bas ensure karo ki program koi deprecated ABAP statement use na kare — ATC (ABAP Test Cockpit) se scan karo transport karne se pehle. S/4HANA Cloud mein transport bhi nahi hota module pool ka — kyunki wahan allowed hi nahi hai.",
+        "hinglishExplanation": "Haan, module pool programs S/4HANA on-premise pe standard STMS transport mechanism use karke transport ho sakte hain. Transport se pehle, main ATC checks run karunga koi bhi deprecated statements ya obsolete APIs identify karne ke liye jinhe remediation chahiye. S/4HANA Public Cloud ke liye, module pool transport nahi ho sakta kyunki yeh supported development type nahi hai.",
         "interviewAnswer": "Yes, module pool programs can be transported to S/4HANA on-premise using the standard STMS transport mechanism. Before transport, I would run ATC checks to identify any deprecated statements or obsolete APIs that need remediation. For S/4HANA Public Cloud, module pool cannot be transported as it is not a supported development type.",
         "realtimeExplanation": "S/4HANA migration project mein custom code remediation pehle karo: ATC scan run karo, critical findings fix karo, phir transport karo. Common ATC findings: SELECT * usage, obsolete statements, missing client handling.",
         "mistakes": "ECC se module pool directly S/4HANA pe transport karna bina ATC scan ke — deprecated statements se runtime errors aa sakte hain production mein.",
-        "codeExample": "\" Run ATC check before transport\n\" In SE38: Program → Check → Extended Program Check\n\" Or use transaction ATC → Create check run\n\" Common S/4HANA ATC findings to fix:\n\" 1. SELECT * → specify fields explicitly\n\" 2. Obsolete statements (e.g., MOVE-CORRESPONDING with type mismatch)\n\" 3. Access to deprecated tables (use successor tables)"
+        "codeExample": "\" Run ATC check before transport\n\" In SE38: Program → Check → Extended Program Check\n\" Or use transaction ATC → Create check run\n\" Common S/4HANA ATC findings to fix:\n\" 1. SELECT * → specify fields explicitly\n\" 2. Obsolete statements (e.g., MOVE-CORRESPONDING with type mismatch)\n\" 3. Access to deprecated tables (use successor tables)",
+        "tier": "easy"
       },
       {
         "question": "What is Screen Personas and how does it help Module Pool programs?",
-        "hinglishExplanation": "SAP Screen Personas ek S/4HANA feature hai jo existing SAP GUI screens ko bina ABAP code change kiye redesign karne deta hai. Business team ya super users ye kaam kar sakte hain — developer ki zarurat nahi. Kya kar sakte hain: fields hide karo, fields reorder karo, labels rename karo, colors change karo, simple scripts add karo. Use case: standard ME21N screen pe 50 fields hain but company sirf 10 use karti hai — Screen Personas se baaki 40 hide karo, screen simpler aur faster ho jaata hai.",
+        "hinglishExplanation": "SAP Screen Personas ek S/4HANA feature hai jo ABAP code modify kiye bina existing SAP GUI Dynpro screens ki simplification aur redesign allow karta hai. Business analysts ya super users unused fields hide kar sakte hain, layout reorder kar sakte hain, automation ke liye scripts add kar sakte hain, aur role-based screen variants banaa sakte hain. Yeh existing module pool aur standard transaction screens ke liye low-code modernization path provide karta hai.",
         "interviewAnswer": "SAP Screen Personas is an S/4HANA feature that allows simplification and redesign of existing SAP GUI Dynpro screens without modifying ABAP code. Business analysts or super users can hide unused fields, reorder layout, add scripts for automation, and create role-based screen variants. This provides a low-code modernization path for existing module pool and standard transaction screens.",
         "realtimeExplanation": "Real project use case: client ke plant maintenance team ko IW31 (Create Order) screen complex lagta tha — 60+ fields. Screen Personas se 40 fields hide kiye, remaining reordered kiye. Training time kam hua, user errors kam hue. Zero ABAP code change.",
         "mistakes": "Screen Personas ko S/4HANA Cloud mein bhi available samajhna. Screen Personas sirf S/4HANA on-premise ke liye hai jahan SAP GUI available hota hai. Cloud mein Fiori app hi option hai.",
-        "codeExample": "\" Screen Personas — no ABAP code involved\n\" Configuration steps (browser-based tool):\n\" 1. Open target transaction (e.g., ME21N)\n\" 2. Launch Screen Personas from Tools menu\n\" 3. Edit mode: hide fields, rename labels\n\" 4. Add Script for automation:\n\"    if (screen.element('EKKO-BEDAT').value == '')\n\"      screen.element('EKKO-BEDAT').value = today();\n\" 5. Save as Flavor, assign to users/roles"
+        "codeExample": "\" Screen Personas — no ABAP code involved\n\" Configuration steps (browser-based tool):\n\" 1. Open target transaction (e.g., ME21N)\n\" 2. Launch Screen Personas from Tools menu\n\" 3. Edit mode: hide fields, rename labels\n\" 4. Add Script for automation:\n\"    if (screen.element('EKKO-BEDAT').value == '')\n\"      screen.element('EKKO-BEDAT').value = today();\n\" 5. Save as Flavor, assign to users/roles",
+        "tier": "easy"
       },
       {
         "question": "What is RAP and how is it the replacement for Module Pool?",
-        "hinglishExplanation": "RAP = ABAP RESTful Application Programming Model. Ye S/4HANA ka modern development framework hai jo Fiori apps banane ke liye use hota hai. Isme teen layers hain: CDS Views (data model + business object structure), Behavior Definition (BDEF — kya operations allowed hain: create, update, delete, custom actions), aur Service Binding (Fiori UI se connect). Module Pool mein hum screen manually draw karte the, PAI/PBO likhte the. RAP mein Fiori Elements automatically UI generate kar deta hai CDS annotations se — bohot kam code likhna padta hai.",
+        "hinglishExplanation": "RAP, ABAP RESTful Application Programming Model, S/4HANA mein module pool ka recommended replacement hai. Yeh business object data model ke roop mein CDS views, allowed operations aur validations specify karne wali Behavior Definition file, aur Fiori Elements app ke through consumed OData service expose karne wali Service Binding consist karta hai. Fiori Elements framework CDS annotations se UI auto-generate karta hai, manual Dynpro screen design ki need eliminate karte hue.",
         "interviewAnswer": "RAP, the ABAP RESTful Application Programming Model, is the recommended replacement for module pool in S/4HANA. It consists of CDS views as the business object data model, a Behavior Definition file specifying allowed operations and validations, and a Service Binding exposing the OData service consumed by a Fiori Elements app. The Fiori Elements framework auto-generates the UI from CDS annotations, eliminating the need for manual Dynpro screen design.",
         "realtimeExplanation": "RAP development flow: CDS view banao (SE11 equivalent), BDEF banao (behavior — validations, determinations), Service Definition aur Binding create karo, Fiori Elements app auto-generated. Total development: faster than module pool, cloud-ready, mobile-friendly.",
         "mistakes": "RAP sirf UI ke liye samajhna — galat. RAP mein business logic bhi hoti hai: validations, determinations, actions, side effects. Poori business layer CDS + BDEF mein hoti hai.",
-        "codeExample": "\" RAP Behavior Definition (BDEF) — equivalent of Module Pool PAI logic\nmanaged implementation in class zbp_vendor_bo unique;\nstrict ( 2 );\ndefine behavior for ZVendorBO alias Vendor\npersistent table zvendor_tab\nlock master\nauthorization master ( instance )\n{\n  create; update; delete;\n  field ( readonly ) Vendor;\n  validation validateVendor on save { create; update; }\n}"
+        "codeExample": "\" RAP Behavior Definition (BDEF) — equivalent of Module Pool PAI logic\nmanaged implementation in class zbp_vendor_bo unique;\nstrict ( 2 );\ndefine behavior for ZVendorBO alias Vendor\npersistent table zvendor_tab\nlock master\nauthorization master ( instance )\n{\n  create; update; delete;\n  field ( readonly ) Vendor;\n  validation validateVendor on save { create; update; }\n}",
+        "tier": "easy"
       },
       {
         "question": "What is Clean Core and how does it affect Module Pool development?",
-        "hinglishExplanation": "Clean Core SAP ka principle hai jo kehta hai: standard SAP system ko modifications se clean rakho. Extensions properly defined APIs ke through karo — BAdI, released CDS views, OData APIs, Fiori apps. Module Pool programs custom dialog programs hain jo standard ke bahar hain — ye Clean Core ke against hain. Ye isliye nahi ki module pool bura hai, but kyunki ye SAP GUI pe dependent hai jo future mein available nahi hoga cloud mein.",
+        "hinglishExplanation": "SAP ka Clean Core principle mandate karta hai ki customizations sirf SAP-released APIs aur extension points use karein bajaye standard objects modify karne ya SAP GUI pe depend karne wale dialog programs banane ke. Module Pool programs Clean Core compliant nahi hain kyunki yeh SAP GUI aur Dynpro technology pe depend karte hain. S/4HANA ke liye, Clean Core-compliant development ka matlab RAP, BAdI implementations, aur Fiori apps hai.",
         "interviewAnswer": "SAP's Clean Core principle mandates that customizations use only SAP-released APIs and extension points rather than modifying standard objects or creating dialog programs that depend on SAP GUI. Module Pool programs are not Clean Core compliant because they depend on SAP GUI and Dynpro technology. For S/4HANA, Clean Core-compliant development means RAP, BAdI implementations, and Fiori apps.",
         "realtimeExplanation": "S/4HANA implementation project mein architecture review mein Clean Core compliance check hota hai. Agar module pool proposal aaya toh architect reject karega — suggest karega RAP-based Fiori app instead. Interview mein yeh maturity dikhana important hai.",
         "mistakes": "Clean Core = zero customization samajhna. Galat. Clean Core = proper extensibility APIs use karo. BAdI implement karna Clean Core compliant hai. Module pool banana Clean Core non-compliant hai.",
-        "codeExample": "\" Clean Core compliant extension: BAdI implementation\n\" NOT a module pool — uses released SAP extension point\nCLASS zcl_badi_vendor_check DEFINITION PUBLIC FINAL.\n  PUBLIC SECTION.\n    INTERFACES if_badi_interface.\n    METHODS check_vendor\n      IMPORTING iv_lifnr TYPE lifnr\n      RAISING   cx_badi_exception.\nENDCLASS.\n\" This is S/4HANA cloud compatible — Clean Core"
+        "codeExample": "\" Clean Core compliant extension: BAdI implementation\n\" NOT a module pool — uses released SAP extension point\nCLASS zcl_badi_vendor_check DEFINITION PUBLIC FINAL.\n  PUBLIC SECTION.\n    INTERFACES if_badi_interface.\n    METHODS check_vendor\n      IMPORTING iv_lifnr TYPE lifnr\n      RAISING   cx_badi_exception.\nENDCLASS.\n\" This is S/4HANA cloud compatible — Clean Core",
+        "tier": "medium"
       },
       {
         "question": "Can you compare performance of Module Pool vs Fiori/RAP?",
-        "hinglishExplanation": "Module Pool: SAP GUI network pe dependent — GUI server aur application server ke beech communication hoti hai. Heavy screens pe rendering slow ho sakti hai. Fiori/RAP: Browser-based, OData APIs use karta hai, lazy loading hoti hai — sirf needed data fetch hota hai. Modern browsers efficient hain. Performance difference: light module pool screens pe SAP GUI fast hai, but complex screens aur slow networks pe Fiori better perform karta hai. Plus Fiori mobile pe bhi kaam karta hai.",
+        "hinglishExplanation": "Module Pool presentation layer aur application server ke beech SAP GUI protocol ke via communicate karta hai, jo high-latency networks pe slow ho sakta hai. Fiori apps OData services use karte hain aur sirf required data load karte hain, mobile aur web pe efficiently kaam karte hain. Bahut fields wali complex screens ke liye, proper OData query optimization ke saath Fiori typically better user experience provide karta hai, especially remote users ke liye.",
         "interviewAnswer": "Module Pool communicates via SAP GUI protocol between the presentation layer and application server, which can be slow on high-latency networks. Fiori apps use OData services and load only required data, working efficiently on mobile and web. For complex screens with many fields, Fiori with proper OData query optimization typically provides better user experience, especially for remote users.",
         "realtimeExplanation": "Project experience: manufacturing plant pe shop floor users mobile se data enter karte hain — module pool possible nahi (SAP GUI nahi mobile pe). Fiori app banaya — same business logic, mobile-friendly, offline capability bhi add kar sakte hain Fiori with offline sync.",
         "mistakes": "Fiori always faster hai bolna — galat. Simple data entry screens pe well-optimized module pool equally fast ya faster bhi ho sakta hai LAN pe. Context matter karta hai.",
-        "codeExample": "\" OData performance optimization in RAP — equivalent of module pool SELECT\n\" CDS View with $filter pushdown to DB\ndefine root view entity ZSalesOrderBO\n  as select from vbak\n  association [0..*] to vbap as _Items on $projection.Vbeln = _Items.Vbeln\n{\n  key vbeln as SalesOrder,\n      erdat as CreationDate,\n      netwr as NetValue,\n      _Items  \" Lazy loaded — only when UI requests items\n}"
+        "codeExample": "\" OData performance optimization in RAP — equivalent of module pool SELECT\n\" CDS View with $filter pushdown to DB\ndefine root view entity ZSalesOrderBO\n  as select from vbak\n  association [0..*] to vbap as _Items on $projection.Vbeln = _Items.Vbeln\n{\n  key vbeln as SalesOrder,\n      erdat as CreationDate,\n      netwr as NetValue,\n      _Items  \" Lazy loaded — only when UI requests items\n}",
+        "tier": "medium"
       },
       {
         "question": "What S/4HANA tools exist to identify module pool programs that need remediation?",
-        "hinglishExplanation": "ATC (ABAP Test Cockpit) — transaction ATC. Custom code analysis karo S/4HANA readiness ke liye. SAP ka /SDF/SCI_SCAN — Custom Code Migration Worklist. System conversion ke liye SAP Readiness Check — cloud-based tool jo tumhara system scan karta hai aur custom code hotspots identify karta hai. Simplification Item Catalog — SAP ki list of changes in S/4HANA jo tumhare custom code affect kar sakti hain. In sab tools se pata chalta hai kaunsa module pool program change chahiye.",
+        "hinglishExplanation": "S/4HANA custom code remediation ke liye, main S/4HANA readiness check variant ke saath ATC (ABAP Test Cockpit) use karta hoon deprecated statements, obsolete table access, aur Clean Core violations identify karne ke liye. Custom Code Migration Worklist (/SDF/SCI_SCAN) ek prioritized list provide karta hai. SAP Readiness Check system conversion projects ke liye cloud tool hai jo module pool aur changes needing other custom code identify karta hai.",
         "interviewAnswer": "For S/4HANA custom code remediation, I use ATC (ABAP Test Cockpit) with the S/4HANA readiness check variant to identify deprecated statements, obsolete table access, and Clean Core violations. The Custom Code Migration Worklist (/SDF/SCI_SCAN) provides a prioritized list. SAP Readiness Check is a cloud tool for system conversion projects that identifies module pool and other custom code needing changes.",
         "realtimeExplanation": "S/4HANA migration project timeline: 3-6 months for custom code remediation. ATC scan pehle week mein karo, findings triage karo (critical/medium/low), critical findings pehle fix karo, regression test karo, phir system conversion.",
         "mistakes": "Sirf ATC green status dekh ke assume karna ki program S/4HANA mein theek chalega. ATC static analysis karta hai — runtime behavior alag ho sakta hai. Integration testing zaroori hai.",
-        "codeExample": "\" ATC Check — run from SE38 or transaction ATC\n\" Program → Extended Checks → ATC\n\" Or create ATC check run:\n\" ATC → Create → Select objects (your module pool program)\n\" → Run → Review findings by priority\n\n\" Fix example — deprecated SELECT * in module pool:\n\" BEFORE (ATC finding): SELECT * FROM mara INTO ls_mara.\n\" AFTER (fixed):        SELECT matnr, mtart, meins\n\"                         FROM mara INTO @DATA(ls_mara)\n\"                         WHERE matnr = @lv_matnr."
+        "codeExample": "\" ATC Check — run from SE38 or transaction ATC\n\" Program → Extended Checks → ATC\n\" Or create ATC check run:\n\" ATC → Create → Select objects (your module pool program)\n\" → Run → Review findings by priority\n\n\" Fix example — deprecated SELECT * in module pool:\n\" BEFORE (ATC finding): SELECT * FROM mara INTO ls_mara.\n\" AFTER (fixed):        SELECT matnr, mtart, meins\n\"                         FROM mara INTO @DATA(ls_mara)\n\"                         WHERE matnr = @lv_matnr.",
+        "tier": "medium"
       },
       {
         "question": "How would you migrate an existing module pool to Fiori in a project?",
-        "hinglishExplanation": "Migration phased approach se hoti hai. Pehle: existing module pool ka functional analysis karo — kya karta hai, kaunse tables use karta hai, kaunsi validations hain. Phir: RAP business object design karo — CDS views data model ke liye, BDEF behavior ke liye. Phir: Fiori Elements app configure karo — annotations se UI generate hoti hai. Phir: existing module pool ke tests ko Fiori pe run karo — same business outcomes validate karo. Finally: module pool retire karo, new T-code ya Fiori tile users ko do.",
+        "hinglishExplanation": "Migration existing module pool ke functional analysis se start hoti hai — screens, fields, validations, aur navigation flow document karte hue. Phir main data model mirror karne wale CDS views aur validation aur save logic implement karne wale BDEF ke saath RAP business object design karta hoon. Fiori Elements CDS annotations se UI generate karta hai. Main retirement se pehle identical business outcomes validate karne ke liye module pool ke saath parallel testing run karta hoon.",
         "interviewAnswer": "Migration starts with a functional analysis of the existing module pool — documenting screens, fields, validations, and navigation flow. Then I design the RAP business object with CDS views mirroring the data model and a BDEF implementing the validation and save logic. Fiori Elements generates the UI from CDS annotations. I run parallel testing with the module pool to validate identical business outcomes before retirement.",
         "realtimeExplanation": "Real project: vendor registration module pool (3 screens, 40 fields, complex validation) ko Fiori mein migrate kiya. Timeline: 6 weeks. Biggest challenge: table control with line items — RAP mein parent-child CDS composition se handle kiya. Result: mobile-accessible, cleaner code, no SAP GUI dependency.",
         "mistakes": "1:1 screen mapping karna — har module pool screen ko exactly Fiori page mein banana. Galat. Fiori UX guidelines follow karo — simplify, merge, redesign for modern UX. Migration is also a UX improvement opportunity.",
-        "codeExample": "\" Module Pool (old) → RAP migration mapping:\n\" Module Pool PBO/PAI → RAP Behavior (BDEF)\n\" Dynpro screen fields → CDS View elements\n\" Table Control → RAP Composition (parent-child)\n\" Message handling → RAP Validation raising messages\n\" SE93 T-code → Fiori Launchpad Tile\n\n\" RAP Validation (equivalent of PAI MESSAGE E)\nMETHOD validateVendor.\n  READ ENTITIES OF ZVendorBO IN LOCAL MODE\n    ENTITY Vendor FIELDS ( Name Country ) WITH CORRESPONDING #( keys )\n    RESULT DATA(lt_vendor).\n  LOOP AT lt_vendor INTO DATA(ls_vendor).\n    IF ls_vendor-Name IS INITIAL.\n      APPEND VALUE #( %key = ls_vendor-%key\n                      %msg = new_message_with_text(\n                        severity = if_abap_behv_message=>severity-error\n                        text = 'Vendor name is mandatory' ) )\n             TO reported-vendor.\n    ENDIF.\n  ENDLOOP.\nENDMETHOD."
+        "codeExample": "\" Module Pool (old) → RAP migration mapping:\n\" Module Pool PBO/PAI → RAP Behavior (BDEF)\n\" Dynpro screen fields → CDS View elements\n\" Table Control → RAP Composition (parent-child)\n\" Message handling → RAP Validation raising messages\n\" SE93 T-code → Fiori Launchpad Tile\n\n\" RAP Validation (equivalent of PAI MESSAGE E)\nMETHOD validateVendor.\n  READ ENTITIES OF ZVendorBO IN LOCAL MODE\n    ENTITY Vendor FIELDS ( Name Country ) WITH CORRESPONDING #( keys )\n    RESULT DATA(lt_vendor).\n  LOOP AT lt_vendor INTO DATA(ls_vendor).\n    IF ls_vendor-Name IS INITIAL.\n      APPEND VALUE #( %key = ls_vendor-%key\n                      %msg = new_message_with_text(\n                        severity = if_abap_behv_message=>severity-error\n                        text = 'Vendor name is mandatory' ) )\n             TO reported-vendor.\n    ENDIF.\n  ENDLOOP.\nENDMETHOD.",
+        "tier": "advanced"
       },
       {
         "question": "What SAP GUI alternatives exist for S/4HANA where module pool cannot be used?",
-        "hinglishExplanation": "S/4HANA mein SAP GUI ke alternatives: Fiori Apps (browser-based, main recommendation), SAP Business Client (hybrid — GUI aur Fiori dono ek window mein), SAP GUI for HTML (web browser mein SAP GUI — some module pool screens chalte hain, limited support), WebDynpro ABAP (older web technology, still works but also discouraged for new development). Naye development ke liye: Fiori Elements via RAP is the clear winner — mobile, cloud, modern UX.",
+        "hinglishExplanation": "S/4HANA mein jahaan traditional SAP GUI module pool new development ke liye recommended nahi hai, primary alternative RAP ke saath built Fiori Elements apps hai, kisi bhi browser ke through accessible. SAP Business Client ek hybrid interface provide karta hai Fiori aur SAP GUI dono support karta hua. Un users ke liye jinhe SAP GUI use karna hi hai, GUI for Windows existing on-premise module pool transactions ke liye continue karta hai.",
         "interviewAnswer": "For S/4HANA where traditional SAP GUI module pool is not recommended for new development, the primary alternative is Fiori Elements apps built with RAP, accessible via any browser. SAP Business Client provides a hybrid interface supporting both Fiori and SAP GUI. For users who must use SAP GUI, GUI for Windows continues to work for existing on-premise module pool transactions.",
         "realtimeExplanation": "Project decision: manufacturing floor tablets pe workers kaam karte hain — SAP GUI install nahi kar sakte. Fiori app Fiori Launchpad se browser mein open hota hai — iPad, Android tablet, laptop, desktop — sab pe same experience. Module pool yahan possible hi nahi tha.",
         "mistakes": "WebDynpro ABAP ko modern alternative samajhna. WebDynpro bhi SAP server-side rendered technology hai, Cloud mein limited support hai. Fiori Elements hi future-safe choice hai.",
-        "codeExample": "\" Fiori Elements List Report — auto-generated from CDS annotations\n\" No Dynpro, no PAI/PBO — UI is annotation-driven\n@UI.headerInfo: { typeName: 'Vendor', typeNamePlural: 'Vendors' }\ndefine root view entity ZVendorList\n  as select from lfa1\n{\n  @UI.lineItem: [{ position: 10 }]\n  @UI.selectionField: [{ position: 10 }]\n  key lifnr as Vendor,\n  @UI.lineItem: [{ position: 20 }]\n      name1 as VendorName,\n  @UI.lineItem: [{ position: 30 }]\n      land1 as Country\n}"
+        "codeExample": "\" Fiori Elements List Report — auto-generated from CDS annotations\n\" No Dynpro, no PAI/PBO — UI is annotation-driven\n@UI.headerInfo: { typeName: 'Vendor', typeNamePlural: 'Vendors' }\ndefine root view entity ZVendorList\n  as select from lfa1\n{\n  @UI.lineItem: [{ position: 10 }]\n  @UI.selectionField: [{ position: 10 }]\n  key lifnr as Vendor,\n  @UI.lineItem: [{ position: 20 }]\n      name1 as VendorName,\n  @UI.lineItem: [{ position: 30 }]\n      land1 as Country\n}",
+        "tier": "advanced"
       }
     ]
   },
   "module-pool-003": {
-    "easyUnderstanding": "Module Pool mistakes production mein bahut easily dikhti hain — kyunki user seedha screen pe kaam karta hai aur hر galti immediately visible hoti hai. Socho ek custom vendor screen banaya, user ne Save kiya, koi validation nahi — garbage data database mein chala gaya. Ya Back button dabaya, screen atak gayi — kuch nahi hua. Ye mistakes embarrassing hain aur client ka trust uthha deti hain. In common mistakes ko jaano — pehle taaki tum khud avoid karo, doosra taaki interview mein tum experienced developer ki tarah baat karo. Mature developer woh hai jo na sirf code likhta hai, balki ye bhi jaanta hai ki kahan galti hogi aur usne pehle se prevent kar liya. Ye awareness hi tumhe junior se senior differentiate karta hai interview mein.",
+    "easyUnderstanding": "Module Pool mistakes production mein bahut easily dikhti hain — kyunki user seedha screen pe kaam karta hai aur har galti immediately visible hoti hai. Socho ek custom vendor screen banaya, user ne Save kiya, koi validation nahi — garbage data database mein chala gaya. Ya Back button dabaya, screen atak gayi — kuch nahi hua. Ye mistakes embarrassing hain aur client ka trust uthha deti hain. In common mistakes ko jaano — pehle taaki tum khud avoid karo, doosra taaki interview mein tum experienced developer ki tarah baat karo. Mature developer woh hai jo na sirf code likhta hai, balki ye bhi jaanta hai ki kahan galti hogi aur usne pehle se prevent kar liya. Ye awareness hi tumhe junior se senior differentiate karta hai interview mein.",
     "hinglishMasterExplanation": "Module Pool development mein yeh common mistakes hoti hain jo production issues banati hain:\n\n1. OKCODE handling incomplete: PAI mein CASE ok_code ke andar BACK/EXIT/CANCEL handle nahi kiya. User Back press karta hai, kuch nahi hota. Screen atak jaati hai. Screen loop nahi exit hoti.\n\n2. SET SCREEN 0 / LEAVE SCREEN missing: Navigation ke liye dono chahiye. Sirf SET SCREEN 0 set karo without LEAVE SCREEN — current screen still display hoti rahegi.\n\n3. No field validation in PAI: User ne empty mandatory field ke saath Save kiya — no error, data save ho gaya. Database mein incomplete/invalid records.\n\n4. MESSAGE type galat use karna: MESSAGE A (abend) validation mein — poora SAP session crash. MESSAGE E (error) use karo — screen redisplays for correction.\n\n5. Table control without LOOP: Table control screen pe draw ki but PBO mein LOOP AT WITH CONTROL nahi lagaya — blank rows dikhte hain, koi data nahi.\n\n6. Global variables over-sharing: Same global variable multiple screens share karti hain bina clear kiye — screen 200 pe screen 100 ka stale data dikhta hai.\n\n7. SET PF-STATUS bhool gaye: PBO mein GUI status set nahi kiya — screen pe koi toolbar nahi, user kuch kar hi nahi sakta.\n\n8. No authorization check: AUTHORITY-CHECK OBJECT nahi lagaya PBO mein — koi bhi user custom transaction access kar sakta hai, sensitive data dekh sakta hai.\n\nIn sab ko interview mein confidently mention karna dikhata hai ki tumne actual projects mein ye mistakes ya inke consequences dekhe hain.",
     "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'The most common module pool mistakes I have seen or avoided include: missing OKCODE handling in PAI — if BACK or EXIT function codes have no WHEN clause, the screen never exits and appears frozen to the user. Not using SET SCREEN 0 with LEAVE SCREEN causes navigation to get stuck. Missing PAI validations allow invalid data to reach the database. Using MESSAGE type A instead of E in validations abends the entire SAP session. Table controls with missing LOOP AT in PBO show blank rows instead of data. Finally, skipping AUTHORITY-CHECK in PBO lets unauthorized users access sensitive custom screens.'\n\nHinglish tip: 'Interview mein ek specific production bug story bataao: OKCODE mein BACK handle nahi kiya tha, user screen se nikal hi nahi pa raha tha — task manager se SAP GUI close karna pada. Ye real scenario dikhata hai ki tum mistakes ke consequences jaante ho, sirf theory nahi.'",
-    "codeExamples": "\" PAI module with FULL OKCODE handling + validation — correct pattern\nMODULE pai_0100 INPUT.\n  SAVE_OK_CODE ok_code.\n  CLEAR ok_code.\n  CASE ok_code.\n    WHEN 'SAVE'.\n      \" Validate mandatory fields BEFORE save\n      IF zcustom_tab-kunnr IS INITIAL.\n        MESSAGE e001(zmsg) WITH 'Customer number is mandatory'.\n        \" Screen redisplays — user can correct\n      ELSEIF zcustom_tab-werks IS INITIAL.\n        MESSAGE e002(zmsg) WITH 'Plant is mandatory'.\n      ELSE.\n        PERFORM save_to_database.  \" Only if valid\n      ENDIF.\n    WHEN 'BACK'.\n      SET SCREEN 0.\n      LEAVE SCREEN.               \" Both needed!\n    WHEN 'EXIT'.\n      LEAVE PROGRAM.              \" Full exit\n    WHEN 'CANCEL'.\n      SET SCREEN 0.\n      LEAVE SCREEN.\n  ENDCASE.\nENDMODULE.",
+    "codeExamples": "\" PAI module with FULL OKCODE handling + validation — correct pattern\nMODULE pai_0100 INPUT.\n  SAVE_OK_CODE ok_code.\n  CASE ok_code.\n    WHEN 'SAVE'.\n      \" Validate mandatory fields BEFORE save\n      IF zcustom_tab-kunnr IS INITIAL.\n        MESSAGE e001(zmsg) WITH 'Customer number is mandatory'.\n        \" Screen redisplays — user can correct\n      ELSEIF zcustom_tab-werks IS INITIAL.\n        MESSAGE e002(zmsg) WITH 'Plant is mandatory'.\n      ELSE.\n        PERFORM save_to_database.  \" Only if valid\n      ENDIF.\n    WHEN 'BACK'.\n      SET SCREEN 0.\n      LEAVE SCREEN.               \" Both needed!\n    WHEN 'EXIT'.\n      LEAVE PROGRAM.              \" Full exit\n    WHEN 'CANCEL'.\n      SET SCREEN 0.\n      LEAVE SCREEN.\n  ENDCASE.\nENDMODULE.",
+    "interviewScriptEnglish": "The most common module pool mistakes I have seen or avoided include: missing OKCODE handling in PAI — if BACK or EXIT function codes have no WHEN clause, the screen never exits and appears frozen to the user. Not using SET SCREEN 0 with LEAVE SCREEN causes navigation to get stuck. Missing PAI validations allow invalid data to reach the database. Using MESSAGE type A instead of E in validations abends the entire SAP session. Table controls with missing LOOP AT in PBO show blank rows instead of data. Finally, skipping AUTHORITY-CHECK in PBO lets unauthorized users access sensitive custom screens.",
+    "interviewScriptHinglish": "common module pool mistakes jo maine dekhi ya avoid ki hain — PAI mein missing OKCODE handling — agar BACK ya EXIT function codes ke liye WHEN clause nahi hai, screen kabhi exit nahi hoti aur user ko frozen lagti hai. SET SCREEN 0 use kiye bina LEAVE SCREEN se navigation stuck ho jaati hai. Missing PAI validations invalid data ko database tak pahunchne dete hain. Validations mein MESSAGE type E ke bajaye type A use karna pure SAP session ko abend kar deta hai. Table controls jisme PBO mein LOOP AT missing hai data ke bajaye blank rows show karte hain. Aakhir mein, PBO mein AUTHORITY-CHECK skip karna unauthorized users ko sensitive custom screens access karne deta hai.",
+    "commonMistakesSection": [
+      {
+        "mistake": "Sirf LEAVE SCREEN likhna bina SET SCREEN ke — toh program pichle SET SCREEN value pe jaata hai jo screen 0 nahi hogi, aur loop mein reh sakta hai.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Use the correct approach as described in the deep-dive section."
+      },
+      {
+        "mistake": "MESSAGE TYPE 'A' vs MESSAGE TYPE 'E' — ek letter ka difference, production impact huge.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Always double-check message type in code review."
+      },
+      {
+        "mistake": "One huge work area variable for all screens — every field in it, all screens read/write same area.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "Recipe for stale data bugs. Separate work areas per logical data entity."
+      },
+      {
+        "mistake": "Assuming SAP will raise an error for unhandled function codes.",
+        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "correctApproach": "It doesn't — silent ignore is the behavior. This must be caught in unit testing with all function codes tested."
+      }
+    ],
+    "wordByWordSamjho": [
+      {
+        "keyword": "MODULE ... INPUT",
+        "meaning": "PAI block where validation and OKCODE dispatch happen"
+      },
+      {
+        "keyword": "SAVE_OK_CODE",
+        "meaning": "Captures function code and clears SY-UCOMM to prevent repeated SAVE on next Enter"
+      },
+      {
+        "keyword": "CASE ok_code",
+        "meaning": "Mandatory dispatcher — every function code in GUI status must have a WHEN clause"
+      },
+      {
+        "keyword": "WHEN 'SAVE'",
+        "meaning": "Branch that triggers validations before any DB update"
+      },
+      {
+        "keyword": "MESSAGE e...",
+        "meaning": "Type E error — screen redisplays and cursor returns to user for correction"
+      },
+      {
+        "keyword": "MESSAGE a...",
+        "meaning": "Type A abend — terminates the entire SAP session; must be avoided in PAI validation"
+      },
+      {
+        "keyword": "PERFORM",
+        "meaning": "Calls the save subroutine only after all guards pass"
+      },
+      {
+        "keyword": "WHEN 'BACK'",
+        "meaning": "Handler for green-arrow exit — must call SET SCREEN 0 and LEAVE SCREEN together"
+      },
+      {
+        "keyword": "SET SCREEN 0",
+        "meaning": "Sets next screen to zero (exit); ineffective without LEAVE SCREEN"
+      },
+      {
+        "keyword": "LEAVE SCREEN",
+        "meaning": "Actually exits the current screen — completes the navigation set by SET SCREEN"
+      },
+      {
+        "keyword": "LEAVE PROGRAM",
+        "meaning": "Direct full exit from the module pool — typical for EXIT"
+      }
+    ],
+    "quickRevisionNotes": "What: Most common module pool bugs come from missing OKCODE branches, wrong MESSAGE type, and skipped validation guards in PAI.\n\nUsed for:\n- Code review checklist before transporting a module pool to QA\n- Triaging frozen-screen or session-crash tickets in production\n- Justifying defensive PAI patterns (SAVE_OK_CODE, WHEN OTHERS, layered checks)\n\nKey syntax / tables / Tcodes:\n- SAVE_OK_CODE + CLEAR ok_code at top of every PAI module\n- MESSAGE TYPE 'E' for validation, never TYPE 'A'\n- SET SCREEN 0 paired with LEAVE SCREEN; LEAVE PROGRAM for hard exit\n\nInterview keyword: Handle every function code, validate before save, never abend the session.",
     "followupAnswerBank": [
       {
         "question": "What happens if you forget LEAVE SCREEN after SET SCREEN 0?",
-        "hinglishExplanation": "SET SCREEN 0 ek variable set karta hai — 'next screen 0 pe jaana hai'. LEAVE SCREEN current screen ko exit karta hai aur next screen pe jaata hai. Agar sirf SET SCREEN 0 kiya bina LEAVE SCREEN ke — next screen variable set ho gaya, but current screen still display hogi. User current screen pe atak jayega. Next screen (screen 0 = exit) tab hi trigger hogi jab LEAVE SCREEN call ho. Dono statements ek saath lagane chahiye.",
+        "hinglishExplanation": "SET SCREEN 0 sirf target screen number ko 0 set karta hai, jo program exit signal karta hai. LEAVE SCREEN command hai jo actually current screen se exit karta hai aur transition trigger karta hai. LEAVE SCREEN ke bina, SET SCREEN 0 call hone par bhi current screen display karna continue karta hai. Hamesha dono saath use karo: SET SCREEN 0 ke baad immediately LEAVE SCREEN.",
         "interviewAnswer": "SET SCREEN 0 only sets the target screen number as 0, which signals program exit. LEAVE SCREEN is the command that actually exits the current screen and triggers the transition. Without LEAVE SCREEN, the current screen continues displaying even though SET SCREEN 0 was called. Always use both together: SET SCREEN 0 followed immediately by LEAVE SCREEN.",
         "realtimeExplanation": "Production issue: user ne Cancel click kiya, kuch nahi hua. Debug karne pe pata chala: SET SCREEN 0 tha LEAVE SCREEN nahi. Simple fix: ek line add ki — LEAVE SCREEN. Transport kiya, issue resolved.",
         "mistakes": "Sirf LEAVE SCREEN likhna bina SET SCREEN ke — toh program pichle SET SCREEN value pe jaata hai jo screen 0 nahi hogi, aur loop mein reh sakta hai.",
-        "codeExample": "\" Wrong — screen stays visible\nSET SCREEN 0.\n\" (missing LEAVE SCREEN)\n\n\" Correct — screen exits and program ends\nSET SCREEN 0.\nLEAVE SCREEN.\n\n\" Alternative: direct exit\nLEAVE PROGRAM."
+        "codeExample": "\" Wrong — screen stays visible\nSET SCREEN 0.\n\" (missing LEAVE SCREEN)\n\n\" Correct — screen exits and program ends\nSET SCREEN 0.\nLEAVE SCREEN.\n\n\" Alternative: direct exit\nLEAVE PROGRAM.",
+        "tier": "easy"
       },
       {
         "question": "What is the danger of using MESSAGE type A in PAI validation?",
-        "hinglishExplanation": "MESSAGE statement ke types: E = Error (screen redisplay hoti hai, user fix kar sakta hai), W = Warning (continue possible), I = Information popup, A = Abend (ABAP session terminate ho jaata hai — user ka saara kaam close, SAP GUI freeze). PAI validation mein agar MESSAGE A use kiya aur user ne invalid data daal di — poori session close. User ka koi bhi unsaved work bhi chala jaata hai. Ye disaster hai production mein.",
+        "hinglishExplanation": "MESSAGE type A ABAP session abend cause karta hai — poora SAP GUI session terminate hota hai, user ke open transactions ke across saara unsaved work loss hota hai. PAI validation mein, hamesha MESSAGE type E use karo, jo current screen redisplay karta hai taaki user error correct kar sake. Type A sirf truly unrecoverable system errors ke liye use hona chahiye, user input validation ke liye kabhi nahi.",
         "interviewAnswer": "MESSAGE type A causes an ABAP session abend — the entire SAP GUI session terminates, losing all unsaved work across all transactions the user had open. In PAI validation, always use MESSAGE type E, which redisplays the current screen so the user can correct the error. Type A should only be used for truly unrecoverable system errors, never for user input validation.",
         "realtimeExplanation": "Real case: junior developer ne mandatory field check mein MESSAGE A likha. First test mein tester ka poora SAP session close ho gaya — all transactions, all data entry gone. Immediately caught in testing, production tak nahi pahuncha. But yahi interview mein mention karne layak story hai.",
         "mistakes": "MESSAGE TYPE 'A' vs MESSAGE TYPE 'E' — ek letter ka difference, production impact huge. Always double-check message type in code review.",
-        "codeExample": "\" WRONG — abends entire session!\nIF zcustom_tab-kunnr IS INITIAL.\n  MESSAGE a001(zmsg) WITH 'Customer is mandatory'. \" SESSION CRASH!\nENDIF.\n\n\" CORRECT — redisplays screen for correction\nIF zcustom_tab-kunnr IS INITIAL.\n  MESSAGE e001(zmsg) WITH 'Customer is mandatory'.\n  \" PAI stops, screen shown again, user corrects\nENDIF."
+        "codeExample": "\" WRONG — abends entire session!\nIF zcustom_tab-kunnr IS INITIAL.\n  MESSAGE a001(zmsg) WITH 'Customer is mandatory'. \" SESSION CRASH!\nENDIF.\n\n\" CORRECT — redisplays screen for correction\nIF zcustom_tab-kunnr IS INITIAL.\n  MESSAGE e001(zmsg) WITH 'Customer is mandatory'.\n  \" PAI stops, screen shown again, user corrects\nENDIF.",
+        "tier": "easy"
       },
       {
         "question": "How do global variables cause bugs in multi-screen module pool?",
-        "hinglishExplanation": "Module pool mein sab variables global hote hain — PROGRAM level pe declare hote hain, sab screens access kar sakti hain. Problem: screen 100 pe user ne vendor number enter kiya, usse ls_vendor mein populate kiya. User screen 200 pe gaya, wahan bhi ls_vendor access ho raha hai — pehle se screen 100 ka data hai. Agar screen 200 pe naya vendor select kiya, ls_vendor update hua. User wapas screen 100 pe gaya — ab ls_vendor mein screen 200 ka data hai, screen 100 ka nahi. Confusing aur bug-prone.",
+        "hinglishExplanation": "Module pool mein, program level pe declared saare variables global hain aur saare screens ke across shared hain. Ek common bug tab hai jab screen 100 ek work area variable populate karta hai, user screen 200 pe navigate karta hai, jo same variable read karta hai aur stale data dikhata hai. Fix yeh hai ki PBO mein shared variables ko populate karne se pehle clear karo, aur screen-specific processing ke liye form routines ya methods ke andar screen-specific local variables use karo.",
         "interviewAnswer": "In module pool, all variables declared at program level are global and shared across all screens. A common bug is when screen 100 populates a work area variable, the user navigates to screen 200, which reads the same variable and shows stale data. The fix is to clear shared variables in PBO before populating them, and to use screen-specific local variables within form routines or methods for screen-specific processing.",
         "realtimeExplanation": "Multi-screen module pool design best practice: define clear ownership — which variable belongs to which screen's data. Use structure of structures pattern — ls_screen100, ls_screen200 — to avoid cross-contamination. Clear at PBO before setting.",
         "mistakes": "One huge work area variable for all screens — every field in it, all screens read/write same area. Recipe for stale data bugs. Separate work areas per logical data entity.",
-        "codeExample": "\" Bad: one global variable for all screens\nDATA: ls_header TYPE zcustom_header.  \" Screen 100 AND 200 use this\n\n\" Better: screen-specific or entity-specific variables\nDATA: ls_order_header TYPE zorder_hdr,   \" Screen 100\n      ls_order_item  TYPE zorder_item,   \" Screen 200\n      lt_order_items TYPE TABLE OF zorder_item.\n\n\" Clear in PBO before populate\nMODULE pbo_0200 OUTPUT.\n  CLEAR ls_order_item.  \" Ensure no stale data\nENDMODULE."
+        "codeExample": "\" Bad: one global variable for all screens\nDATA: ls_header TYPE zcustom_header.  \" Screen 100 AND 200 use this\n\n\" Better: screen-specific or entity-specific variables\nDATA: ls_order_header TYPE zorder_hdr,   \" Screen 100\n      ls_order_item  TYPE zorder_item,   \" Screen 200\n      lt_order_items TYPE TABLE OF zorder_item.\n\n\" Clear in PBO before populate\nMODULE pbo_0200 OUTPUT.\n  CLEAR ls_order_item.  \" Ensure no stale data\nENDMODULE.",
+        "tier": "easy"
       },
       {
         "question": "What happens when OKCODE in CASE has no WHEN clause for a function code?",
-        "hinglishExplanation": "CASE ok_code mein agar kisi function code ke liye WHEN clause nahi hai — SAP koi error nahi deta, koi dump nahi, koi message nahi. PAI module run hoga, CASE mein koi match nahi milega, ENDCASE tak pahunchega, module end hoga, aur same screen dobara display hogi. User ke nazariye se: button dabaya, kuch nahi hua. Screen same pe hai. User sochega kya baat hai — koi feedback nahi. Common scenario: developer ne 'CANCEL' function code GUI status mein add kiya but CASE mein WHEN 'CANCEL' nahi likha.",
+        "hinglishExplanation": "Jab CASE ok_code statement mein function code ke liye koi WHEN clause nahi hai, SAP silently bina action ke ENDCASE pe fall through karta hai. PAI module complete hota hai aur same screen redisplay hoti hai. User ke perspective se, button press ka koi effect nahi hua — no error, no navigation, no feedback. Yeh silent failure ek common production bug hai. Main hamesha unhandled function codes catch karne ke liye WHEN OTHERS clause add karta hoon.",
         "interviewAnswer": "When a function code has no WHEN clause in the CASE ok_code statement, SAP silently falls through to ENDCASE with no action. The PAI module completes and the same screen redisplays. From the user's perspective, the button press had no effect — no error, no navigation, no feedback. This silent failure is a common production bug. I always add a WHEN OTHERS clause to catch unhandled function codes.",
         "realtimeExplanation": "Code review checklist: after writing CASE ok_code, verify every function code in the GUI status has a corresponding WHEN clause. Add WHEN OTHERS as safety net — at minimum log or show debug info in development.",
         "mistakes": "Assuming SAP will raise an error for unhandled function codes. It doesn't — silent ignore is the behavior. This must be caught in unit testing with all function codes tested.",
-        "codeExample": "MODULE pai_0100 INPUT.\n  SAVE_OK_CODE ok_code.\n  CLEAR ok_code.\n  CASE ok_code.\n    WHEN 'SAVE'.   PERFORM validate_and_save.\n    WHEN 'BACK'.   SET SCREEN 0. LEAVE SCREEN.\n    WHEN 'EXIT'.   LEAVE PROGRAM.\n    WHEN 'CANCEL'. SET SCREEN 0. LEAVE SCREEN.\n    WHEN 'NEXT'.   SET SCREEN 200. LEAVE SCREEN.\n    WHEN OTHERS.   \" Safety net — should not reach here\n      MESSAGE w000(zmsg) WITH 'Unknown action' ok_code.\n  ENDCASE.\nENDMODULE."
+        "codeExample": "MODULE pai_0100 INPUT.\n  SAVE_OK_CODE ok_code.\n  CASE ok_code.\n    WHEN 'SAVE'.   PERFORM validate_and_save.\n    WHEN 'BACK'.   SET SCREEN 0. LEAVE SCREEN.\n    WHEN 'EXIT'.   LEAVE PROGRAM.\n    WHEN 'CANCEL'. SET SCREEN 0. LEAVE SCREEN.\n    WHEN 'NEXT'.   SET SCREEN 200. LEAVE SCREEN.\n    WHEN OTHERS.   \" Safety net — should not reach here\n      MESSAGE w000(zmsg) WITH 'Unknown action' ok_code.\n  ENDCASE.\nENDMODULE.",
+        "tier": "medium"
       },
       {
         "question": "How do you add authorization check in Module Pool?",
-        "hinglishExplanation": "PBO module mein authorization check lagaate hain — screen display hone se pehle. AUTHORITY-CHECK OBJECT 'Z_CUSTOM_OBJ' ID 'ACTVT' FIELD '03'. Agar authorized nahi: MESSAGE E do aur SET SCREEN 0 + LEAVE SCREEN se bahar niklo. Ye ensure karta hai ki unauthorized user screen bilkul nahi dekh sakta. PFCG mein role mein authorization object add karna padta hai aur users ko woh role assign karna padta hai.",
+        "hinglishExplanation": "Main PBO module mein koi bhi data display hone se pehle AUTHORITY-CHECK OBJECT add karta hoon. Agar SY-SUBRC zero nahi hai, user unauthorized hai aur main ek message display karta hoon aur SET SCREEN 0 aur LEAVE SCREEN use karke immediately screen se exit hota hoon. Authorization object SU21 mein define hota hai, PFCG mein role mein add hota hai, aur users ko assign hota hai. Is check ke bina, koi bhi user jo T-code jaanta hai screen access kar sakta hai.",
         "interviewAnswer": "I add AUTHORITY-CHECK OBJECT in the PBO module before any data is displayed. If SY-SUBRC is not zero, the user is unauthorized and I display a message and exit the screen immediately using SET SCREEN 0 and LEAVE SCREEN. The authorization object is defined in SU21, added to a role in PFCG, and assigned to users. Without this check, any user who knows the T-code can access the screen.",
         "realtimeExplanation": "Security audit finding: custom module pool screen bina auth check ke. Any user with access to SE93 could find and run the T-code. Fix: add AUTHORITY-CHECK in PBO, create Z-auth object in SU21, add to role, test with SU53.",
         "mistakes": "Authorization check sirf PAI mein SAVE ke time lagana — galat. User ne pehle screen dekh liya, data enter kiya, tab save pe error. Check PBO mein hona chahiye — before any data shows.",
-        "codeExample": "MODULE pbo_0100 OUTPUT.\n  \" Authorization check FIRST — before anything displays\n  AUTHORITY-CHECK OBJECT 'ZVENDOR_OBJ'\n    ID 'ACTVT' FIELD '03'      \" 03 = Display\n    ID 'WERKS' FIELD p_werks.  \" Plant-level auth\n  IF sy-subrc <> 0.\n    MESSAGE e004(zmsg) WITH 'No authorization for this transaction'.\n    SET SCREEN 0.\n    LEAVE SCREEN.\n  ENDIF.\n  \" Only runs if authorized\n  SET PF-STATUS 'ZSTATUS_MAIN'.\nENDMODULE."
+        "codeExample": "MODULE pbo_0100 OUTPUT.\n  \" Authorization check FIRST — before anything displays\n  AUTHORITY-CHECK OBJECT 'ZVENDOR_OBJ'\n    ID 'ACTVT' FIELD '03'      \" 03 = Display\n    ID 'WERKS' FIELD p_werks.  \" Plant-level auth\n  IF sy-subrc <> 0.\n    MESSAGE e004(zmsg) WITH 'No authorization for this transaction'.\n    SET SCREEN 0.\n    LEAVE SCREEN.\n  ENDIF.\n  \" Only runs if authorized\n  SET PF-STATUS 'ZSTATUS_MAIN'.\nENDMODULE.",
+        "tier": "medium"
       },
       {
         "question": "What is the SAVE_OK_CODE statement and why is it important?",
-        "hinglishExplanation": "SAP Dynpro mein ok_code variable screen pe user ke action se set hota hai. PAI ke shuru mein ok_code mein current function code hota hai. SAVE_OK_CODE statement do kaam karta hai: ok_code ki value apne variable mein copy karta hai, aur phir ok_code ko automatically clear kar deta hai. Clear karna kyun zaroori: agar ok_code clear nahi kiya toh next PAI execution mein purana function code abhi bhi ok_code mein hoga — double action execute ho sakta hai. SAVE_OK_CODE ok_code. — ek line, do kaam.",
+        "hinglishExplanation": "SAVE_OK_CODE current function code ko system ok_code field se user-defined variable mein copy karta hai aur simultaneously system variable clear karta hai. Yeh critical hai kyunki agar reading ke baad ok_code clear nahi hua, next PAI execution (Enter ya doosre button se triggered) abhi bhi previous function code carry karega, causing unintended repeated actions. Hamesha PAI ke start mein SAVE_OK_CODE use karo, phir local copy ke saath kaam karo.",
         "interviewAnswer": "SAVE_OK_CODE copies the current function code from the system ok_code field into a user-defined variable and simultaneously clears the system variable. This is critical because if ok_code is not cleared after reading, the next PAI execution (triggered by Enter or another button) will still carry the previous function code, causing unintended repeated actions. Always use SAVE_OK_CODE at the start of PAI, then work with the local copy.",
         "realtimeExplanation": "Bug without SAVE_OK_CODE: user pressed SAVE, data saved. User pressed Enter on same screen (thinking nothing happened) — SAVE triggered again because ok_code still had 'SAVE' value. Duplicate save or duplicate database insert. SAVE_OK_CODE prevents this.",
         "mistakes": "Writing MOVE ok_code TO lv_ok_code. CLEAR ok_code. instead of SAVE_OK_CODE — functionally same but verbose. Use SAVE_OK_CODE — cleaner, standard approach.",
-        "codeExample": "MODULE pai_0100 INPUT.\n  \" Correct: SAVE_OK_CODE captures + clears in one step\n  SAVE_OK_CODE ok_code.  \" ok_code now has function code, system var cleared\n  \n  \" Wrong: reading ok_code without clearing\n  \" lv_fcode = ok_code.   \" ok_code still has old value!\n  \n  CASE ok_code.          \" Use local ok_code (saved copy)\n    WHEN 'SAVE'. PERFORM do_save.\n    WHEN 'BACK'. SET SCREEN 0. LEAVE SCREEN.\n  ENDCASE.\nENDMODULE."
+        "codeExample": "MODULE pai_0100 INPUT.\n  \" Correct: SAVE_OK_CODE captures + clears in one step\n  SAVE_OK_CODE ok_code.  \" ok_code now has function code, system var cleared\n  \n  \" Wrong: reading ok_code without clearing\n  \" lv_fcode = ok_code.   \" ok_code still has old value!\n  \n  CASE ok_code.          \" Use local ok_code (saved copy)\n    WHEN 'SAVE'. PERFORM do_save.\n    WHEN 'BACK'. SET SCREEN 0. LEAVE SCREEN.\n  ENDCASE.\nENDMODULE.",
+        "tier": "medium"
       },
       {
         "question": "How do you prevent invalid data from reaching the database in Module Pool?",
-        "hinglishExplanation": "Defense in depth approach: Pehla layer — Dynpro field checks (screen painter mein required field mark karo, CHAIN-FIELD validations). Doosra layer — PAI module mein explicit validations: mandatory checks, format checks, reference data checks (kya plant exist karta hai T001W mein, kya customer exist karta hai KNA1 mein). Teesra layer — database level: UNIQUE constraints, foreign keys in DDIC. Agar pehle do layers sahi hain, teesra layer rarely trigger hoga. Module pool mein PAI validation layer sabse important hai — ye tumhara main gate hai.",
+        "hinglishExplanation": "Main layered validation approach use karta hoon. Pehla, FIELD aur CHAIN statements ke saath Dynpro screen flow logic format-level validation handle karta hai. Doosra, PAI mein main explicitly mandatory fields check karta hoon, reference data master tables mein exist hai validate karta hoon, aur save routine call karne se pehle business rules apply karta hoon. Agar koi validation fail karti hai, MESSAGE type E screen redisplay karta hai. Saari validations pass hone ke baad hi main save FORM ya method call karta hoon. Main pehle validation ke bina kabhi MODIFY ya INSERT call nahi karta.",
         "interviewAnswer": "I use a layered validation approach. First, Dynpro screen flow logic with FIELD and CHAIN statements handles format-level validation. Second, in PAI I explicitly check mandatory fields, validate reference data exists in master tables, and apply business rules before calling the save routine. If any validation fails, MESSAGE type E redisplays the screen. Only after all validations pass do I call the save FORM or method. I never call MODIFY or INSERT without prior validation.",
         "realtimeExplanation": "Validation sequence in PAI: 1) Check mandatory fields, 2) Check field format (e.g., date in future), 3) Check referential integrity (KUNNR exists in KNA1), 4) Check business rules (credit limit not exceeded), 5) Only then save. Each failed check returns MESSAGE E — clean, user-friendly.",
         "mistakes": "Calling save routine directly in PAI without any validation guard — trusting that Dynpro field checks are enough. Dynpro checks are presentation-layer only — bypass possible. PAI validation is the real guard.",
-        "codeExample": "FORM validate_and_save.\n  \" Layer 1: Mandatory fields\n  IF zcustom_tab-kunnr IS INITIAL.\n    MESSAGE e001(zmsg) WITH 'Customer required'. RETURN.\n  ENDIF.\n  \" Layer 2: Referential integrity\n  SELECT SINGLE kunnr FROM kna1 WHERE kunnr = zcustom_tab-kunnr\n    INTO @DATA(lv_kunnr).\n  IF sy-subrc <> 0.\n    MESSAGE e002(zmsg) WITH 'Customer does not exist'. RETURN.\n  ENDIF.\n  \" Layer 3: Business rule\n  IF zcustom_tab-netwr > 1000000.\n    MESSAGE e003(zmsg) WITH 'Amount exceeds limit'. RETURN.\n  ENDIF.\n  \" All passed — save\n  MODIFY zcustom_tab.\nENDFORM."
+        "codeExample": "FORM validate_and_save.\n  \" Layer 1: Mandatory fields\n  IF zcustom_tab-kunnr IS INITIAL.\n    MESSAGE e001(zmsg) WITH 'Customer required'. RETURN.\n  ENDIF.\n  \" Layer 2: Referential integrity\n  SELECT SINGLE kunnr FROM kna1 WHERE kunnr = zcustom_tab-kunnr\n    INTO @DATA(lv_kunnr).\n  IF sy-subrc <> 0.\n    MESSAGE e002(zmsg) WITH 'Customer does not exist'. RETURN.\n  ENDIF.\n  \" Layer 3: Business rule\n  IF zcustom_tab-netwr > 1000000.\n    MESSAGE e003(zmsg) WITH 'Amount exceeds limit'. RETURN.\n  ENDIF.\n  \" All passed — save\n  MODIFY zcustom_tab.\nENDFORM.",
+        "tier": "advanced"
       },
       {
         "question": "What are common Dynpro screen attribute mistakes in Module Pool?",
-        "hinglishExplanation": "Screen Painter (SE51) mein fields ke attributes set karte hain: Input/Output, Required, Invisible, etc. Common mistakes: 1) Field editable rakha jo display-only hona chahiye — user sensitive data change kar deta hai. 2) Field required mark nahi kiya — Dynpro layer pe check nahi hota, PAI mein bhi check nahi kiya — empty data save. 3) Field invisible = space nahi hoti screen pe, field = not active — user tab order mein nahi aata. 4) Field length screen pe galat — data truncate hota hai display mein. PBO mein LOOP AT SCREEN se dynamically attributes change kar sakte hain — runtime pe field ko editable ya display mode karo based on user role ya document status.",
+        "hinglishExplanation": "Common Dynpro screen attribute mistakes include karte hain display-only fields ko input-capable mark karna, jo users ko aisa data edit karne deta hai jo unhe nahi karna chahiye. Required mark na kiye gaye fields Dynpro-level validation miss karte hain. Data element length se chhoti field lengths display truncation cause karti hain. PBO mein, main LOOP AT SCREEN use karta hoon authorization, document status, ya user role ke based pe runtime pe field attributes ko dynamically control karne ke liye.",
         "interviewAnswer": "Common Dynpro screen attribute mistakes include marking display-only fields as input-capable, which allows users to edit data they should not. Fields not marked as required miss Dynpro-level validation. Field lengths shorter than the data element length cause display truncation. In PBO, I use LOOP AT SCREEN to dynamically control field attributes at runtime based on authorization, document status, or user role.",
         "realtimeExplanation": "Real pattern: document status-based field control. Document status = 'RELEASED' — toh all fields display-only karo in PBO. Status = 'DRAFT' — fields editable. LOOP AT SCREEN se field-level control possible hai without multiple screen variants.",
         "mistakes": "Multiple screen variants (100, 101, 102) banana for different states — maintenance nightmare. Better: one screen, dynamic attributes via LOOP AT SCREEN in PBO based on document status.",
-        "codeExample": "\" Dynamic field attributes in PBO — based on document status\nMODULE pbo_0100 OUTPUT.\n  LOOP AT SCREEN.\n    \" If document is released, make all fields display-only\n    IF gv_doc_status = 'REL'.\n      screen-input = 0.  \" 0 = display, 1 = input\n      MODIFY SCREEN.\n    ENDIF.\n    \" Hide specific field for non-admin users\n    IF screen-name = 'ZCUSTOM_TAB-NETWR' AND gv_is_admin = abap_false.\n      screen-invisible = 1.\n      MODIFY SCREEN.\n    ENDIF.\n  ENDLOOP.\nENDMODULE."
+        "codeExample": "\" Dynamic field attributes in PBO — based on document status\nMODULE pbo_0100 OUTPUT.\n  LOOP AT SCREEN.\n    \" If document is released, make all fields display-only\n    IF gv_doc_status = 'REL'.\n      screen-input = 0.  \" 0 = display, 1 = input\n      MODIFY SCREEN.\n    ENDIF.\n    \" Hide specific field for non-admin users\n    IF screen-name = 'ZCUSTOM_TAB-NETWR' AND gv_is_admin = abap_false.\n      screen-invisible = 1.\n      MODIFY SCREEN.\n    ENDIF.\n  ENDLOOP.\nENDMODULE.",
+        "tier": "advanced"
       }
     ]
   }

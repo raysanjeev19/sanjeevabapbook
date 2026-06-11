@@ -1,0 +1,142 @@
+{
+  "amdp-hana-024": {
+    "interviewScriptHinglish": "Sir, AMDP performance tickets real production support kaam ka core hote hain. Resolution process structured hota hai: ticket trace karna, slow program ya AMDP identify karna, ST05 aur HANA Database Explorer mein PlanViz se bottleneck dhundhna, root cause document karna, fix banake QA mein test karna, transport karna, monitoring se confirm karna. Practically, mere project mein ek aging report 30 seconds le raha tha — PlanViz mein full table scan dikhi due to outdated statistics. UPDATE STATISTICS run ki, query 3 seconds mein aagayi. Iska benefit yeh hai ki structured resolution se SLA meet hote hain, business impact minimised hota hai, aur preventive monitoring strengthen hoti hai future tickets ke liye.",
+    "interviewScriptEnglish": "Resolving a real-time AMDP performance ticket follows a disciplined process. First identify the slow program or AMDP via the user's ticket and ABAP runtime monitor. Next capture ST05 SQL trace and load the statement into PlanViz through HANA Database Explorer to inspect the actual execution plan. Look for full table scans, bad join strategies, or wrong cardinality estimates. Apply targeted fixes such as refreshed statistics, query rewrites, or index adjustments. Validate the fix in QA, transport via STMS with a rollback plan, and confirm improvement via HANA Cockpit metrics post deployment. The business value is shorter outages, met SLAs, and stronger preventive monitoring practices.",
+    "wordByWordSamjho": [
+      { "keyword": "PlanViz", "meaning": "HANA tool visualizing execution plan with timings and operators" },
+      { "keyword": "HANA Cockpit", "meaning": "Admin tool for monitoring HANA performance and health" },
+      { "keyword": "ST05", "meaning": "SQL trace transaction for capturing executed statements" },
+      { "keyword": "UPDATE STATISTICS", "meaning": "Refreshes optimizer statistics so plans match real data distribution" },
+      { "keyword": "Rollback transport", "meaning": "Reverse change prepared to recover quickly if fix fails" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Fixing symptoms without identifying the actual ABAP or AMDP causing the issue",
+        "whyWrong": "Risks deploying changes to the wrong component while the bug stays in production",
+        "correctApproach": "Trace the slow user action to the exact program and AMDP using ST05 and ST22"
+      },
+      {
+        "mistake": "Deploying fixes without QA validation",
+        "whyWrong": "Introduces new defects in production and erodes trust",
+        "correctApproach": "Always run regression and performance tests in QA before transporting to production"
+      },
+      {
+        "mistake": "Skipping post-fix monitoring",
+        "whyWrong": "Misses regressions or partial improvements that need follow-up tuning",
+        "correctApproach": "Use HANA Cockpit and ST05 sampling to confirm sustained improvement"
+      },
+      {
+        "mistake": "Closing the ticket without preventive actions",
+        "whyWrong": "Same issue recurs in different forms across other AMDPs",
+        "correctApproach": "Add monitoring alerts, code review rules, or developer training based on the root cause"
+      }
+    ],
+    "quickRevisionNotes": "What: End-to-end resolution process for AMDP-related performance tickets.\n\nUsed for:\n- Day-to-day production support work\n- Reducing time-to-resolution for SLA-bound incidents\n- Strengthening preventive monitoring\n\nKey syntax / tables / Tcodes:\n- ST22, ST05, SAT for ABAP-side trace\n- PlanViz in HANA Studio or HANA Database Explorer\n- HANA Cockpit for metrics; UPDATE STATISTICS for stale plans\n- STMS for transport with rollback\n\nInterview keyword: trace, diagnose, fix, validate, monitor",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "amdp-hana-025": {
+    "interviewScriptHinglish": "Sir, AMDP debug karna detective work jaisa hai — top se neeche layers mein jaana. ABAP wrapper mein breakpoint lagao, parameters check karo. Phir HANA Database Explorer mein generated stored procedure dhundho aur sample data se execute karo. Intermediate tabular variables se step-by-step trace karo. ST05 SQL trace se actual SQL aur runtime dekho. cx_amdp_error catch karke detailed message extract karo. Practically, mere project mein wrong data issue tha — wrapper layer mein parameters correct the, HANA Database Explorer mein stored procedure run karke pakad liya ki JOIN condition mein column mismatch tha. Iska benefit yeh hai ki structured layered debugging se complex AMDP issues quickly resolve hote hain.",
+    "interviewScriptEnglish": "Debugging an AMDP requires a layered approach because the Eclipse ABAP debugger cannot step into the body. Start in ABAP by placing breakpoints in the wrapper to verify inputs. Then locate the generated stored procedure in HANA Database Explorer or HANA Studio and execute it with sample data. Add intermediate tabular variables to inspect each logical step. Use ST05 to correlate ABAP calls with HANA execution, and catch cx_amdp_error to extract error context. When direct HANA access is restricted in production, rely on log tables, ST05 sampling, and replication of the issue in a lower environment. The business value is faster incident resolution and confident root cause identification.",
+    "wordByWordSamjho": [
+      { "keyword": "HANA Database Explorer", "meaning": "Web-based HANA tool for SQL execution and object inspection" },
+      { "keyword": "Stored Procedure", "meaning": "HANA object generated from the AMDP, callable directly in HANA tools" },
+      { "keyword": "Tabular Variable", "meaning": "SQLScript variable used to inspect intermediate results during debug" },
+      { "keyword": "ST05 trace", "meaning": "Captures SQL statements and runtime for correlation" },
+      { "keyword": "EXPLAIN PLAN", "meaning": "Estimated execution plan helping diagnose query strategy" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Expecting the ABAP debugger to step into the AMDP body",
+        "whyWrong": "Execution happens on HANA; breakpoints inside SQLScript never trigger",
+        "correctApproach": "Use HANA Database Explorer for body debugging; ABAP debugger for wrapper only"
+      },
+      {
+        "mistake": "Not catching cx_amdp_error and losing error context",
+        "whyWrong": "Production failures appear as bland ABAP dumps without HANA detail",
+        "correctApproach": "Wrap calls in TRY...CATCH and log cx_amdp_error->get_text"
+      },
+      {
+        "mistake": "Skipping intermediate tabular variables in complex SQLScript",
+        "whyWrong": "Cannot tell which step produced incorrect output",
+        "correctApproach": "Break the logic into well-named tabular variables that can be inspected one by one"
+      },
+      {
+        "mistake": "Attempting live debugging in production",
+        "whyWrong": "Restricted access and potential business impact",
+        "correctApproach": "Reproduce in QA, use log tables, or sample with ST05 in production"
+      }
+    ],
+    "quickRevisionNotes": "What: Layered debugging strategy combining ABAP, HANA, and SQLScript inspection tools.\n\nUsed for:\n- Functional correctness investigations\n- Performance and plan analysis\n- Production incident root cause work\n\nKey syntax / tables / Tcodes:\n- ABAP wrapper breakpoints, cx_amdp_error TRY-CATCH\n- HANA Database Explorer / HANA Studio for stored procedure execution\n- Intermediate tabular variables for traceability\n- ST05 trace, EXPLAIN PLAN for HANA-side analysis\n\nInterview keyword: layered AMDP debugging with HANA tools",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "amdp-hana-026": {
+    "interviewScriptHinglish": "Sir, AMDP performance issues ke common causes hain: missing HANA indexes, outdated statistics, large intermediate tabular variables, AMDP calls inside ABAP LOOP, SELECT * anti-pattern, unoptimized JOIN conditions, aur memory pressure. Profiling ke liye PlanViz, ST05, aur HANA Cockpit metrics dekhte hain. Practically, mere project mein AMDP slow tha — intermediate tabular variable mein 50 lakh rows materialize ho rahe the. Filter pehle apply kiya, variable 50 hazaar rows ka ho gaya, query 10x faster. Iska benefit yeh hai ki performance profiling discipline se hard-to-spot bottlenecks identify hote hain aur AMDP designs production-grade ho jaate hain.",
+    "interviewScriptEnglish": "AMDP performance issues commonly stem from missing or stale HANA indexes, oversized intermediate tabular variables, calls placed inside ABAP loops, SELECT * patterns, suboptimal join conditions, or HANA memory pressure. Profiling combines PlanViz for plan analysis, ST05 for ABAP-side trace, SAT for runtime profile, and HANA Cockpit for resource metrics. Key levers include applying filters early so intermediate variables stay small, refreshing statistics, narrowing column selection, and replacing SQLScript loops with set operations. In one project we reduced an AMDP runtime by ten times by filtering the source table before materialising it into the tabular variable. The business value is fast, predictable reports and lower HANA infrastructure cost.",
+    "wordByWordSamjho": [
+      { "keyword": "PlanViz", "meaning": "Visual execution plan tool showing operator timings" },
+      { "keyword": "Cardinality", "meaning": "Estimated row count an operator will process" },
+      { "keyword": "Materialise", "meaning": "Computing and storing a tabular variable in memory" },
+      { "keyword": "JOIN condition", "meaning": "Predicate matching rows between tables, critical for HANA plan choice" },
+      { "keyword": "HANA Cockpit", "meaning": "Admin dashboard exposing memory, CPU, and statement statistics" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Letting intermediate tabular variables grow into millions of rows",
+        "whyWrong": "Consumes HANA memory and slows down subsequent steps",
+        "correctApproach": "Apply WHERE filters early and select only needed columns to keep variables lean"
+      },
+      {
+        "mistake": "Calling AMDP inside an ABAP LOOP",
+        "whyWrong": "Repeated procedure calls multiply overhead and defeat pushdown",
+        "correctApproach": "Pass the full driver set into a single AMDP call and let SQLScript handle iteration"
+      },
+      {
+        "mistake": "Ignoring HANA statistics maintenance",
+        "whyWrong": "Optimizer picks bad plans, leading to full scans and poor join choices",
+        "correctApproach": "Schedule UPDATE STATISTICS after bulk loads or significant data growth"
+      },
+      {
+        "mistake": "Using SELECT * inside AMDP",
+        "whyWrong": "Defeats columnar pruning and inflates the result size",
+        "correctApproach": "List the exact columns needed by downstream logic"
+      }
+    ],
+    "quickRevisionNotes": "What: Methods to identify and fix AMDP performance issues.\n\nUsed for:\n- Performance triage and tuning\n- Sustaining SLA on Fiori and ALV reports\n- Reducing HANA infrastructure load\n\nKey syntax / tables / Tcodes:\n- PlanViz, ST05, SAT, HANA Cockpit\n- Early filter and column pruning patterns in SQLScript\n- UPDATE STATISTICS for stale plans\n- Avoid AMDP inside ABAP LOOP\n\nInterview keyword: profile, filter early, refresh statistics",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "amdp-hana-027": {
+    "interviewScriptHinglish": "Sir, AMDP authorization handling delicate topic hai. AMDP body andar AUTHORITY-CHECK nahi likh sakte kyunki SQLScript hai. Authorization wrapper ABAP method mein karna padta hai pehle. Plus MANDT explicit handle karna padta hai. Sensitive AMDPs ke liye CDS view with DCL ka use better hai. Practically, mere project mein sales data leak hone wala tha — junior developer ne AMDP banayi without authorization wrapper. Code review mein pakda — ABAP wrapper mein AUTHORITY-CHECK OBJECT 'V_VBAK_VKO' add ki. Audit log bhi enable kiya. Iska benefit yeh hai ki authorization gaps proactively identify hote hain aur compliance maintain hoti hai, jo S/4HANA production environments mein critical hai.",
+    "interviewScriptEnglish": "Authorization handling in AMDP must be designed deliberately because the SQLScript body cannot run AUTHORITY-CHECK. The ABAP wrapper that calls the AMDP performs all authorization checks, and MANDT must be passed explicitly because client filtering is not automatic. For sensitive datasets, CDS views with DCL access roles are preferred since the security model is centralised and harder to bypass. We also audit HANA-level access through DBACOCKPIT and ensure no privileged technical users are used for AMDP execution. In one project a code review prevented a sales data leak by mandating the authorization wrapper pattern. The business value is compliance, audit readiness, and prevention of data leakage in production.",
+    "wordByWordSamjho": [
+      { "keyword": "AUTHORITY-CHECK", "meaning": "ABAP statement enforcing authorization, runs in ABAP wrapper" },
+      { "keyword": "DCL", "meaning": "Data Control Language for CDS access policies and roles" },
+      { "keyword": "pfcg_auth", "meaning": "DCL aspect linking CDS access rules to PFCG authorization objects" },
+      { "keyword": "MANDT", "meaning": "Client field passed explicitly through AMDP parameters" },
+      { "keyword": "Audit log", "meaning": "Record of access events used for security review" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Calling AMDP from ABAP without an authorization check in the wrapper",
+        "whyWrong": "Anyone with method access reads data regardless of business authorization",
+        "correctApproach": "Run AUTHORITY-CHECK on relevant objects in the ABAP wrapper before calling the AMDP"
+      },
+      {
+        "mistake": "Hardcoding client values in SQLScript",
+        "whyWrong": "Cross-client data leakage and transport issues",
+        "correctApproach": "Pass sy-mandt as iv_mandt and use mandt = :iv_mandt in every WHERE clause"
+      },
+      {
+        "mistake": "Running AMDP with a highly privileged HANA technical user",
+        "whyWrong": "Bypasses HANA-level controls and complicates audit logs",
+        "correctApproach": "Use service users with least privilege and monitor via DBACOCKPIT"
+      },
+      {
+        "mistake": "Skipping CDS DCL when sensitive data could be exposed through CDS Table Function",
+        "whyWrong": "AMDP behind a CDS Table Function inherits CDS access design — missing DCL leaves rows unprotected",
+        "correctApproach": "Define DCL roles with pfcg_auth on the CDS Table Function entity"
+      }
+    ],
+    "quickRevisionNotes": "What: Authorization design pattern around AMDP given SQLScript cannot enforce ABAP authority checks.\n\nUsed for:\n- Securing sensitive reads in finance, HR, and master data\n- Meeting compliance and audit requirements\n- Preventing cross-client data leakage\n\nKey syntax / tables / Tcodes:\n- AUTHORITY-CHECK OBJECT '...' in ABAP wrapper before AMDP call\n- Explicit MANDT filter through IMPORTING parameter\n- DCL with pfcg_auth on CDS Table Functions\n- DBACOCKPIT for HANA-level audit\n\nInterview keyword: ABAP wrapper checks plus DCL for CDS",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  }
+}

@@ -1,0 +1,153 @@
+{
+  "amdp-hana-004": {
+    "interviewScriptHinglish": "Sir, AMDP method ko ABAP se call karna bilkul normal class method call jaisa hai — koi extra magic nahi chahiye. Class instance banao with NEW operator, phir method call karo IMPORTING aur EXPORTING parameters ke saath. Framework transparently HANA stored procedure call handle karta hai. Practically, mere project mein finance report ke liye AMDP banaya tha — selection screen se company code aur fiscal year le ke AMDP ko pass kiya, EXPORTING mein aggregated result table aaya, jo ALV mein display ki. Parameters Dictionary-based table types hone chahiye, local types se issues aa sakte hain. Iska benefit yeh hai ki existing ABAP developers ko alag pattern seekhne ki zarurat nahi — same OO syntax, andar HANA pe execution hoti hai.",
+    "interviewScriptEnglish": "Calling an AMDP method from ABAP follows the standard object-oriented method call pattern. We instantiate the class with the NEW operator, then invoke the method with IMPORTING and EXPORTING parameters as normal. The framework transparently maps the call to the underlying HANA stored procedure. Parameters must use ABAP Dictionary-based types — local TYPE definitions can cause activation issues. Exception handling uses cx_amdp_error and its subclasses. In a recent project, our finance report passed the company code and fiscal year as IMPORTING and received the aggregated result via EXPORTING. The business value is that existing ABAP teams can leverage HANA pushdown without learning a new calling pattern.",
+    "wordByWordSamjho": [
+      { "keyword": "IF_AMDP_MARKER_HDB", "meaning": "Marker interface required on every AMDP class for HANA execution" },
+      { "keyword": "VALUE(...)", "meaning": "Pass-by-value parameter passing addition for AMDP signatures" },
+      { "keyword": "IMPORTING", "meaning": "Direction keyword for parameters going into the method" },
+      { "keyword": "EXPORTING", "meaning": "Direction keyword for parameters returned to the caller" },
+      { "keyword": "RAISING cx_amdp_error", "meaning": "Declares the AMDP can raise the standard AMDP exception class" },
+      { "keyword": "NEW", "meaning": "ABAP operator that instantiates a class and returns the reference" },
+      { "keyword": "TYPE STANDARD TABLE OF", "meaning": "Defines an ABAP Dictionary based table type usable in AMDP signatures" },
+      { "keyword": "USING", "meaning": "AMDP clause listing every database object referenced inside" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Using locally typed ABAP tables in AMDP signatures",
+        "whyWrong": "AMDP requires ABAP Dictionary-based table types so HANA can resolve the structure",
+        "correctApproach": "Define table types in DDIC or reference structures from DDIC and use TYPES tt_xxx TYPE STANDARD TABLE OF zs_xxx"
+      },
+      {
+        "mistake": "Omitting RAISING cx_amdp_error and not wrapping the call in TRY",
+        "whyWrong": "Runtime errors propagate uncaught and dump the application",
+        "correctApproach": "Declare RAISING cx_amdp_error and wrap calls in TRY ... CATCH cx_amdp_error blocks"
+      },
+      {
+        "mistake": "Forgetting tables in the USING clause when calling another AMDP",
+        "whyWrong": "Activation fails or runtime cannot resolve the cross-method dependency",
+        "correctApproach": "List every table and called AMDP class=>method in the USING clause"
+      },
+      {
+        "mistake": "Trying to call AMDP directly from a Fiori app",
+        "whyWrong": "Fiori cannot invoke ABAP methods directly; AMDP must be exposed indirectly",
+        "correctApproach": "Wrap the AMDP in a CDS Table Function or a Gateway service and consume that from Fiori"
+      }
+    ],
+    "quickRevisionNotes": "What: Standard ABAP method call pattern that routes to the underlying HANA stored procedure.\n\nUsed for:\n- Invoking AMDP business logic from ABAP reports and services\n- Passing filter criteria as IMPORTING scalars and receiving tables as EXPORTING\n- Surfacing AMDP results through CDS Table Functions for Fiori and OData\n\nKey syntax / tables / Tcodes:\n- INTERFACES if_amdp_marker_hdb in the class definition\n- DATA lo_obj TYPE REF TO zcl_xxx. lo_obj = NEW #( ).\n- TRY. lo_obj->method( ... ). CATCH cx_amdp_error.\n- ABAP Dictionary table types for EXPORTING and IMPORTING\n\nInterview keyword: transparent OO call backed by HANA stored procedure",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "amdp-hana-005": {
+    "interviewScriptHinglish": "Sir, code pushdown ka matlab hai data-intensive processing logic ko application server se database layer pe shift karna. S/4HANA mein HANA in-memory columnar engine bahut powerful hai, isliye aggregations, joins aur analytics database pe karna fast hai. AMDP, CDS views, aur ABAP SQL ki proper WHERE clauses — sab pushdown ke tools hain. Practically, mere project mein GL line items ka monthly aggregation tha — 5 crore rows. Pehle SELECT laa ke ABAP LOOP mein sum karte the, 4 minutes lagte the. AMDP mein GROUP BY HANA pe push kiya — 8 seconds mein same result. Iska benefit yeh hai ki sirf final aggregated result network pe travel karta hai, application server memory load nahi hota, aur users ko real-time reports milte hain.",
+    "interviewScriptEnglish": "Code pushdown is the architectural principle of moving data-intensive logic from the ABAP application server to the SAP HANA database layer where the data resides. S/4HANA enforces this pattern because HANA's in-memory columnar engine is highly optimized for aggregations, joins, and analytics. Pushdown is implemented through AMDP for procedural logic, CDS views for declarative models, and Open SQL features like aggregate functions and table expressions. In our project we migrated a finance summary from a four-minute ABAP loop to an eight-second AMDP. The business value is faster reports, lower network traffic, smaller application server footprint, and the ability to deliver real-time Fiori dashboards on large datasets.",
+    "wordByWordSamjho": [
+      { "keyword": "GROUP BY", "meaning": "Aggregates rows on common values, executed on the HANA layer" },
+      { "keyword": "SUM(dmbtr)", "meaning": "Aggregate function totalling the amount column inside HANA" },
+      { "keyword": "INNER JOIN", "meaning": "Combines matching rows from multiple tables in the database" },
+      { "keyword": "WHERE bukrs = :iv_bukrs", "meaning": "Filter applied at the database, reducing rows before transfer" },
+      { "keyword": "FROM bseg", "meaning": "Source table at the database layer for line-item data" },
+      { "keyword": "et_result", "meaning": "Exporting tabular parameter returning the aggregated dataset to ABAP" },
+      { "keyword": "OPTIONS READ-ONLY", "meaning": "Marks the AMDP as read-only so HANA can optimize the read path" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Selecting everything into an internal table and aggregating in ABAP",
+        "whyWrong": "Transfers millions of rows to the application server, defeating pushdown",
+        "correctApproach": "Use SQL aggregates, GROUP BY, and WHERE inside the database call so only the result travels back"
+      },
+      {
+        "mistake": "Using SELECT ... ENDSELECT loops in S/4HANA",
+        "whyWrong": "Sequential single-row fetch is an anti-pattern that ignores HANA's set-based engine",
+        "correctApproach": "Use SELECT ... INTO TABLE or AMDP with set-based GROUP BY for bulk processing"
+      },
+      {
+        "mistake": "Pushing tiny datasets into AMDP unnecessarily",
+        "whyWrong": "Stored procedure overhead exceeds the gain on small data volumes",
+        "correctApproach": "Reserve AMDP for high-volume or complex calculations; use Open SQL for small reads"
+      },
+      {
+        "mistake": "Forgetting that FOR ALL ENTRIES is not true pushdown",
+        "whyWrong": "Open SQL still ships the driver itab and runs a translated query, not all logic at DB"
+      ,
+        "correctApproach": "Use AMDP or CDS associations to express the join entirely on the database"
+      }
+    ],
+    "quickRevisionNotes": "What: Moving data-intensive logic from the ABAP server to the HANA database.\n\nUsed for:\n- Bulk aggregations and joins on large transactional tables\n- Real-time Fiori dashboards backed by analytical CDS views\n- Replacing legacy SELECT-LOOP patterns with set-based SQL\n\nKey syntax / tables / Tcodes:\n- AMDP with GROUP BY, aggregates, CASE WHEN inside SQLScript\n- CDS views with @Analytics.dataCategory and associations\n- ABAP SQL with aggregate functions and table expressions\n- ST05 SQL trace to verify pushdown\n\nInterview keyword: process data where it lives, ship only the result",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "amdp-hana-006": {
+    "interviewScriptHinglish": "Sir, HANA pe SQL optimize karna matlab kaam smart tarike se karna — zaroori columns hi select karo, sahi WHERE clauses lagao, HANA ke columnar engine ko parallel execution ka chance do. SELECT * avoid karo, secondary indexes thoughtfully use karo, implicit type conversions se bachao, aur batch processing PACKAGE SIZE se karo. Practically, mere project mein ek slow material report tha — SELECT * SE16N type query, ABAP mein aggregation. Refactor kiya — sirf required fields, AMDP mein GROUP BY, package size 10000 ka use. ST05 trace mein difference clearly dikha. Iska benefit yeh hai ki HANA columnar engine fully utilize hota hai, network traffic kam, memory consumption controlled, aur response time predictable rehta hai.",
+    "interviewScriptEnglish": "HANA SQL optimization is about exploiting the columnar in-memory engine through disciplined query design. The core practices are to select only required columns, push selective WHERE clauses to the database, avoid implicit type conversions that prevent index usage, use PACKAGE SIZE for batched bulk processing, and use AMDP or CDS for complex aggregations. SE11 secondary indexes should be added only when justified by ST05 or PlanViz analysis. In one project we cut a material report from over a minute to a few seconds by removing SELECT *, narrowing the column list, and moving aggregation into an AMDP. The business value is consistent response times under load, reduced infrastructure cost, and predictable Fiori behaviour.",
+    "wordByWordSamjho": [
+      { "keyword": "SE11", "meaning": "Data Dictionary transaction used to maintain tables, structures, and indexes" },
+      { "keyword": "Secondary index", "meaning": "Additional index on a table to accelerate non-primary-key access" },
+      { "keyword": "PACKAGE SIZE", "meaning": "Addition that fetches a SELECT in chunks to control memory" },
+      { "keyword": "%_HINTS HDB", "meaning": "ABAP Open SQL syntax to pass database hints to HANA" },
+      { "keyword": "SELECT *", "meaning": "Reads all columns; usually wasteful with columnar storage" },
+      { "keyword": "Implicit conversion", "meaning": "Datatype mismatch in WHERE clause that disables index use" },
+      { "keyword": "ST05", "meaning": "SQL trace transaction used to analyse Open SQL and HANA calls" },
+      { "keyword": "Buffering", "meaning": "Table buffer setting in SE11 that caches small master tables" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Using SELECT * on large columnar tables",
+        "whyWrong": "Forces reading all columns from disk segments, hurting HANA columnar performance",
+        "correctApproach": "List only required columns so HANA reads just the relevant column store segments"
+      },
+      {
+        "mistake": "Creating secondary indexes blindly to fix performance",
+        "whyWrong": "Indexes add write overhead and may not help columnar lookups",
+        "correctApproach": "Use ST05 and PlanViz to prove the bottleneck before adding any new index"
+      },
+      {
+        "mistake": "Triggering implicit type conversions in WHERE clauses",
+        "whyWrong": "Disables index usage and forces full table scans",
+        "correctApproach": "Match the literal or variable type to the column type exactly"
+      },
+      {
+        "mistake": "Reading huge result sets in a single round trip",
+        "whyWrong": "Application server memory spikes and may dump",
+        "correctApproach": "Use PACKAGE SIZE to stream the result and process in chunks"
+      }
+    ],
+    "quickRevisionNotes": "What: Disciplined query design that exploits HANA's columnar in-memory engine.\n\nUsed for:\n- Reducing latency on Fiori and ALV reports\n- Cutting infrastructure cost via lower memory and CPU usage\n- Preparing legacy code for S/4HANA migration\n\nKey syntax / tables / Tcodes:\n- SELECT col1, col2 ... (avoid *), proper WHERE matching column types\n- PACKAGE SIZE n for chunked reads\n- SE11 secondary index, SE11 table buffering\n- ST05 SQL trace, ST04 / DBACOCKPIT for HANA monitoring\n\nInterview keyword: read less, push more, validate with ST05",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "amdp-hana-007": {
+    "interviewScriptHinglish": "Sir, PlanViz — Plan Visualizer — HANA ka built-in tool hai jo SQL query ya AMDP ki execution plan visually dikhata hai. Har step kitna time le raha hai, kaunsa JOIN strategy use ho rahi hai, kahan full table scan ho raha hai — sab transparently dikhta hai. HANA Studio ya HANA Database Explorer mein query right-click karke Visualize Plan karte hain. Practically, mere project mein ek sales report bahut slow chal raha tha. PlanViz mein dekha — ek table pe full scan ho raha tha kyunki WHERE clause mein type mismatch tha. Fix kiya, JOIN strategy bhi hash join ho gaya — query 8x faster ho gayi. Iska benefit yeh hai ki guess work khatam — actual bottleneck data-driven evidence ke saath samajhte hain.",
+    "interviewScriptEnglish": "PlanViz, or Plan Visualizer, is the HANA tool that renders the execution plan of a SQL statement or AMDP method as a graph. It shows each step's duration, the join strategy chosen by the optimizer, cardinality estimates, and whether a full table scan occurred. Access is via HANA Studio or HANA Database Explorer by right-clicking the statement and choosing Visualize Plan. In our project a slow sales report turned out to use a full table scan because of a type mismatch in the WHERE clause; PlanViz made the issue obvious and after fixing it the join switched to a hash join with eight-fold runtime improvement. The business value is evidence-based tuning instead of guesswork, leading to predictable Fiori response times.",
+    "wordByWordSamjho": [
+      { "keyword": "PlanViz", "meaning": "HANA Plan Visualizer tool that graphs query execution steps" },
+      { "keyword": "Explain Plan", "meaning": "Text-based estimated execution plan without actual runtime data" },
+      { "keyword": "Visualize Plan", "meaning": "Graphical plan with timings, cardinalities, and operators" },
+      { "keyword": "Full Table Scan", "meaning": "HANA reads every row, usually due to missing index or type mismatch" },
+      { "keyword": "Hash Join", "meaning": "Join strategy building a hash table for one side, fast on large sets" },
+      { "keyword": "Cardinality estimate", "meaning": "Optimizer's expected row count used to pick a join strategy" },
+      { "keyword": "Table statistics", "meaning": "Metadata HANA uses to choose plans; must be refreshed periodically" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Treating Explain Plan and Visualize Plan as the same artifact",
+        "whyWrong": "Explain Plan is only estimated; Visualize Plan includes actual runtime data",
+        "correctApproach": "Use Visualize Plan when diagnosing real performance issues with timing details"
+      },
+      {
+        "mistake": "Ignoring full table scans in the plan",
+        "whyWrong": "Indicates missing index, type mismatch, or stale statistics; performance worsens with data growth",
+        "correctApproach": "Fix WHERE clause types, add or refresh indexes, and refresh table statistics"
+      },
+      {
+        "mistake": "Skipping table statistics refresh after a bulk data load",
+        "whyWrong": "Optimizer picks the wrong plan based on outdated cardinality estimates",
+        "correctApproach": "Run UPDATE STATISTICS or schedule maintenance windows after large loads"
+      },
+      {
+        "mistake": "Reading the plan without checking actual vs estimated rows",
+        "whyWrong": "Large mismatches hide root causes such as bad statistics or skewed data",
+        "correctApproach": "Compare estimated vs actual row counts in PlanViz to find optimizer misjudgements"
+      }
+    ],
+    "quickRevisionNotes": "What: HANA's visual execution-plan tool for SQL statements, CDS views, and AMDP methods.\n\nUsed for:\n- Diagnosing slow queries with operator-level timing\n- Verifying that pushdown delivers the expected plan\n- Validating join strategy and index usage after tuning\n\nKey syntax / tables / Tcodes:\n- Right-click in HANA Studio / HANA Database Explorer -> Visualize Plan\n- EXPLAIN PLAN FOR <statement> for the text version\n- M_TABLE_STATISTICS to inspect optimizer statistics\n- ST05 to capture statement first, then load into PlanViz\n\nInterview keyword: actual graphical execution plan with timings",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  }
+}

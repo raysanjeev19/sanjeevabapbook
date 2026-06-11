@@ -15,3 +15,12 @@ export function readingMinutes(...texts: string[]) {
   const words = texts.join(" ").trim().split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.round(words / 200));
 }
+
+/**
+ * Theme-adaptive readable tint of a chapter color: mixes toward the
+ * foreground so pastel hues darken in light mode and stay bright in dark.
+ * Use for TEXT/ICONS only — hex-alpha concatenation (`${color}1f`) needs raw hex.
+ */
+export function ink(color: string, strength = 64) {
+  return `color-mix(in srgb, ${color} ${strength}%, var(--foreground) ${100 - strength}%)`;
+}

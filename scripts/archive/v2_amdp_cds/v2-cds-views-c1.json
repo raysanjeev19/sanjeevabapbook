@@ -1,0 +1,76 @@
+{
+  "cds-views-008": {
+    "interviewScriptHinglish": "Sir, CDS view ko OData service banane ka modern approach do tarike hain — @OData.publish: true legacy annotation se, ya Service Definition aur Service Binding RAP approach se. @OData.publish quick aur simple hai — view activate karte hi /sap/opu/odata/sap/<ViewName>_CDS endpoint mil jaata hai. RAP approach modern aur recommended hai S/4HANA 2020 ke baad — Service Definition mein entities expose karte hain, Service Binding se OData V2 ya V4 ka URL bind hota hai. Practically, mere project mein Fiori Elements list report ke liye Service Binding approach use kiya — OData V4 endpoint mila, $expand aur $filter natively support hue. Iska benefit yeh hai ki RAP approach extensible, version-controlled, aur Fiori Elements ke saath fully aligned hai.",
+    "interviewScriptEnglish": "Exposing a CDS view as an OData service has two approaches. The legacy @OData.publish: true annotation creates the service automatically upon activation, accessible at /sap/opu/odata/sap/<ViewName>_CDS. The modern RAP approach uses a Service Definition that lists exposed entities and a Service Binding that binds the service to OData V2 or V4 protocol. Service Binding is preferred from S/4HANA 2020 onward because it is extensible, supports both protocol versions, and integrates cleanly with Fiori Elements. We use service binding for new projects and continue maintaining @OData.publish for older services. The business value is choice between speed and architectural fit based on project context.",
+    "wordByWordSamjho": [
+      { "keyword": "@OData.publish: true", "meaning": "Legacy annotation that auto-publishes a CDS view as OData V2 service" },
+      { "keyword": "Service Definition", "meaning": "RAP artifact listing the CDS entities to be exposed by a service" },
+      { "keyword": "Service Binding", "meaning": "RAP artifact binding a service definition to OData V2 or V4 endpoint" },
+      { "keyword": "$metadata", "meaning": "OData endpoint returning the service metadata document" },
+      { "keyword": "$filter", "meaning": "OData query option pushing filter down to the database" },
+      { "keyword": "$expand", "meaning": "OData query option triggering association resolution" },
+      { "keyword": "SEGW", "meaning": "Legacy Gateway transaction for building OData services from scratch" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Using @OData.publish for new S/4HANA services",
+        "whyWrong": "Limited to OData V2 and lacks modern extension features",
+        "correctApproach": "Use Service Definition and Service Binding for new development; reserve publish for quick demos"
+      },
+      {
+        "mistake": "Skipping authorization setup before service exposure",
+        "whyWrong": "Anyone with service access can read all rows",
+        "correctApproach": "Enable DCL on the CDS view and ensure user PFCG roles grant the right authorization values"
+      },
+      {
+        "mistake": "Forgetting to activate the service in /IWFND/MAINT_SERVICE",
+        "whyWrong": "OData URL returns 404 even after CDS activation",
+        "correctApproach": "Activate via service binding (RAP) or maintain service in Gateway transaction"
+      },
+      {
+        "mistake": "Ignoring Fiori Elements annotation requirements",
+        "whyWrong": "Generated app shows raw field names and missing UI hints",
+        "correctApproach": "Add @UI.lineItem, @UI.headerInfo, and @Semantics annotations for Fiori-ready metadata"
+      }
+    ],
+    "quickRevisionNotes": "What: Two paths to expose a CDS view as an OData service in SAP.\n\nUsed for:\n- Fiori Elements applications consuming CDS\n- External integrations requiring OData V2 or V4\n- Embedded analytics with @Analytics annotated views\n\nKey syntax / tables / Tcodes:\n- @OData.publish: true (legacy V2)\n- Service Definition + Service Binding in Eclipse ADT (RAP, V2 or V4)\n- /IWFND/MAINT_SERVICE to register services\n- /IWFND/GW_CLIENT to test endpoints\n\nInterview keyword: legacy publish vs modern service binding",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "cds-views-009": {
+    "interviewScriptHinglish": "Sir, SAP ne CDS Views ko Virtual Data Model — VDM — naam se architecture mein organize kiya hai, jaise ek building ke alag-alag floors. Layers hain Interface (I_), Consumption (C_), Analytical (A_), Private (P_), aur extensions. @VDM.viewType annotation se layer indicate hota hai. Standard SAP views jaise I_SalesOrder, C_SalesOrderTP industry-best naming aur structure follow karte hain. Practically, mere project mein humne ZI_SALESORDER (interface), ZC_SALESORDER_TP (consumption transactional processing), ZA_SALESORDER (analytical) layers banayi. Standard SAP I_ views ko base bana ke custom Z layers extend kiye. Iska benefit yeh hai ki upgrade-safe customization milta hai, reusability strong hoti hai, aur naming conventions team-wide consistency dete hain.",
+    "interviewScriptEnglish": "The Virtual Data Model organizes CDS views into clearly defined layers so the data model is modular and reusable. The standard prefixes are I_ for interface or basic views, C_ for consumption views used by Fiori or OData, A_ for analytical views with cube semantics, P_ for private internal views, and E_ for extension views. The @VDM.viewType annotation declares the layer. SAP delivers thousands of standard VDM views such as I_SalesOrder and C_SalesOrderTP that should be reused or extended rather than rewritten. We mirror the SAP convention with Z prefixes for custom layers. The business value is upgrade safety, consistent naming, reusability across consumers, and easier onboarding for new developers.",
+    "wordByWordSamjho": [
+      { "keyword": "@VDM.viewType", "meaning": "Annotation indicating the VDM layer of the view" },
+      { "keyword": "I_ (interface)", "meaning": "Basic data model view exposing core fields and associations" },
+      { "keyword": "C_ (consumption)", "meaning": "Consumer-facing view with Fiori or OData annotations" },
+      { "keyword": "A_ (analytical)", "meaning": "Analytical view marked as cube or query for OLAP" },
+      { "keyword": "P_ (private)", "meaning": "Internal reusable view not intended for direct consumption" },
+      { "keyword": "Extension View", "meaning": "Adds fields to a standard SAP view via EXTEND VIEW" },
+      { "keyword": "Composite View", "meaning": "Combines multiple VDM views for higher-level aggregation" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Putting all annotations into a single big view",
+        "whyWrong": "Reuse suffers and consumer-specific annotations leak into shared models",
+        "correctApproach": "Split into interface, consumption, and analytical views per the VDM layering"
+      },
+      {
+        "mistake": "Modifying standard SAP CDS views directly",
+        "whyWrong": "Breaks upgrade compatibility and may be overwritten by SAP",
+        "correctApproach": "Use EXTEND VIEW or wrap the SAP view in a custom Z view"
+      },
+      {
+        "mistake": "Skipping @VDM.viewType annotation",
+        "whyWrong": "Tools and developers lose context about the view's role",
+        "correctApproach": "Set @VDM.viewType to BASIC, COMPOSITE, CONSUMPTION, or EXTENSION as appropriate"
+      },
+      {
+        "mistake": "Confusing value help views with regular consumption views",
+        "whyWrong": "Value help has different annotations and limited consumption pattern",
+        "correctApproach": "Use suffix _VH and @ObjectModel.valueHelp annotations for value help views"
+      }
+    ],
+    "quickRevisionNotes": "What: SAP's layered architecture for CDS views, the Virtual Data Model (VDM).\n\nUsed for:\n- Reusable and upgrade-safe data modelling in S/4HANA\n- Clear separation between data source and consumption\n- Aligning custom development with SAP standards\n\nKey syntax / tables / Tcodes:\n- @VDM.viewType #BASIC | #COMPOSITE | #CONSUMPTION | #EXTENSION\n- Prefixes: I_, C_, A_, P_, E_ (Z variants for custom)\n- Eclipse ADT for layered modelling\n- EXTEND VIEW for safe extensions of SAP views\n\nInterview keyword: layered VDM with I_, C_, A_, P_ prefixes",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  }
+}

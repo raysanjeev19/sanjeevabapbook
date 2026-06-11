@@ -16,7 +16,7 @@ import { Badge, difficultyVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { Chapter } from "@/lib/types";
-import { percent } from "@/lib/utils";
+import { ink, percent } from "@/lib/utils";
 import { useStudyStore } from "@/store/use-study-store";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { BrandLogo } from "@/components/layout/brand-logo";
@@ -54,7 +54,7 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
           <div className="flex items-center gap-1.5 text-sm">
             <Link href="/" className="flex items-center gap-2">
               <BrandLogo size={28} />
-              <span className="hidden font-serif font-semibold text-foreground sm:inline">CodeGurukul</span>
+              <span className="hidden font-serif font-semibold text-foreground sm:inline">ABAPPrep</span>
             </Link>
             <ChevronRight size={11} className="text-faint" />
             <span className="max-w-[180px] truncate font-semibold text-foreground">{chapter.title}</span>
@@ -90,7 +90,7 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
           <div className="mt-5">
             <div className="flex items-center justify-between text-xs">
               <span className="text-muted">{completedInChapter} / {chapter.questions.length} completed</span>
-              <span className="font-bold" style={{ color: chapter.color }}>{chapterProgress}%</span>
+              <span className="font-bold" style={{ color: ink(chapter.color) }}>{chapterProgress}%</span>
             </div>
             <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-2">
               <div
@@ -137,7 +137,7 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
                       className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold"
                       style={
                         isDone
-                          ? { backgroundColor: `${chapter.color}22`, color: chapter.color }
+                          ? { backgroundColor: `${chapter.color}22`, color: ink(chapter.color) }
                           : { backgroundColor: "var(--surface-2)", color: "var(--faint)" }
                       }
                     >
@@ -165,7 +165,7 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
         {/* Bottom CTA */}
         <section className="mt-6 rounded-xl border border-border bg-surface-2 p-4">
           <div className="flex items-center gap-3">
-            <CheckCircle2 size={16} style={{ color: chapter.color }} />
+            <CheckCircle2 size={16} style={{ color: ink(chapter.color) }} />
             <p className="text-xs leading-5 text-muted">
               Complete all questions, then run the AI Interview for follow-ups, traps, and scoring.
             </p>

@@ -1,0 +1,141 @@
+{
+  "amdp-hana-028": {
+    "interviewScriptHinglish": "Sir, AMDP transport karna ek careful sequencing exercise hai. Class transport ke saath HANA stored procedure automatically regenerate hoti hai target system mein. Dependencies — CDS views jo USING mein hain — pehle transport hone chahiye. Pre-transport checklist mein code review, unit tests, performance baseline, rollback plan sab include karte hain. Practically, mere project mein 8 AMDPs transport karne the — STMS mein sequence prepare ki: pehle CDS views, fir AMDP classes, fir consumer programs. Production mein activation smoothly hua. Iska benefit yeh hai ki structured transport process se production deployment confident aur safe hota hai aur dependency-related failures avoid hote hain.",
+    "interviewScriptEnglish": "Transporting AMDP requires careful sequencing because the underlying HANA stored procedure regenerates automatically when the class activates in the target system. Dependencies — particularly CDS views and other AMDPs listed in the USING clause — must travel and activate first. A pre-transport checklist includes peer code review, ABAP Unit results, performance baseline, transport sequence diagram, and a rollback plan. STMS controls the transport order across DEV, QA, and PRD. We monitor activation logs post-import and roll back via a prepared reverse transport if issues appear. The business value is predictable releases, fewer production outages, and traceable change management.",
+    "wordByWordSamjho": [
+      { "keyword": "STMS", "meaning": "Transport Management System orchestrating object movement" },
+      { "keyword": "Activation", "meaning": "Step in target system that compiles ABAP and generates HANA stored procedure" },
+      { "keyword": "Rollback transport", "meaning": "Prepared reverse change ready to restore prior state" },
+      { "keyword": "Dependency", "meaning": "CDS view or other AMDP listed in USING that must arrive first" },
+      { "keyword": "Pre-transport checklist", "meaning": "Defined gating items before approving the transport" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Transporting AMDP before its dependent CDS view",
+        "whyWrong": "Activation fails in the target system because the view is missing",
+        "correctApproach": "Sequence CDS views first, then AMDP classes, then consumer programs"
+      },
+      {
+        "mistake": "Skipping rollback planning",
+        "whyWrong": "Production outage cannot be quickly reverted if the change fails",
+        "correctApproach": "Prepare a reverse transport and validate it in QA before go-live"
+      },
+      {
+        "mistake": "Ignoring activation logs after import",
+        "whyWrong": "Silent activation failures lead to runtime errors days later",
+        "correctApproach": "Review SE09/STMS import logs and re-activate any failed object"
+      },
+      {
+        "mistake": "Treating AMDP transport like a pure ABAP change",
+        "whyWrong": "Misses HANA-side stored procedure regeneration and DCL dependencies",
+        "correctApproach": "Include HANA-side checks in the transport runbook and post-import smoke tests"
+      }
+    ],
+    "quickRevisionNotes": "What: Process and checklist for safely transporting AMDP changes across landscapes.\n\nUsed for:\n- Release management for AMDP and dependent CDS\n- Change approval governance\n- Recovery planning when transports fail\n\nKey syntax / tables / Tcodes:\n- STMS for transport orchestration\n- SE09/SE10 for transport requests\n- Sequence: CDS -> AMDP -> consumers\n- Pre-transport checklist with rollback plan\n\nInterview keyword: sequence dependencies, plan rollback",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "amdp-hana-029": {
+    "interviewScriptHinglish": "Sir, AMDP aur HANA optimization interview mein interviewer teen cheezein test karta hai — concept clarity, real project experience, aur problem-solving approach. AMDP ko ek non-technical manager ko bhi simple language mein explain karna aana chahiye — 'database pe kaam karne wala ABAP method jisse Fiori reports fast chalte hain'. Biggest learning honestly bolo, slowness scenarios pe diagnostic approach batao. Practically, mere project mein finance director ko AMDP migration justify karna tha — humne before-after metrics dikhaye aur OPEX savings calculate kiye. Iska benefit yeh hai ki technical aur business sides dono clearly handle kar pao, jo senior consultant role ke liye essential hai.",
+    "interviewScriptEnglish": "AMDP and HANA optimization interview questions test concept clarity, project experience, and problem-solving instinct. Be ready to explain AMDP to a non-technical manager — a database-side ABAP method that makes Fiori reports faster. Share your biggest learning, perhaps about debugging or production tuning, with concrete examples. Discuss what you do when an AMDP is slower than expected — typically capture PlanViz, refresh statistics, inspect intermediate tabular variables. Show ecosystem breadth: CDS, calculation views, RAP, and analytics. The business value of broad coverage is positioning yourself as a senior ABAP-on-HANA professional who can both build and communicate.",
+    "wordByWordSamjho": [
+      { "keyword": "OPEX savings", "meaning": "Operational expense reduction often used to justify HANA work" },
+      { "keyword": "Before-after metric", "meaning": "Comparative number capturing improvement after optimization" },
+      { "keyword": "Diagnostic approach", "meaning": "Structured method for investigating performance issues" },
+      { "keyword": "Calculation view", "meaning": "HANA modeling artifact complementary to AMDP and CDS" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Speaking only in technical terms to a manager interviewer",
+        "whyWrong": "Loses business audience and fails to demonstrate communication skill",
+        "correctApproach": "Translate AMDP value into faster reports, lower cost, real-time decisions"
+      },
+      {
+        "mistake": "Failing to articulate a clear biggest learning",
+        "whyWrong": "Signals lack of reflection on past work",
+        "correctApproach": "Pick one specific lesson, why it mattered, and what you do differently now"
+      },
+      {
+        "mistake": "Generic before-after stories without numbers",
+        "whyWrong": "Reduces credibility because claims cannot be evaluated",
+        "correctApproach": "Cite actual response times, dataset sizes, and tools used to measure"
+      },
+      {
+        "mistake": "Ignoring related concepts such as CDS, RAP, and calculation views",
+        "whyWrong": "Reveals narrow exposure and may close doors to wider roles",
+        "correctApproach": "Bring up adjacent topics naturally and connect them to AMDP work"
+      }
+    ],
+    "quickRevisionNotes": "What: Interview wrap-up topics for AMDP and HANA optimization roles.\n\nUsed for:\n- Demonstrating senior-level breadth and communication\n- Manager and architect round preparation\n- Story-building around real project lessons\n\nKey syntax / tables / Tcodes:\n- Plain-language analogy for non-technical managers\n- Diagnostic chain: PlanViz, statistics, tabular variables\n- Before-after metrics with units and tooling reference\n- CDS, RAP, calculation views as ecosystem topics\n\nInterview keyword: clarity, evidence, ecosystem awareness",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "amdp-hana-030": {
+    "interviewScriptHinglish": "Sir, support escalation matlab production mein issue hai aur business affected hai. AMDP failure pe pehla check transport history ka, fir input data anomalies, fir HANA-level resource pressure. Escalation chain hoti hai L1, L2, L3, vendor — har level pe handover document karte hain. Stakeholders ko regular updates dete hain. Workaround ke through service quickly restore karte hain. Practically, mere project mein AMDP suddenly fail hone laga — recent transport ne column type change kiya tha. Hum L2 mein issue contain kiya, workaround ke roop mein previous version restore ki, L3 mein root cause fix kiya. Iska benefit yeh hai ki structured escalation se downtime minimised hota hai aur business continuity protect hoti hai.",
+    "interviewScriptEnglish": "Support escalation handles production issues that exceed first-line resolution. For an AMDP failure, the initial checks cover recent transports, input data anomalies, and HANA resource pressure visible in HANA Cockpit. The escalation chain typically runs L1 to L2 to L3 and on to SAP if needed, with structured handoffs documented at each step. Stakeholders receive regular status updates and impact estimates. A workaround such as reverting to a previous version restores service while the root cause is fixed. After resolution, a post-mortem identifies preventive actions. The business value is minimised downtime, transparent communication, and continuous improvement of operational maturity.",
+    "wordByWordSamjho": [
+      { "keyword": "Escalation chain", "meaning": "Defined sequence of support levels for incident handoff" },
+      { "keyword": "Workaround", "meaning": "Temporary fix restoring service while root cause is addressed" },
+      { "keyword": "Root cause analysis", "meaning": "Investigation method identifying the underlying problem source" },
+      { "keyword": "HANA Cockpit", "meaning": "Monitoring tool for HANA resources and statement statistics" },
+      { "keyword": "Post-mortem", "meaning": "Blameless review after resolution to capture lessons learned" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Escalating without diagnostic data",
+        "whyWrong": "Next level wastes time gathering basic information",
+        "correctApproach": "Collect ST05 traces, dump details, HANA Cockpit snapshots before escalating"
+      },
+      {
+        "mistake": "Not communicating impact to stakeholders",
+        "whyWrong": "Loss of trust and pressure escalates from business side",
+        "correctApproach": "Provide regular status updates, expected timelines, and current workarounds"
+      },
+      {
+        "mistake": "Skipping workaround in favour of waiting for root cause fix",
+        "whyWrong": "Extends downtime even when service can be restored quickly",
+        "correctApproach": "Restore service with safe workaround first, then fix root cause in parallel"
+      },
+      {
+        "mistake": "Not performing a post-mortem after resolution",
+        "whyWrong": "Loses the lesson; similar incidents recur",
+        "correctApproach": "Document timeline, root cause, and preventive actions; share across team"
+      }
+    ],
+    "quickRevisionNotes": "What: Structured escalation and resilience process for AMDP production incidents.\n\nUsed for:\n- Severity-driven incident response\n- Maintaining business continuity during outages\n- Continuous improvement of operational maturity\n\nKey syntax / tables / Tcodes:\n- L1->L2->L3->vendor escalation chain\n- ST22, HANA Cockpit, ST05 for diagnostic capture\n- Workaround patterns: revert transport, fallback report\n- Blameless post-mortem template\n\nInterview keyword: contain quickly, fix correctly, learn always",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "amdp-hana-031": {
+    "interviewScriptHinglish": "Sir, FS — Functional Specification — mein business requirements likhi hoti hain: kya output chahiye, kaun use karega, kab tak chahiye. AMDP design karne se pehle FS se data volume, response time SLA, authorization model, aur consumer pattern samajhte hain. TS — Technical Specification — mein convert karte hain: AMDP class aur method signature, IMPORTING/EXPORTING parameters, SQLScript pseudocode, USING dependencies, authorization wrapper design, test cases, transport sequence. Practically, mere project mein finance migration FS se 15 AMDPs design ki, har ek ka TS sign-off liya pehle development se. Iska benefit yeh hai ki requirements technical solution se traceable rehte hain aur post-go-live audit smoothly pass hota hai.",
+    "interviewScriptEnglish": "Functional Specification captures business requirements: outputs, users, frequencies, SLAs, and compliance constraints. When designing an AMDP solution, we extract data volume, response time SLA, authorization model, and consumer pattern from the FS, then translate them into a Technical Specification. The TS covers class and method signatures, IMPORTING and EXPORTING parameters, SQLScript pseudocode, USING dependencies, authorization wrapper design, error handling, test cases, and transport sequence. We obtain stakeholder sign-off on the TS before development begins. This traceability between FS and TS supports audit reviews and avoids scope drift. The business value is alignment, governance, and predictable delivery.",
+    "wordByWordSamjho": [
+      { "keyword": "FS", "meaning": "Functional Specification capturing business requirements" },
+      { "keyword": "TS", "meaning": "Technical Specification translating FS into implementation design" },
+      { "keyword": "SLA", "meaning": "Service Level Agreement defining target response time or availability" },
+      { "keyword": "Sign-off", "meaning": "Formal approval from stakeholder before development begins" },
+      { "keyword": "Traceability", "meaning": "Mapping linking requirements to design and tests for audit" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Starting AMDP development without a TS",
+        "whyWrong": "Misses authorization, performance, and dependency considerations",
+        "correctApproach": "Always produce a TS derived from the FS and obtain sign-off before coding"
+      },
+      {
+        "mistake": "Skipping data volume analysis from FS in TS",
+        "whyWrong": "Solution may fail performance SLA at production volumes",
+        "correctApproach": "Capture expected row counts and growth in TS to justify pushdown design"
+      },
+      {
+        "mistake": "Documenting authorization design as an afterthought",
+        "whyWrong": "Security gaps surface during audit or penetration testing",
+        "correctApproach": "Define AUTHORITY-CHECK objects and MANDT handling in the TS upfront"
+      },
+      {
+        "mistake": "Omitting test cases and transport sequence from TS",
+        "whyWrong": "Causes ad-hoc testing and transport failures later",
+        "correctApproach": "Include test scenarios, expected results, and dependency-ordered transport plan"
+      }
+    ],
+    "quickRevisionNotes": "What: Mapping from Functional Specification to Technical Specification for AMDP-based solutions.\n\nUsed for:\n- Requirement-to-design traceability\n- Governance and audit compliance\n- Predictable delivery and clear sign-off gates\n\nKey syntax / tables / Tcodes:\n- TS sections: signature, USING, SQLScript pseudocode, authorization, errors, tests, transport\n- Reference SLAs and volumes from FS\n- Stakeholder sign-off ritual before development\n\nInterview keyword: FS in, TS out, traceability throughout",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  }
+}

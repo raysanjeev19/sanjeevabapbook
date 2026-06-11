@@ -10,6 +10,7 @@ import {
   Search,
 } from "lucide-react";
 import { allQuestions, chapters } from "@/lib/content";
+import { ink } from "@/lib/utils";
 import { Badge, difficultyVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -47,7 +48,7 @@ export default function AllQuestionsPage() {
           <div className="flex items-center gap-2">
             <Link href="/" className="flex items-center gap-2">
               <BrandLogo size={28} />
-              <span className="font-serif text-sm font-semibold text-foreground">CodeGurukul</span>
+              <span className="font-serif text-sm font-semibold text-foreground">ABAPPrep</span>
             </Link>
             <ChevronRight size={12} className="text-faint" />
             <span className="text-sm font-semibold text-accent">All Questions</span>
@@ -118,7 +119,7 @@ export default function AllQuestionsPage() {
                   <div className="flex items-center gap-3">
                     <span
                       className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
-                      style={{ backgroundColor: `${chapter?.color ?? "#0e7c72"}1f`, color }}
+                      style={{ backgroundColor: `${chapter?.color ?? "#0e7c72"}1f`, color: ink(color) }}
                     >
                       <Icon size={14} />
                     </span>

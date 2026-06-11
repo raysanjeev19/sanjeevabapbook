@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft, BookOpen, Brain, ChevronRight, Mic } from "lucide-react";
 import { chapters } from "@/lib/content";
-import { percent } from "@/lib/utils";
+import { ink, percent } from "@/lib/utils";
 import { useStudyStore } from "@/store/use-study-store";
 import { Badge, difficultyVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,7 @@ export default function InterviewPickerPage() {
           <div className="flex items-center gap-2">
             <Link href="/" className="flex items-center gap-2">
               <BrandLogo size={28} />
-              <span className="font-serif text-sm font-semibold text-foreground">CodeGurukul</span>
+              <span className="font-serif text-sm font-semibold text-foreground">ABAPPrep</span>
             </Link>
             <ChevronRight size={12} className="text-faint" />
             <span className="text-sm font-semibold text-accent">AI Interview</span>
@@ -64,7 +64,7 @@ export default function InterviewPickerPage() {
                 >
                   <span
                     className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
-                    style={{ backgroundColor: `${chapter.color}1f`, color: chapter.color }}
+                    style={{ backgroundColor: `${chapter.color}1f`, color: ink(chapter.color) }}
                   >
                     <Icon size={17} />
                   </span>

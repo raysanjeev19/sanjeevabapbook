@@ -1,0 +1,115 @@
+{
+  "cds-views-001": {
+    "interviewScriptHinglish": "Sir, CDS — Core Data Services — ek modern data modeling layer hai S/4HANA mein jo DDIC views ke upar evolution hai. DEFINE VIEW ENTITY syntax mein likhte hain, with annotations like @AbapCatalog.sqlViewName, @AccessControl, @OData.publish, @Analytics. Code pushdown automatically hota hai — joins aur aggregations HANA pe execute hote hain. Practically, mere project mein sales analytics ke liye CDS view banaya — Fiori app aur OData service dono ne same view consume kiya. Associations [0..1] aur [0..*] se navigation paths define kiye, DCL se row-level authorization. Iska benefit yeh hai ki ek hi data model reusable hai across Fiori, OData, analytics aur ABAP — duplication khatam aur maintainability dramatically improve hoti hai.",
+    "interviewScriptEnglish": "Core Data Services, or CDS, is SAP's modern data modeling framework in S/4HANA that supersedes classical DDIC views. CDS views are defined in DDL inside Eclipse ADT using DEFINE VIEW or DEFINE VIEW ENTITY syntax with rich annotations covering metadata, access control, OData publishing, analytics, and Fiori UI. Code pushdown is automatic because the view executes on HANA. CDS supports associations, parameters, virtual elements, extensions, DCL access control, and table functions. In our project a single sales analytics CDS view served the Fiori application, OData service, embedded analytics, and ABAP reports. The business value is one reusable data layer with consistent semantics across consumers, simplifying maintenance and accelerating delivery.",
+    "wordByWordSamjho": [
+      { "keyword": "DEFINE VIEW", "meaning": "CDS DDL keyword introducing a view definition" },
+      { "keyword": "@AbapCatalog.sqlViewName", "meaning": "Annotation mapping the CDS entity to a DDIC SQL view name" },
+      { "keyword": "@AccessControl.authorizationCheck", "meaning": "Annotation linking the CDS view to a DCL access role for row-level security" },
+      { "keyword": "association [0..1]", "meaning": "Lazy navigational relationship returning at most one related entity" },
+      { "keyword": "$projection", "meaning": "Reference to the current CDS view in association ON conditions" },
+      { "keyword": "ZI_ prefix", "meaning": "Naming convention for interface or base CDS views" },
+      { "keyword": "@OData.publish", "meaning": "Annotation that auto-generates an OData service from the CDS view" },
+      { "keyword": "@Analytics.dataCategory", "meaning": "Annotation marking CDS view as CUBE, FACT, or DIMENSION for analytics" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Treating CDS views like legacy SE11 views",
+        "whyWrong": "Misses annotations, associations, and HANA pushdown that make CDS powerful",
+        "correctApproach": "Use Eclipse ADT and leverage annotations, associations, DCL, and parameters in CDS"
+      },
+      {
+        "mistake": "Skipping the layered VDM architecture",
+        "whyWrong": "All annotations end up in one view, hurting reuse and clarity",
+        "correctApproach": "Build interface views (ZI_) then consumption views (ZC_) with annotations layered by purpose"
+      },
+      {
+        "mistake": "Forgetting DCL for sensitive data",
+        "whyWrong": "Every consumer sees all rows because no row-level security is enforced",
+        "correctApproach": "Mark @AccessControl.authorizationCheck #CHECK and define DCL roles with pfcg_auth"
+      },
+      {
+        "mistake": "Using SELECT inside a loop on a CDS view",
+        "whyWrong": "Negates pushdown benefits and floods the application server",
+        "correctApproach": "Use single SELECT with WHERE and aggregates so HANA does the work"
+      }
+    ],
+    "quickRevisionNotes": "What: Modern SAP data modelling framework for read scenarios with annotations, associations, and pushdown.\n\nUsed for:\n- Reusable data layer for Fiori, OData, analytics, and ABAP\n- Embedded analytics with @Analytics annotations\n- Row-level security through DCL access roles\n\nKey syntax / tables / Tcodes:\n- DEFINE VIEW [ENTITY] in Eclipse ADT\n- @AbapCatalog.sqlViewName, @AccessControl, @OData.publish, @Analytics\n- Associations with [0..1] / [0..*] and $projection ON conditions\n- VDM prefixes: I_ / C_ / A_ / P_ / ZI_ / ZC_\n\nInterview keyword: declarative HANA-pushed data model",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "cds-views-002": {
+    "interviewScriptHinglish": "Sir, database view aur CDS view dono SAP mein data abstraction provide karte hain, lekin generation aur capabilities mein bada farak hai. Database view SE11 mein banta hai — simple JOIN, no annotations, no associations. CDS view Eclipse ADT mein banta hai — rich annotations, associations, parameters, DCL, OData publish. Practically, mere project mein purani database view thi customer-order joining ke liye — Fiori requirement aaya toh same data CDS view mein migrate kiya, @OData.publish add ki, Fiori app directly consume karne lagi. Iska benefit yeh hai ki CDS view modern requirements — Fiori, OData, analytics, access control — sab natively support karta hai, jo database views nahi de sakte.",
+    "interviewScriptEnglish": "Database views and CDS views both provide data abstraction in SAP but differ significantly in capability and tooling. Database views are maintained in SE11, support basic JOINs, and have no annotations or associations. CDS views are built in Eclipse ADT with rich DDL syntax that includes annotations, associations, parameters, DCL access control, virtual elements, and OData publishing. CDS views execute on HANA with automatic pushdown. In our project we migrated a customer-order database view to a CDS view to enable Fiori consumption through @OData.publish, gaining annotations and DCL in the process. The business value is access to the entire SAP modernization stack — Fiori, OData, analytics, and access control — built natively into the view.",
+    "wordByWordSamjho": [
+      { "keyword": "Database view", "meaning": "Classical SE11-based view supporting basic JOINs and projection" },
+      { "keyword": "DDL Source", "meaning": "Source object type DDLS holding CDS view definition" },
+      { "keyword": "@AbapCatalog.sqlViewName", "meaning": "Annotation specifying the generated SQL view name" },
+      { "keyword": "@OData.publish", "meaning": "Annotation creating an OData service from the CDS view" },
+      { "keyword": "SE11", "meaning": "Transaction code for DDIC maintenance including database views" },
+      { "keyword": "Eclipse ADT", "meaning": "ABAP Development Tools, the IDE for CDS development" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Choosing a database view when CDS features are needed",
+        "whyWrong": "Stops the team from using annotations, associations, OData publishing, and DCL",
+        "correctApproach": "Default to CDS for new requirements; reserve database views only for legacy maintenance"
+      },
+      {
+        "mistake": "Trying to edit a CDS view in SE11",
+        "whyWrong": "SE11 only shows the generated SQL view; the CDS source must be edited in Eclipse ADT",
+        "correctApproach": "Open the DDL source in Eclipse ADT and treat SE11 as a read-only display tool"
+      },
+      {
+        "mistake": "Migrating SE11 views without redesigning for CDS strengths",
+        "whyWrong": "Misses opportunities for associations, DCL, and Fiori-ready annotations",
+        "correctApproach": "Use migration as a chance to layer interface and consumption views with proper annotations"
+      },
+      {
+        "mistake": "Ignoring transport differences between view types",
+        "whyWrong": "Database view changes can sometimes skip activation; CDS requires DDLS plus DCLS sequencing",
+        "correctApproach": "Plan dependency-aware transports for CDS, including DDLS, DCLS, and consuming objects"
+      }
+    ],
+    "quickRevisionNotes": "What: Comparison between classical database views and modern CDS views.\n\nUsed for:\n- Deciding which technology to use for new and existing requirements\n- Planning migrations from SE11 to CDS\n- Justifying CDS adoption in S/4HANA projects\n\nKey syntax / tables / Tcodes:\n- SE11 for database views, Eclipse ADT for CDS\n- DDLS object class for CDS DDL, DCLS for access control\n- @AbapCatalog.sqlViewName ties CDS to a SQL view name\n- @OData.publish, associations, DCL only in CDS\n\nInterview keyword: legacy versus modern, capability gap",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "cds-views-003": {
+    "interviewScriptHinglish": "Sir, CDS annotations metadata instructions hain jo view ke saath aati hain aur consumers ko semantic information deti hain. @AbapCatalog SQL view naming aur compatibility control karta hai, @AccessControl authorization, @OData.publish service generation, @Analytics analytics behaviour, @UI Fiori display configuration, @Semantics column meaning, @Search search behaviour. Practically, mere project mein analytical CDS view banayi — @Analytics.dataCategory: #CUBE, @UI.lineItem, @Semantics.amount.currencyCode sab use kiye. Fiori Elements app ne automatically tile generate ki bina extra code ke. Iska benefit yeh hai ki annotations se metadata-driven UX aur services build hoti hain — kam custom code, faster delivery, consistent semantics.",
+    "interviewScriptEnglish": "CDS annotations provide metadata that drives downstream behaviour in OData services, Fiori Elements applications, embedded analytics, and search frameworks. Categories include @AbapCatalog for catalog-level settings, @AccessControl for authorization, @OData for service publishing, @Analytics for OLAP behaviour, @UI for Fiori display configuration, @Semantics for column meaning such as currency or quantity unit, @Search for full-text search, @EndUserText for descriptions, and @ObjectModel for object navigation. We use annotations to declaratively configure Fiori KPI tiles, OData service metadata, and analytical cubes without writing custom code. The business value is metadata-driven UX, faster delivery, and consistent semantics across consumers.",
+    "wordByWordSamjho": [
+      { "keyword": "@AbapCatalog.sqlViewName", "meaning": "Specifies the generated SQL view name in DDIC" },
+      { "keyword": "@Semantics.amount.currencyCode", "meaning": "Marks a column as amount with its currency reference" },
+      { "keyword": "@UI.lineItem", "meaning": "Annotation positioning a field in Fiori list item display" },
+      { "keyword": "@UI.headerInfo", "meaning": "Annotation describing the object header in Fiori object pages" },
+      { "keyword": "@Analytics.dataCategory: #CUBE", "meaning": "Marks the view as a multidimensional cube for analytics" },
+      { "keyword": "@OData.publish: true", "meaning": "Auto-generates an OData service from the view" },
+      { "keyword": "@Search.searchable: true", "meaning": "Enables the view for enterprise search consumption" },
+      { "keyword": "@EndUserText.label", "meaning": "Annotation supplying the user-visible label for a field" },
+      { "keyword": "@ObjectModel", "meaning": "Annotation category controlling object navigation and value help" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Mixing consumer-specific annotations into interface views",
+        "whyWrong": "Couples reusable views to one consumer and reduces reuse",
+        "correctApproach": "Put consumer annotations like @OData.publish or @UI in consumption views (ZC_)"
+      },
+      {
+        "mistake": "Forgetting @Semantics for amounts and quantities",
+        "whyWrong": "OData metadata loses currency and unit references, breaking Fiori formatting",
+        "correctApproach": "Add @Semantics.amount.currencyCode and @Semantics.quantity.unitOfMeasure"
+      },
+      {
+        "mistake": "Skipping @EndUserText.label or @ObjectModel for value helps",
+        "whyWrong": "Users see technical field names; navigation paths break in Fiori",
+        "correctApproach": "Set @EndUserText.label and @ObjectModel.foreignKey.* annotations for navigation"
+      },
+      {
+        "mistake": "Ignoring @Search annotations on searchable entities",
+        "whyWrong": "Enterprise search cannot find or rank the entity properly",
+        "correctApproach": "Mark @Search.searchable: true and use @Search.defaultSearchElement for key fields"
+      }
+    ],
+    "quickRevisionNotes": "What: Metadata instructions on CDS views that drive OData, Fiori, analytics, and search behaviour.\n\nUsed for:\n- Metadata-driven Fiori Elements pages\n- Automatic OData service metadata\n- Analytical cube and search behaviour\n\nKey syntax / tables / Tcodes:\n- @AbapCatalog, @AccessControl, @OData, @Analytics\n- @UI, @Semantics, @Search, @EndUserText, @ObjectModel\n- Layer annotations: interface views minimal, consumption views rich\n- $metadata endpoint reflects annotations\n\nInterview keyword: declarative metadata across the SAP modernization stack",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  }
+}

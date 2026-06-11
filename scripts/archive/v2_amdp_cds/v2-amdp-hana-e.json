@@ -1,0 +1,145 @@
+{
+  "amdp-hana-016": {
+    "interviewScriptHinglish": "Sir, HANA optimization aur AMDP ka Technical Design Document ek blueprint hai jo solution architecture clearly capture karta hai. Mandatory sections hote hain: business requirement, current vs target state, AMDP class aur method signature, USING dependencies, SQLScript logic flow, authorization design, error handling, transport plan, aur test cases. Practically, mere project mein AMDP TDD mein ABAP wrapper authorization, MANDT handling, expected response time, aur PlanViz baseline sab document kiya. Peer review se 2-3 design issues pehle hi pakad liye gaye. Iska benefit yeh hai ki AMDP code review, transport, aur production support ke time TDD reference banta hai aur knowledge silos nahi bante.",
+    "interviewScriptEnglish": "A Technical Design Document for HANA optimization or AMDP captures the architectural intent before any code is written. Mandatory sections include business requirement, current state vs target state, class and method signatures, USING clause dependencies, the SQLScript logic flow described in pseudocode, authorization model, error handling strategy, transport sequence, performance baseline, and test cases. We use ADT for development but maintain the TDD in Confluence or SharePoint with diagrams. Peer review catches design issues such as missing client filters or inadequate authorization before they reach code. The business value is fewer defects, smoother audits, and faster onboarding when team members rotate.",
+    "wordByWordSamjho": [
+      { "keyword": "USING", "meaning": "AMDP clause documented in TDD listing every dependent table or view" },
+      { "keyword": "IMPORTING/EXPORTING", "meaning": "Method parameters captured in the signature section of the TDD" },
+      { "keyword": "Authorization design", "meaning": "Section describing how AUTHORITY-CHECK is enforced in the ABAP wrapper" },
+      { "keyword": "Performance baseline", "meaning": "Recorded ST05 or PlanViz numbers used as success criteria" },
+      { "keyword": "Transport sequence", "meaning": "Ordered list of dependent objects that must move together" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Skipping USING dependency documentation",
+        "whyWrong": "Transport failures occur when dependent CDS or tables are not part of the sequence",
+        "correctApproach": "List every transparent table, CDS view, and called AMDP in the TDD with transport order"
+      },
+      {
+        "mistake": "Writing the SQLScript directly in TDD as runnable code",
+        "whyWrong": "TDD becomes a brittle copy of the source and falls out of sync",
+        "correctApproach": "Capture pseudocode with logical steps and a link to the code repository"
+      },
+      {
+        "mistake": "Documenting performance expectations without baseline numbers",
+        "whyWrong": "There is nothing to compare against during testing or post-go-live",
+        "correctApproach": "Capture the baseline ST05/PlanViz figures and target SLA in the TDD"
+      },
+      {
+        "mistake": "Treating peer review as a formality",
+        "whyWrong": "Misses authorization, NULL handling, and pushdown gaps that are hard to find later",
+        "correctApproach": "Use a structured AMDP review checklist signed off by another senior developer"
+      }
+    ],
+    "quickRevisionNotes": "What: Blueprint document covering business need, design, dependencies, and validation for AMDP work.\n\nUsed for:\n- Pre-development alignment between architects and developers\n- Reference during code review and transport\n- Audit and knowledge handover\n\nKey syntax / tables / Tcodes:\n- Sections: requirement, signature, USING, SQLScript pseudocode, authorization, errors, transport, tests\n- ADT for development; Confluence/SharePoint for the TDD\n- ST05/PlanViz baseline numbers as success criteria\n\nInterview keyword: structured design before code",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "amdp-hana-017": {
+    "interviewScriptHinglish": "Sir, AMDP effort estimation mein technical complexity, data volume, testing scope aur dependencies sab consider karte hain. Simple AMDP — single table read with aggregation — ka effort 1-2 days hai. Complex multi-step with CDS Table Function, authorization, aur extensive testing 5-7 days le sakta hai. Estimation buckets banao: design 20 percent, development 40 percent, unit testing 20 percent, integration plus performance testing 20 percent. Practically, mere project mein finance migration mein 15 AMDPs ka estimate diya — uncertainty ke liye 20 percent buffer add kiya. Iska benefit yeh hai ki stakeholders ko realistic timeline milta hai aur project plan stable rehta hai surprises ke bina.",
+    "interviewScriptEnglish": "AMDP effort estimation considers complexity, data volume, dependency depth, and testing rigor. A simple read-only AMDP with one table and basic aggregation might take one to two days; a complex multi-step AMDP that calls other AMDPs, integrates with a CDS Table Function for Fiori, and requires extensive parallel testing can take five to seven days. We break effort into design, development, unit testing, and integration plus performance testing. Story points are useful for relative sizing in agile teams; calendar days work better for fixed-bid projects. A 20 percent buffer accommodates HANA-specific tuning iterations. The business value is realistic timelines and predictable delivery.",
+    "wordByWordSamjho": [
+      { "keyword": "Story Points", "meaning": "Relative sizing measure used in agile estimation" },
+      { "keyword": "Buffer", "meaning": "Percentage uplift added to handle estimation uncertainty" },
+      { "keyword": "Performance baseline", "meaning": "Pre-work measurement guiding the optimization effort" },
+      { "keyword": "Parallel testing", "meaning": "Running old and new logic side by side, adds to effort" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Estimating only the development time and ignoring testing",
+        "whyWrong": "Testing AMDP needs HANA tools and parallel runs which often exceed coding time",
+        "correctApproach": "Split estimate into design, dev, unit test, integration test, and performance test"
+      },
+      {
+        "mistake": "Skipping a buffer for HANA tuning iterations",
+        "whyWrong": "PlanViz feedback often requires query rewrites that extend the timeline",
+        "correctApproach": "Add 15 to 25 percent buffer depending on complexity"
+      },
+      {
+        "mistake": "Presenting raw hours to non-technical stakeholders",
+        "whyWrong": "Hours hide trade-offs and risk being treated as deadlines",
+        "correctApproach": "Translate estimates into business value, milestones, and risk callouts"
+      },
+      {
+        "mistake": "Using the same estimate for AMDP and CDS Table Function work",
+        "whyWrong": "Table Function adds metadata, OData publishing, and Fiori integration overhead",
+        "correctApproach": "Estimate Table Function separately, accounting for metadata and OData testing"
+      }
+    ],
+    "quickRevisionNotes": "What: Structured approach to sizing AMDP-related work.\n\nUsed for:\n- Sprint planning and release roadmaps\n- Communicating delivery timelines to stakeholders\n- Negotiating scope on fixed-bid AMDP projects\n\nKey syntax / tables / Tcodes:\n- Buckets: design 20, dev 40, unit test 20, integration+perf 20 percent\n- Buffer 15 to 25 percent for tuning iterations\n- Story points for agile, days for fixed-bid\n- Baseline ST05/PlanViz numbers as inputs\n\nInterview keyword: realistic, multi-bucket estimation",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "amdp-hana-018": {
+    "interviewScriptHinglish": "Sir, AMDP development mein bahut saare SAP transactions aur tools combine hote hain. Eclipse ADT primary IDE hai class aur method creation ke liye. ST05 SQL trace pushdown verify karne ke liye. SAT runtime analysis profiling ke liye. DBACOCKPIT HANA-side monitoring ke liye. SE11 secondary index aur table buffering ke liye. STMS transport management ke liye. Practically, mere project mein AMDP slow report troubleshoot karte time ST05 se trace liya, fir DBACOCKPIT mein HANA-level execution dekhi, fir PlanViz HANA Studio mein khol ke bottleneck identify kiya. Iska benefit yeh hai ki tool ka right combination use karne se faster diagnosis hota hai aur production support cycle short ho jaata hai.",
+    "interviewScriptEnglish": "AMDP development relies on a combination of ABAP and HANA tools. Eclipse ADT is the primary IDE for class and method creation; ST05 traces SQL calls; SAT profiles ABAP runtime; DBACOCKPIT and HANA Cockpit monitor HANA performance; SE11 maintains DDIC structures and secondary indexes; STMS controls transports. HANA Studio and HANA Database Explorer host PlanViz for execution analysis. Each tool plays a specific role: development in ADT, performance diagnosis in ST05 and DBACOCKPIT, plan analysis in PlanViz, and transport orchestration in STMS. The business value is shorter diagnosis cycles and predictable delivery cadence across the SAP and HANA stack.",
+    "wordByWordSamjho": [
+      { "keyword": "ADT", "meaning": "ABAP Development Tools in Eclipse, primary IDE for AMDP and CDS" },
+      { "keyword": "ST05", "meaning": "SQL trace transaction used to record and analyze SQL statements" },
+      { "keyword": "SAT", "meaning": "Runtime analysis transaction for profiling ABAP and AMDP" },
+      { "keyword": "DBACOCKPIT", "meaning": "Database administration cockpit including HANA monitoring" },
+      { "keyword": "SE11", "meaning": "Data Dictionary maintenance transaction" },
+      { "keyword": "STMS", "meaning": "Transport Management System for moving objects across landscapes" },
+      { "keyword": "ST12", "meaning": "Combined ABAP/SQL trace transaction for end-to-end profiling" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Trying to develop AMDP only in SE80",
+        "whyWrong": "SE80 lacks first-class support for AMDP and CDS; ADT is the recommended IDE",
+        "correctApproach": "Install Eclipse with ABAP Development Tools and use it for AMDP/CDS work"
+      },
+      {
+        "mistake": "Relying solely on ST05 without checking HANA Cockpit",
+        "whyWrong": "Misses HANA-side wait events and memory pressure indicators",
+        "correctApproach": "Combine ABAP-side ST05 trace with HANA Cockpit or DBACOCKPIT analysis"
+      },
+      {
+        "mistake": "Ignoring STMS transport sequence for AMDP and dependent CDS",
+        "whyWrong": "Activation failures appear in target system when dependencies arrive late",
+        "correctApproach": "Use STMS to plan ordered transport with CDS first, then AMDP"
+      },
+      {
+        "mistake": "Skipping ST12 for end-to-end performance profiling",
+        "whyWrong": "Loses correlation between ABAP runtime and SQL execution",
+        "correctApproach": "Use ST12 when both ABAP code and SQL share blame for performance"
+      }
+    ],
+    "quickRevisionNotes": "What: Catalogue of transactions and tools used across AMDP development and support.\n\nUsed for:\n- Building AMDP classes and methods\n- Performance diagnostics and tuning\n- Transport orchestration to production\n\nKey syntax / tables / Tcodes:\n- ADT (Eclipse) for development\n- ST05, SAT, ST12 for performance\n- DBACOCKPIT, HANA Cockpit, PlanViz for HANA monitoring\n- SE11 for DDIC; STMS for transports\n\nInterview keyword: right tool for each stage of the AMDP lifecycle",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  },
+  "amdp-hana-019": {
+    "interviewScriptHinglish": "Sir, interview mein AMDP poochne ke baad aksar related concepts pe deep questions aate hain. BY DATABASE PROCEDURE vs BY DATABASE FUNCTION — procedure mein DML allowed, function strictly read-only aur CDS Table Function se back ho sakta hai. RAP mein AMDP determinations aur validations mein use ho sakta hai. HANA calculation views USING mein consume kar sakte hain. Production transport pe stored procedure automatically created hoti hai. Practically, mere project mein CDS Table Function ko AMDP function se back kiya — Fiori app ne directly consume kiya. Iska benefit yeh hai ki AMDP ke saath related ecosystem topics — CDS, RAP, calculation views, transport — sab smoothly explain kar sako interview mein.",
+    "interviewScriptEnglish": "AMDP follow-up questions in interviews typically explore the broader ecosystem. BY DATABASE PROCEDURE supports DML while BY DATABASE FUNCTION is strictly read-only and can implement CDS Table Functions. AMDP fits into RAP through determinations, validations, and queries. HANA calculation views can be accessed inside AMDP via the USING clause with proper schema qualification. On transport, SAP automatically regenerates the underlying stored procedure in the target system as part of class activation. Exception handling uses cx_amdp_error subclasses. Knowing these surrounding topics signals breadth of experience and helps connect AMDP to S/4HANA architecture in interviews.",
+    "wordByWordSamjho": [
+      { "keyword": "BY DATABASE PROCEDURE", "meaning": "AMDP method addition allowing DML and procedural logic" },
+      { "keyword": "BY DATABASE FUNCTION", "meaning": "AMDP method addition for read-only table functions" },
+      { "keyword": "RAP", "meaning": "RESTful ABAP Programming model for behaviour and query handlers" },
+      { "keyword": "Calculation View", "meaning": "HANA modeling artifact consumable from AMDP via USING" },
+      { "keyword": "CDS Table Function", "meaning": "CDS entity backed by an AMDP function" },
+      { "keyword": "cx_amdp_error", "meaning": "Standard exception class raised by AMDP failures" },
+      { "keyword": "SERIES_GENERATE_DATE", "meaning": "HANA built-in for generating date series without loops" }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Using BY DATABASE PROCEDURE for read-only logic exposed to CDS",
+        "whyWrong": "CDS Table Function requires BY DATABASE FUNCTION and read-only semantics",
+        "correctApproach": "Use BY DATABASE FUNCTION for table-function backing and PROCEDURE for general AMDP"
+      },
+      {
+        "mistake": "Calling HANA calculation views without schema qualification",
+        "whyWrong": "AMDP cannot resolve the calculation view and activation fails",
+        "correctApproach": "Provide full schema path in USING and reference the view consistently"
+      },
+      {
+        "mistake": "Skipping cx_amdp_error catch in production code",
+        "whyWrong": "Runtime exceptions surface as ABAP dumps with poor context",
+        "correctApproach": "Wrap AMDP calls in TRY...CATCH cx_amdp_error and log the message text"
+      },
+      {
+        "mistake": "Assuming AMDP needs manual deployment on the target system",
+        "whyWrong": "Class transport automatically regenerates the HANA stored procedure",
+        "correctApproach": "Use standard STMS transports; verify activation status in the target client"
+      }
+    ],
+    "quickRevisionNotes": "What: Surrounding concepts that complete an AMDP-focused interview answer.\n\nUsed for:\n- Demonstrating ecosystem awareness in interviews\n- Designing CDS Table Functions backed by AMDP\n- Integrating AMDP into RAP services\n\nKey syntax / tables / Tcodes:\n- BY DATABASE PROCEDURE vs BY DATABASE FUNCTION\n- define table function ... implemented by method ...\n- RAP determinations, validations, query handlers\n- cx_amdp_error TRY-CATCH handling\n- SERIES_GENERATE_DATE for date series\n\nInterview keyword: AMDP plus its ecosystem in S/4HANA",
+    "followupTiers": ["easy", "easy", "easy", "medium", "medium", "medium", "advanced", "advanced"]
+  }
+}

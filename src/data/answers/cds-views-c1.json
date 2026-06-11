@@ -4,70 +4,133 @@
     "hinglishMasterExplanation": "CDS View ko OData expose karne ke do main raste hain. Pehla aur easiest tarika hai @OData.publish:true annotation use karna — yeh ek line se automatic OData V2 service ban jaati hai. Dusra modern tarika hai ADT mein Service Binding create karna, jahan tum OData V2 ya V4 dono choose kar sakte ho. Service Binding ke saath tum ek Service Definition bhi banate ho jo define karta hai kaun se entities expose honge. Purane zamane mein SEGW (SAP Gateway Service Builder) use hota tha, ab CDS-based approach preferred hai. Service activate karne ke liye /IWFND/MAINT_SERVICE transaction use hoti hai backend mein — wahan System Alias set karke service register karte ho. OData V4 zyada powerful hai — filtering, batching, aur delta queries better hoti hain V2 ke mukable. Fiori Elements apps directly CDS View ki metadata annotations padhte hain, isliye @UI, @Search annotations bhi important hain. Service test karne ke liye ADT mein hi Preview button hota hai jo browser mein OData URL kholta hai. Production mein gateway logs /IWFND/ERROR_LOG se check karte hain. Ek CDS View pe multiple service bindings ho sakti hain different use cases ke liye.",
     "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'CDS View ko OData expose karne ke liye main @OData.publish:true annotation use karta hoon simple cases mein, lekin enterprise projects mein Service Definition aur Service Binding create karta hoon ADT mein. Service Binding mein OData V2 ya V4 choose kar sakte hain. Activation ke liye /IWFND/MAINT_SERVICE use hoti hai. OData V4 modern apps ke liye prefer karta hoon kyunki better filtering aur performance milti hai.'\n\nHinglish tip: V2 vs V4 ka difference zaroor batao — interviewer impress hoga. Yeh dikhata hai ki tum sirf annotation nahi, poora flow jaante ho.",
     "codeExamples": "@AbapCatalog.sqlViewName: 'ZPRODUCT_V'\n@AbapCatalog.compiler.compareFilter: true\n@AccessControl.authorizationCheck: #CHECK\n@EndUserText.label: 'Product OData View'\n-- Simple OData V2 expose via annotation\n@OData.publish: true\ndefine view Z_Product_OData\n  as select from mara\n{\n  matnr as MaterialNumber,\n  mtart as MaterialType,\n  matkl as MaterialGroup\n}\n\n-- Modern approach: Service Definition\n@EndUserText.label: 'Product Service Definition'\ndefine service Z_Product_Service {\n  expose Z_Product_OData as Products;\n}\n-- Then create Service Binding in ADT:\n-- Binding Type: OData V4 - UI\n-- Activate and use generated URL",
+    "interviewScriptHinglish": "CDS view ko OData service ke roop mein expose karne ke do approaches hain. Legacy @OData.publish: true annotation activation pe service automatically create karta hai, jo /sap/opu/odata/sap/<ViewName>_CDS pe accessible hota hai. Modern RAP approach ek Service Definition use karta hai jo exposed entities list karta hai aur ek Service Binding jo service ko OData V2 ya V4 protocol se bind karta hai. Service Binding S/4HANA 2020 ke baad se preferred hai kyunki yeh extensible hai, dono protocol versions support karta hai, aur Fiori Elements ke saath cleanly integrate hota hai. Hum new projects ke liye service binding use karte hain aur older services ke liye @OData.publish maintain karte hain. Business value project context ke basis pe speed aur architectural fit ke beech choice hai.",
+    "interviewScriptEnglish": "Exposing a CDS view as an OData service has two approaches. The legacy @OData.publish: true annotation creates the service automatically upon activation, accessible at /sap/opu/odata/sap/<ViewName>_CDS. The modern RAP approach uses a Service Definition that lists exposed entities and a Service Binding that binds the service to OData V2 or V4 protocol. Service Binding is preferred from S/4HANA 2020 onward because it is extensible, supports both protocol versions, and integrates cleanly with Fiori Elements. We use service binding for new projects and continue maintaining @OData.publish for older services. The business value is choice between speed and architectural fit based on project context.",
+    "wordByWordSamjho": [
+      {
+        "keyword": "@OData.publish: true",
+        "meaning": "Legacy annotation that auto-publishes a CDS view as OData V2 service"
+      },
+      {
+        "keyword": "Service Definition",
+        "meaning": "RAP artifact listing the CDS entities to be exposed by a service"
+      },
+      {
+        "keyword": "Service Binding",
+        "meaning": "RAP artifact binding a service definition to OData V2 or V4 endpoint"
+      },
+      {
+        "keyword": "$metadata",
+        "meaning": "OData endpoint returning the service metadata document"
+      },
+      {
+        "keyword": "$filter",
+        "meaning": "OData query option pushing filter down to the database"
+      },
+      {
+        "keyword": "$expand",
+        "meaning": "OData query option triggering association resolution"
+      },
+      {
+        "keyword": "SEGW",
+        "meaning": "Legacy Gateway transaction for building OData services from scratch"
+      }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Using @OData.publish for new S/4HANA services",
+        "whyWrong": "Limited to OData V2 and lacks modern extension features",
+        "correctApproach": "Use Service Definition and Service Binding for new development; reserve publish for quick demos"
+      },
+      {
+        "mistake": "Skipping authorization setup before service exposure",
+        "whyWrong": "Anyone with service access can read all rows",
+        "correctApproach": "Enable DCL on the CDS view and ensure user PFCG roles grant the right authorization values"
+      },
+      {
+        "mistake": "Forgetting to activate the service in /IWFND/MAINT_SERVICE",
+        "whyWrong": "OData URL returns 404 even after CDS activation",
+        "correctApproach": "Activate via service binding (RAP) or maintain service in Gateway transaction"
+      },
+      {
+        "mistake": "Ignoring Fiori Elements annotation requirements",
+        "whyWrong": "Generated app shows raw field names and missing UI hints",
+        "correctApproach": "Add @UI.lineItem, @UI.headerInfo, and @Semantics annotations for Fiori-ready metadata"
+      }
+    ],
+    "quickRevisionNotes": "What: Two paths to expose a CDS view as an OData service in SAP.\n\nUsed for:\n- Fiori Elements applications consuming CDS\n- External integrations requiring OData V2 or V4\n- Embedded analytics with @Analytics annotated views\n\nKey syntax / tables / Tcodes:\n- @OData.publish: true (legacy V2)\n- Service Definition + Service Binding in Eclipse ADT (RAP, V2 or V4)\n- /IWFND/MAINT_SERVICE to register services\n- /IWFND/GW_CLIENT to test endpoints\n\nInterview keyword: legacy publish vs modern service binding",
     "followupAnswerBank": [
       {
         "question": "OData V2 aur V4 mein kya difference hai CDS ke context mein?",
-        "hinglishExplanation": "V2 purana standard hai jo @OData.publish:true se directly kaam karta hai. V4 modern hai, zyada features hain jaise deep insert, batch requests better handling, aur $apply for aggregation.",
-        "interviewAnswer": "OData V2 legacy Fiori apps ke liye use hota hai aur @OData.publish:true se expose karna easy hai. OData V4 modern standard hai jo Service Binding se create hota hai — better performance, batch processing, aur aggregation support karta hai. New development mein V4 prefer karte hain.",
+        "hinglishExplanation": "OData V2 legacy Fiori apps ke liye use hota hai aur @OData.publish:true se expose karna easy hai. OData V4 modern standard hai jo Service Binding se create hota hai — better performance, batch processing, aur aggregation support karta hai. New development mein V4 prefer karte hain.",
+        "interviewAnswer": "OData V2 is used for legacy Fiori apps and is easy to expose using @OData.publish:true. OData V4 is the modern standard, created through a Service Binding, and offers better performance, batch processing, and aggregation support. For new development, V4 is preferred.",
         "realtimeExplanation": "Real project mein humne V2 se V4 migrate kiya tha — query performance 40% improve hui thi kyunki V4 server-side aggregation support karta hai.",
         "mistakes": "Yeh mat bolna ki V2 aur V4 same hain. Aur @OData.publish:true sirf V2 ke liye hai — V4 ke liye Service Binding zaroori hai.",
-        "codeExample": "-- V2: Simple annotation\n@OData.publish: true\ndefine view Z_My_View ...\n\n-- V4: Service Binding approach\ndefine service Z_My_Service {\n  expose Z_My_View as MyEntities;\n}\n-- ADT mein: New > Service Binding > OData V4"
+        "codeExample": "-- V2: Simple annotation\n@OData.publish: true\ndefine view Z_My_View ...\n\n-- V4: Service Binding approach\ndefine service Z_My_Service {\n  expose Z_My_View as MyEntities;\n}\n-- ADT mein: New > Service Binding > OData V4",
+        "tier": "easy"
       },
       {
         "question": "Service Binding activate karne ke baad URL kaise milta hai?",
-        "hinglishExplanation": "ADT mein Service Binding kholo, Activate karo, phir 'Preview' button click karo. URL format hota hai: /sap/opu/odata4/sap/{service_name}/... ya V2 ke liye /sap/opu/odata/sap/{service_name}/",
-        "interviewAnswer": "Service Binding ADT mein activate karne ke baad ek service URL generate hota hai. Format hota hai /sap/opu/odata4/ for V4. Gateway system mein /IWFND/MAINT_SERVICE se service register karni padti hai aur System Alias configure karna padta hai taki backend se connect ho.",
+        "hinglishExplanation": "Service Binding ADT mein activate karne ke baad ek service URL generate hota hai. Format hota hai /sap/opu/odata4/ V4 ke liye. Gateway system mein /IWFND/MAINT_SERVICE se service register karni padti hai aur System Alias configure karna padta hai taki backend se connect ho.",
+        "interviewAnswer": "After activating the Service Binding in ADT, a service URL is generated. The format is /sap/opu/odata4/ for V4. In the Gateway system, the service must be registered through /IWFND/MAINT_SERVICE, and a System Alias must be configured so it can connect to the backend.",
         "realtimeExplanation": "Ek baar galti se wrong System Alias diya tha, service activate hua lekin data nahi aa raha tha. /IWFND/ERROR_LOG ne bataya ki backend connection fail ho raha hai.",
         "mistakes": "Sirf ADT mein activate karna kaafi nahi — /IWFND/MAINT_SERVICE mein gateway pe bhi register karna padta hai agar alag gateway system hai.",
-        "codeExample": "-- URL pattern examples:\n-- OData V2: /sap/opu/odata/sap/Z_PRODUCT_SRV/Products\n-- OData V4: /sap/opu/odata4/sap/z_product_srv/srvd/sap/z_product_sd/0001/Products\n-- Test in browser or Postman with basic auth"
+        "codeExample": "-- URL pattern examples:\n-- OData V2: /sap/opu/odata/sap/Z_PRODUCT_SRV/Products\n-- OData V4: /sap/opu/odata4/sap/z_product_srv/srvd/sap/z_product_sd/0001/Products\n-- Test in browser or Postman with basic auth",
+        "tier": "easy"
       },
       {
         "question": "@OData.publish:true ke kya limitations hain?",
-        "hinglishExplanation": "Yeh annotation sirf OData V2 service banata hai. Complex scenarios mein jahan multiple views expose karni hon, ya custom actions chahiye hon, wahan kaam nahi karta. Aur yeh legacy approach hai.",
-        "interviewAnswer": "@OData.publish:true sirf OData V2 generate karta hai, V4 nahi. Multiple entities ek service mein nahi daal sakte is approach se. Custom actions ya functions add karne ki flexibility nahi hai. Isliye production-grade apps mein Service Definition aur Service Binding approach use karte hain.",
+        "hinglishExplanation": "@OData.publish:true sirf OData V2 generate karta hai, V4 nahi. Multiple entities ek service mein nahi daal sakte is approach se. Custom actions ya functions add karne ki flexibility nahi hai. Isliye production-grade apps mein Service Definition aur Service Binding approach use karte hain.",
+        "interviewAnswer": "@OData.publish:true generates only OData V2, not V4. Multiple entities cannot be combined into a single service with this approach, and there is no flexibility to add custom actions or functions. That is why production-grade applications use the Service Definition and Service Binding approach.",
         "realtimeExplanation": "Humne initially @OData.publish:true use kiya tha prototype ke liye. Jab Fiori Elements app banaya toh Service Binding pe migrate karna pada kyunki V4 chahiye tha aur multiple entities ek service mein expose karni thin.",
         "mistakes": "@OData.publish:true aur Service Binding dono ek saath use karne ki zaroorat nahi — ek hi select karo.",
-        "codeExample": "-- Works only for V2, single view:\n@OData.publish: true\ndefine view Z_Simple_View { ... }\n\n-- Better approach for complex scenarios:\ndefine service Z_Complex_Service {\n  expose Z_View_One as EntityOne;\n  expose Z_View_Two as EntityTwo;\n  -- Multiple entities in one service!\n}"
+        "codeExample": "-- Works only for V2, single view:\n@OData.publish: true\ndefine view Z_Simple_View { ... }\n\n-- Better approach for complex scenarios:\ndefine service Z_Complex_Service {\n  expose Z_View_One as EntityOne;\n  expose Z_View_Two as EntityTwo;\n  -- Multiple entities in one service!\n}",
+        "tier": "easy"
       },
       {
         "question": "CDS View mein $metadata kaise helpful hota hai?",
-        "hinglishExplanation": "$metadata OData service ka blueprint hota hai — batata hai kaun se fields hain, unke data types kya hain, aur kaun se annotations apply hain. Fiori Elements is metadata ko padh ke automatically UI generate karta hai.",
-        "interviewAnswer": "$metadata endpoint OData service ki complete structure describe karta hai — entity types, properties, navigation links, aur annotations. URL hota hai: /service-url/$metadata. Fiori Elements apps is metadata se automatically forms, tables, aur filters generate karte hain bina custom coding ke.",
+        "hinglishExplanation": "$metadata endpoint OData service ki complete structure describe karta hai — entity types, properties, navigation links, aur annotations. URL hota hai: /service-url/$metadata. Fiori Elements apps is metadata se automatically forms, tables, aur filters generate karte hain bina custom coding ke.",
+        "interviewAnswer": "The $metadata endpoint describes the complete structure of the OData service — entity types, properties, navigation links, and annotations. The URL is /service-url/$metadata. Fiori Elements apps use this metadata to automatically generate forms, tables, and filters without any custom coding.",
         "realtimeExplanation": "Ek baar field ka @EndUserText.label annotation galat tha — $metadata check karne pe pata chala label wahi old text show kar raha tha. Metadata XML padhna troubleshooting mein bahut kaam aata hai.",
         "mistakes": "Metadata changes ke baad service restart ya cache clear karna padta hai — warna purana metadata serve hota rehta hai.",
-        "codeExample": "-- Access metadata:\n-- GET /sap/opu/odata/sap/Z_PRODUCT_SRV/$metadata\n-- Annotations jo metadata mein dikhengi:\n@EndUserText.label: 'Material Number'\n@Search.defaultSearchElement: true\n@Semantics.text: true\nmatnr as MaterialNumber,"
+        "codeExample": "-- Access metadata:\n-- GET /sap/opu/odata/sap/Z_PRODUCT_SRV/$metadata\n-- Annotations jo metadata mein dikhengi:\n@EndUserText.label: 'Material Number'\n@Search.defaultSearchElement: true\n@Semantics.text: true\nmatnr as MaterialNumber,",
+        "tier": "medium"
       },
       {
         "question": "OData service ka authorization kaise handle karte hain CDS mein?",
-        "hinglishExplanation": "CDS Views mein @AccessControl.authorizationCheck annotation hota hai. DCL (Data Control Language) se Access Control Objects banate hain jo define karte hain kaun user kaunsa data dekh sakta hai.",
-        "interviewAnswer": "@AccessControl.authorizationCheck: #CHECK lagane se SAP automatically Access Control Object check karta hai. DCL files mein conditions define karte hain jaise user ke plant ya company code ke basis pe. Authorization objects S_TABU_DIS ya custom objects bhi use ho sakte hain. #NOT_REQUIRED sirf development/testing ke liye use karo.",
+        "hinglishExplanation": "@AccessControl.authorizationCheck: #CHECK lagane se SAP automatically Access Control Object check karta hai. DCL files mein conditions define karte hain jaise user ke plant ya company code ke basis pe. Authorization objects S_TABU_DIS ya custom objects bhi use ho sakte hain. #NOT_REQUIRED sirf development/testing ke liye use karo.",
+        "interviewAnswer": "Setting @AccessControl.authorizationCheck: #CHECK makes SAP automatically check the Access Control Object. Conditions are defined in DCL files, for example based on the user's plant or company code. Authorization objects like S_TABU_DIS or custom objects can also be used. #NOT_REQUIRED should only be used for development and testing.",
         "realtimeExplanation": "Production mein ek user ko sirf apne plant ka data dikhna chahiye tha. DCL mein $session.system_language aur user's plant parameter se filter lagaya — perfect multi-tenant solution ban gaya.",
         "mistakes": "#NOT_REQUIRED production mein kabhi mat use karo. Aur Access Control Object ka naam CDS view ke naam se match karna chahiye.",
-        "codeExample": "-- DCL file: Z_Product_OData.dcl\n@MappingRole: true\ndefine role Z_Product_OData {\n  grant select on Z_Product_OData\n    where (Plant) = aspect pfcg_auth(Z_PLANT_AUTH, WERKS, ACTVT='03');\n}\n-- CDS View:\n@AccessControl.authorizationCheck: #CHECK\ndefine view Z_Product_OData { ... }"
+        "codeExample": "-- DCL file: Z_Product_OData.dcl\n@MappingRole: true\ndefine role Z_Product_OData {\n  grant select on Z_Product_OData\n    where (Plant) = aspect pfcg_auth(Z_PLANT_AUTH, WERKS, ACTVT='03');\n}\n-- CDS View:\n@AccessControl.authorizationCheck: #CHECK\ndefine view Z_Product_OData { ... }",
+        "tier": "medium"
       },
       {
         "question": "Fiori Elements ke liye CDS mein kaunse annotations important hain?",
-        "hinglishExplanation": "@UI annotations Fiori Elements ko batate hain ki data kaise display karna hai. @UI.lineItem tables ke liye hai, @UI.fieldGroup forms ke liye, aur @UI.selectionField filters ke liye.",
-        "interviewAnswer": "Fiori Elements ke liye @UI annotations sabse important hain. @UI.lineItem list page ke columns define karta hai, @UI.headerInfo object page ka title batata hai, @UI.selectionField filter bar fields batata hai. @Search.searchable: true se search enable hoti hai. @Semantics annotations data ka meaning batate hain jaise currency, quantity, unit.",
+        "hinglishExplanation": "Fiori Elements ke liye @UI annotations sabse important hain. @UI.lineItem list page ke columns define karta hai, @UI.headerInfo object page ka title batata hai, @UI.selectionField filter bar fields batata hai. @Search.searchable: true se search enable hoti hai. @Semantics annotations data ka meaning batate hain jaise currency, quantity, unit.",
+        "interviewAnswer": "For Fiori Elements, the @UI annotations are the most important. @UI.lineItem defines the list page columns, @UI.headerInfo provides the object page title, and @UI.selectionField defines the filter bar fields. @Search.searchable: true enables search. @Semantics annotations describe the meaning of the data, such as currency, quantity, and unit.",
         "realtimeExplanation": "Bina @UI annotations ke Fiori Elements app ne sirf raw table dikhai. Annotations add karne ke baad automatic header, filters, aur formatted columns aa gaye — bina ek line frontend code likhe.",
         "mistakes": "@UI.lineItem mein position carefully set karo — warna columns wrong order mein dikhengi. Aur @UI.hidden: true se sensitive fields hide karo.",
-        "codeExample": "define view Z_Product_Fiori\n  as select from mara\n{\n  @UI.lineItem: [{ position: 10, label: 'Material' }]\n  @UI.selectionField: [{ position: 10 }]\n  matnr as MaterialNumber,\n\n  @UI.lineItem: [{ position: 20, label: 'Type' }]\n  mtart as MaterialType,\n\n  @Semantics.amount.currencyCode: 'CurrencyCode'\n  @UI.lineItem: [{ position: 30 }]\n  vprsv as Price\n}"
+        "codeExample": "define view Z_Product_Fiori\n  as select from mara\n{\n  @UI.lineItem: [{ position: 10, label: 'Material' }]\n  @UI.selectionField: [{ position: 10 }]\n  matnr as MaterialNumber,\n\n  @UI.lineItem: [{ position: 20, label: 'Type' }]\n  mtart as MaterialType,\n\n  @Semantics.amount.currencyCode: 'CurrencyCode'\n  @UI.lineItem: [{ position: 30 }]\n  vprsv as Price\n}",
+        "tier": "medium"
       },
       {
         "question": "SEGW aur CDS-based OData approach mein kya difference hai?",
-        "hinglishExplanation": "SEGW (Gateway Service Builder) purana tarika hai jahan manually entity types, properties, aur mappings define karte the. CDS-based approach modern hai jahan annotations se sab automatic hota hai — zyada maintainable aur DRY (Don't Repeat Yourself).",
-        "interviewAnswer": "SEGW transaction mein manually OData service banate the — entity types, properties, associations sab GUI mein define karte the, phir ABAP classes mein GET_ENTITY, GET_ENTITYSET methods implement karte the. CDS approach mein sab annotations se drive hota hai — model ek jagah define hota hai, service automatic generate hoti hai. CDS approach faster development, better testing, aur SAP standard compliant hai.",
+        "hinglishExplanation": "SEGW transaction mein manually OData service banate the — entity types, properties, associations sab GUI mein define karte the, phir ABAP classes mein GET_ENTITY, GET_ENTITYSET methods implement karte the. CDS approach mein sab annotations se drive hota hai — model ek jagah define hota hai, service automatic generate hoti hai. CDS approach faster development, better testing, aur SAP standard compliant hai.",
+        "interviewAnswer": "In the SEGW transaction, OData services were built manually — entity types, properties, and associations were defined in the GUI, and then GET_ENTITY and GET_ENTITYSET methods were implemented in ABAP classes. In the CDS approach, everything is annotation-driven — the model is defined in one place and the service is generated automatically. The CDS approach gives faster development, better testability, and is SAP's recommended standard.",
         "realtimeExplanation": "Purani SEGW-based service ko CDS mein migrate kiya tha — 500 lines ki ABAP class ko 50 lines ke CDS View aur annotations se replace kiya. Maintenance drastically reduce ho gayi.",
         "mistakes": "Naye projects mein SEGW use karna avoid karo. Lekin agar existing SEGW service extend karni ho toh SEGW hi use karo consistency ke liye.",
-        "codeExample": "-- Old SEGW approach (avoid for new projects):\n-- Transaction SEGW > Create Project > Define Entities manually\n-- Implement ZCL_MY_SERVICE_DPC_EXT with GET_ENTITYSET\n\n-- Modern CDS approach:\n@OData.publish: true\ndefine view Z_Modern_Service\n  as select from ekko\n{\n  ebeln as PurchaseOrder,\n  lifnr as Vendor\n  -- No ABAP class needed for basic CRUD!\n}"
+        "codeExample": "-- Old SEGW approach (avoid for new projects):\n-- Transaction SEGW > Create Project > Define Entities manually\n-- Implement ZCL_MY_SERVICE_DPC_EXT with GET_ENTITYSET\n\n-- Modern CDS approach:\n@OData.publish: true\ndefine view Z_Modern_Service\n  as select from ekko\n{\n  ebeln as PurchaseOrder,\n  lifnr as Vendor\n  -- No ABAP class needed for basic CRUD!\n}",
+        "tier": "advanced"
       },
       {
         "question": "OData service mein $filter aur $expand kaise kaam karta hai CDS ke saath?",
-        "hinglishExplanation": "$filter URL parameter se data filter kar sakte ho jaise SQL WHERE clause. $expand se associated entities bhi ek hi request mein fetch ho jaati hain — performance ke liye important hai. CDS mein associations define karne se $expand automatically kaam karta hai.",
-        "interviewAnswer": "$filter OData service mein data filter karta hai — URL mein likho ?$filter=MaterialType eq 'FERT'. CDS View mein @Search.searchable aur proper data types set karne se filtering better kaam karti hai. $expand ke liye CDS mein association define karna padta hai — phir ?$expand=to_SalesOrders se related data bhi ek call mein aa jaata hai. Yeh N+1 query problem solve karta hai.",
+        "hinglishExplanation": "$filter OData service mein data filter karta hai — URL mein likho ?$filter=MaterialType eq 'FERT'. CDS View mein @Search.searchable aur proper data types set karne se filtering better kaam karti hai. $expand ke liye CDS mein association define karna padta hai — phir ?$expand=to_SalesOrders se related data bhi ek call mein aa jaata hai. Yeh N+1 query problem solve karta hai.",
+        "interviewAnswer": "$filter filters data in the OData service — for example, ?$filter=MaterialType eq 'FERT' in the URL. Setting @Search.searchable and proper data types in the CDS view makes filtering work better. For $expand, an association must be defined in the CDS view — then ?$expand=to_SalesOrders fetches the related data in a single call, which solves the N+1 query problem.",
         "realtimeExplanation": "Ek project mein purchase orders aur line items alag-alag fetch ho rahe the — 100 orders ke liye 101 API calls! $expand use kiya association ke saath, sirf 1 call mein sab aa gaya. Performance 90% improve hui.",
         "mistakes": "$expand without association define kiye kaam nahi karega. Aur CDS association mein ON condition sahi likhna bahut zaroori hai — warna wrong data join hoga.",
-        "codeExample": "-- CDS with Association:\ndefine view Z_PurchaseOrder\n  as select from ekko\n  association [0..*] to Z_PurchaseItem as _Items\n    on $projection.PurchaseOrder = _Items.PurchaseOrder\n{\n  ebeln as PurchaseOrder,\n  lifnr as Vendor,\n  _Items -- expose association\n}\n-- URL: /Z_PO_SRV/PurchaseOrders?$filter=Vendor eq 'V001'&$expand=_Items"
+        "codeExample": "-- CDS with Association:\ndefine view Z_PurchaseOrder\n  as select from ekko\n  association [0..*] to Z_PurchaseItem as _Items\n    on $projection.PurchaseOrder = _Items.PurchaseOrder\n{\n  ebeln as PurchaseOrder,\n  lifnr as Vendor,\n  _Items -- expose association\n}\n-- URL: /Z_PO_SRV/PurchaseOrders?$filter=Vendor eq 'V001'&$expand=_Items",
+        "tier": "advanced"
       }
     ]
   },
@@ -76,70 +139,133 @@
     "hinglishMasterExplanation": "VDM yaani Virtual Data Model SAP ka blueprint hai CDS Views organize karne ka. Pehli layer hai Interface Views — inke naam I_ prefix se start hote hain jaise I_SalesOrder. Yeh views directly database tables se data padhte hain aur raw, unfiltered data expose karte hain. Dusri layer hai Composite Views — inke naam C_ ya CP_ prefix se hote hain. Yeh multiple Interface Views ko join karke ek meaningful dataset banate hain — jaise I_SalesOrder aur I_Customer ko combine karna. Teesri aur sabse important layer hai Consumption Views — inke naam C_ prefix se hote hain lekin context alag hota hai. Yeh specific app ya use case ke liye optimized hote hain — @UI annotations, @OData.publish, aur app-specific filters ke saath. @VDM.viewType annotation batata hai view kis layer ka hai: #BASIC (Interface), #COMPOSITE, ya #CONSUMPTION. SAP S/4HANA mein hazaron standard VDM views milte hain — I_CompanyCode, C_CompanyCodeStdVH jaise. Custom views banate waqt SAP ki naming convention follow karna best practice hai. Ek aur type hota hai Transactional Views jo BOPF framework ke saath kaam karte hain. Extension Views bhi hote hain jo existing SAP standard views extend karte hain bina modify kiye. Yeh layered approach ensure karta hai ki changes ek layer mein doosri layers ko affect na karein.",
     "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'SAP VDM mein teen main view types hain. Interface Views I_ prefix se start hote hain aur raw data provide karte hain directly database se — yeh reusable building blocks hain. Composite Views multiple interface views ko join/aggregate karte hain ek meaningful model banane ke liye. Consumption Views C_ prefix se hote hain aur specific applications ke liye optimize hote hain — Fiori apps, OData services. @VDM.viewType annotation se yeh clearly define karte hain. Yeh separation ensure karta hai ki app changes backend model ko affect na karein.'\n\nHinglish tip: I_, C_, CP_ prefix aur @VDM.viewType annotation zaroor mention karo. Real SAP examples jaise I_SalesOrder dene se confidence dikhta hai.",
     "codeExamples": "-- Layer 1: Interface View (raw data)\n@VDM.viewType: #BASIC\n@AbapCatalog.sqlViewName: 'ZISALESORD'\n@EndUserText.label: 'Sales Order Interface View'\ndefine view Z_I_SalesOrder\n  as select from vbak\n{\n  vbeln as SalesOrder,\n  kunnr as SoldToParty,\n  erdat as CreationDate,\n  netwr as NetValue,\n  waerk as Currency\n}\n\n-- Layer 2: Composite View (joins multiple interface views)\n@VDM.viewType: #COMPOSITE\n@AbapCatalog.sqlViewName: 'ZCSALESCOMP'\n@EndUserText.label: 'Sales Order Composite View'\ndefine view Z_C_SalesOrderComposite\n  as select from Z_I_SalesOrder as SalesOrder\n  inner join Z_I_Customer as Customer\n    on SalesOrder.SoldToParty = Customer.Customer\n{\n  SalesOrder.SalesOrder,\n  SalesOrder.CreationDate,\n  Customer.CustomerName,\n  SalesOrder.NetValue\n}\n\n-- Layer 3: Consumption View (app-specific)\n@VDM.viewType: #CONSUMPTION\n@OData.publish: true\n@AbapCatalog.sqlViewName: 'ZCSALESAPP'\n@EndUserText.label: 'Sales Order App View'\ndefine view Z_C_SalesOrder_App\n  as select from Z_C_SalesOrderComposite\n{\n  @UI.lineItem: [{ position: 10 }]\n  SalesOrder,\n  @UI.lineItem: [{ position: 20 }]\n  CustomerName,\n  @UI.lineItem: [{ position: 30 }]\n  @Semantics.amount.currencyCode: 'Currency'\n  NetValue\n}",
+    "interviewScriptHinglish": "Virtual Data Model CDS views ko clearly defined layers mein organize karta hai taaki data model modular aur reusable rahe. Standard prefixes hain I_ interface ya basic views ke liye, C_ consumption views ke liye jo Fiori ya OData use karte hain, A_ analytical views ke liye cube semantics ke saath, P_ private internal views ke liye, aur E_ extension views ke liye. @VDM.viewType annotation layer declare karta hai. SAP thousands of standard VDM views deliver karta hai jaise I_SalesOrder aur C_SalesOrderTP jinhe rewrite karne ki bajaye reuse ya extend karna chahiye. Hum SAP convention ko Z prefixes ke saath custom layers ke liye mirror karte hain. Business value upgrade safety, consistent naming, consumers ke across reusability, aur new developers ke liye easier onboarding hai.",
+    "interviewScriptEnglish": "The Virtual Data Model organizes CDS views into clearly defined layers so the data model is modular and reusable. The standard prefixes are I_ for interface or basic views, C_ for consumption views used by Fiori or OData, A_ for analytical views with cube semantics, P_ for private internal views, and E_ for extension views. The @VDM.viewType annotation declares the layer. SAP delivers thousands of standard VDM views such as I_SalesOrder and C_SalesOrderTP that should be reused or extended rather than rewritten. We mirror the SAP convention with Z prefixes for custom layers. The business value is upgrade safety, consistent naming, reusability across consumers, and easier onboarding for new developers.",
+    "wordByWordSamjho": [
+      {
+        "keyword": "@VDM.viewType",
+        "meaning": "Annotation indicating the VDM layer of the view"
+      },
+      {
+        "keyword": "I_ (interface)",
+        "meaning": "Basic data model view exposing core fields and associations"
+      },
+      {
+        "keyword": "C_ (consumption)",
+        "meaning": "Consumer-facing view with Fiori or OData annotations"
+      },
+      {
+        "keyword": "A_ (analytical)",
+        "meaning": "Analytical view marked as cube or query for OLAP"
+      },
+      {
+        "keyword": "P_ (private)",
+        "meaning": "Internal reusable view not intended for direct consumption"
+      },
+      {
+        "keyword": "Extension View",
+        "meaning": "Adds fields to a standard SAP view via EXTEND VIEW"
+      },
+      {
+        "keyword": "Composite View",
+        "meaning": "Combines multiple VDM views for higher-level aggregation"
+      }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Putting all annotations into a single big view",
+        "whyWrong": "Reuse suffers and consumer-specific annotations leak into shared models",
+        "correctApproach": "Split into interface, consumption, and analytical views per the VDM layering"
+      },
+      {
+        "mistake": "Modifying standard SAP CDS views directly",
+        "whyWrong": "Breaks upgrade compatibility and may be overwritten by SAP",
+        "correctApproach": "Use EXTEND VIEW or wrap the SAP view in a custom Z view"
+      },
+      {
+        "mistake": "Skipping @VDM.viewType annotation",
+        "whyWrong": "Tools and developers lose context about the view's role",
+        "correctApproach": "Set @VDM.viewType to BASIC, COMPOSITE, CONSUMPTION, or EXTENSION as appropriate"
+      },
+      {
+        "mistake": "Confusing value help views with regular consumption views",
+        "whyWrong": "Value help has different annotations and limited consumption pattern",
+        "correctApproach": "Use suffix _VH and @ObjectModel.valueHelp annotations for value help views"
+      }
+    ],
+    "quickRevisionNotes": "What: SAP's layered architecture for CDS views, the Virtual Data Model (VDM).\n\nUsed for:\n- Reusable and upgrade-safe data modelling in S/4HANA\n- Clear separation between data source and consumption\n- Aligning custom development with SAP standards\n\nKey syntax / tables / Tcodes:\n- @VDM.viewType #BASIC | #COMPOSITE | #CONSUMPTION | #EXTENSION\n- Prefixes: I_, C_, A_, P_, E_ (Z variants for custom)\n- Eclipse ADT for layered modelling\n- EXTEND VIEW for safe extensions of SAP views\n\nInterview keyword: layered VDM with I_, C_, A_, P_ prefixes",
     "followupAnswerBank": [
       {
         "question": "@VDM.viewType annotation ke kya kya values hote hain?",
-        "hinglishExplanation": "Teen main values hain: #BASIC Interface views ke liye (raw data), #COMPOSITE multiple views ko combine karne ke liye, aur #CONSUMPTION apps ke liye. Ek aur value hai #EXTENSION extension views ke liye.",
-        "interviewAnswer": "@VDM.viewType ke main values hain: #BASIC jo Interface/basic views ke liye use hota hai aur directly database tables read karta hai. #COMPOSITE jo multiple BASIC views ko join karta hai. #CONSUMPTION jo final app-facing layer hai OData aur UI annotations ke saath. #EXTENSION bhi hota hai jo existing standard views extend karta hai.",
+        "hinglishExplanation": "@VDM.viewType ke main values hain: #BASIC jo Interface/basic views ke liye use hota hai aur directly database tables read karta hai. #COMPOSITE jo multiple BASIC views ko join karta hai. #CONSUMPTION jo final app-facing layer hai OData aur UI annotations ke saath. #EXTENSION bhi hota hai jo existing standard views extend karta hai.",
+        "interviewAnswer": "The main values of @VDM.viewType are: #BASIC for interface/basic views that read database tables directly; #COMPOSITE for views that join multiple BASIC views; #CONSUMPTION for the final app-facing layer with OData and UI annotations; and #EXTENSION for views that extend existing standard views.",
         "realtimeExplanation": "Ek project mein developer ne @VDM.viewType nahi lagaya tha — SAP code inspector ne warning diya. Annotation add karne ke baad documentation aur impact analysis tools properly kaam karne lage.",
         "mistakes": "Interface view ko directly Fiori app mein use karna avoid karo — Consumption view banao. Interface views mein @OData.publish lagana best practice nahi hai.",
-        "codeExample": "-- Interface/Basic View\n@VDM.viewType: #BASIC\ndefine view Z_I_Material { ... }\n\n-- Composite View\n@VDM.viewType: #COMPOSITE\ndefine view Z_CP_MaterialPlant { ... }\n\n-- Consumption View\n@VDM.viewType: #CONSUMPTION\n@OData.publish: true\ndefine view Z_C_MaterialApp { ... }"
+        "codeExample": "-- Interface/Basic View\n@VDM.viewType: #BASIC\ndefine view Z_I_Material { ... }\n\n-- Composite View\n@VDM.viewType: #COMPOSITE\ndefine view Z_CP_MaterialPlant { ... }\n\n-- Consumption View\n@VDM.viewType: #CONSUMPTION\n@OData.publish: true\ndefine view Z_C_MaterialApp { ... }",
+        "tier": "easy"
       },
       {
         "question": "SAP standard VDM views ke examples kya hain jo commonly use hote hain?",
-        "hinglishExplanation": "SAP ne hazaron standard VDM views banaye hain. I_CompanyCode, I_SalesOrder, I_PurchaseOrder yeh basic interface views hain. C_SalesOrderSalesOrg aur C_CompanyCodeStdVH yeh consumption views hain jo directly use kar sakte ho.",
-        "interviewAnswer": "SAP standard VDM views: I_CompanyCode (company master data), I_SalesOrder (sales order header), I_FiscalYear (fiscal year variant), I_Currency (currency codes) yeh BASIC views hain. C_CompanyCodeStdVH value help ke liye, C_SalesOrderSalesOrg Fiori apps ke liye consumption views hain. Inhe extend karna possible hai Extension Views se bina modifying kiye.",
+        "hinglishExplanation": "SAP standard VDM views: I_CompanyCode (company master data), I_SalesOrder (sales order header), I_FiscalYear (fiscal year variant), I_Currency (currency codes) yeh BASIC views hain. C_CompanyCodeStdVH value help ke liye, C_SalesOrderSalesOrg Fiori apps ke liye consumption views hain. Inhe extend karna possible hai Extension Views se bina modifying kiye.",
+        "interviewAnswer": "Commonly used SAP standard VDM views include I_CompanyCode (company master data), I_SalesOrder (sales order header), I_FiscalYear (fiscal year variant), and I_Currency (currency codes) as BASIC views. C_CompanyCodeStdVH is a consumption view for value help, and C_SalesOrderSalesOrg serves Fiori apps. These can be extended through Extension Views without modifying them.",
         "realtimeExplanation": "Custom report banate waqt I_SalesOrder aur I_Customer directly join kiya — teen custom Z-tables likhe bina kaam ho gaya. SAP ke standard views bahut time bachate hain.",
         "mistakes": "SAP standard I_ views ko directly modify karne ki koshish mat karo — Extension Views use karo custom fields ke liye.",
-        "codeExample": "-- Reusing SAP standard VDM views:\ndefine view Z_C_MySalesReport\n  as select from I_SalesOrder as SO\n  inner join I_BusinessPartner as BP\n    on SO.SoldToParty = BP.BusinessPartner\n{\n  SO.SalesOrder,\n  SO.SalesOrderDate,\n  BP.BusinessPartnerName,\n  SO.TotalNetAmount\n}\n-- No custom tables needed!"
+        "codeExample": "-- Reusing SAP standard VDM views:\ndefine view Z_C_MySalesReport\n  as select from I_SalesOrder as SO\n  inner join I_BusinessPartner as BP\n    on SO.SoldToParty = BP.BusinessPartner\n{\n  SO.SalesOrder,\n  SO.SalesOrderDate,\n  BP.BusinessPartnerName,\n  SO.TotalNetAmount\n}\n-- No custom tables needed!",
+        "tier": "easy"
       },
       {
         "question": "Consumption View aur Interface View mein kaunse annotations differ karte hain?",
-        "hinglishExplanation": "Interface views mein sirf data structure annotations hote hain jaise @AbapCatalog, @AccessControl. Consumption views mein UI annotations (@UI.lineItem), OData annotations (@OData.publish), aur search annotations (@Search.searchable) hoti hain.",
-        "interviewAnswer": "Interface Views (#BASIC) mein technical annotations hote hain: @AbapCatalog.sqlViewName, @AccessControl.authorizationCheck, @Semantics for data meaning. Consumption Views (#CONSUMPTION) mein app-specific annotations hote hain: @UI.* for Fiori layout, @OData.publish ya @OData.entityType for service exposure, @Search.* for search, @Consumption.filter for default filters.",
+        "hinglishExplanation": "Interface Views (#BASIC) mein technical annotations hote hain: @AbapCatalog.sqlViewName, @AccessControl.authorizationCheck, @Semantics for data meaning. Consumption Views (#CONSUMPTION) mein app-specific annotations hote hain: @UI.* for Fiori layout, @OData.publish ya @OData.entityType for service exposure, @Search.* for search, @Consumption.filter for default filters.",
+        "interviewAnswer": "Interface Views (#BASIC) carry technical annotations: @AbapCatalog.sqlViewName, @AccessControl.authorizationCheck, and @Semantics for data meaning. Consumption Views (#CONSUMPTION) carry app-specific annotations: @UI.* for Fiori layout, @OData.publish or @OData.entityType for service exposure, @Search.* for search, and @Consumption.filter for default filters.",
         "realtimeExplanation": "Interface view mein galti se @OData.publish lagaya tha — kaam to karta tha lekin architecture violation tha. Code review mein senior ne bola ki annotations consumption layer pe lagate hain, interface layer pe nahi.",
         "mistakes": "@UI annotations kabhi Interface view mein mat lagao. Woh sirf Consumption views ke liye hain. Separation of concerns maintain karo.",
-        "codeExample": "-- Interface View - only technical annotations\n@VDM.viewType: #BASIC\n@AccessControl.authorizationCheck: #CHECK\n@Semantics.amount.currencyCode: 'Currency'\ndefine view Z_I_Invoice { ... }\n\n-- Consumption View - app annotations\n@VDM.viewType: #CONSUMPTION\n@UI.headerInfo: { typeName: 'Invoice', typeNamePlural: 'Invoices' }\n@Search.searchable: true\n@OData.publish: true\ndefine view Z_C_Invoice_App { ... }"
+        "codeExample": "-- Interface View - only technical annotations\n@VDM.viewType: #BASIC\n@AccessControl.authorizationCheck: #CHECK\n@Semantics.amount.currencyCode: 'Currency'\ndefine view Z_I_Invoice { ... }\n\n-- Consumption View - app annotations\n@VDM.viewType: #CONSUMPTION\n@UI.headerInfo: { typeName: 'Invoice', typeNamePlural: 'Invoices' }\n@Search.searchable: true\n@OData.publish: true\ndefine view Z_C_Invoice_App { ... }",
+        "tier": "easy"
       },
       {
         "question": "VDM layers ka reusability mein kya faida hai?",
-        "hinglishExplanation": "Interface Views ek baar banao, multiple Consumption Views mein reuse karo. Ek I_SalesOrder view ko Fiori app, report, aur analytics — teeno mein alag-alag consumption views ke through use kar sakte ho without duplicating database logic.",
-        "interviewAnswer": "VDM layering ka sabse bada faida hai DRY principle — Don't Repeat Yourself. Ek Interface View ek jagah database logic rakhta hai. Multiple Composite ya Consumption views same Interface view reuse karte hain. Agar database structure change ho (column rename) toh sirf Interface View update karo — saari dependent views automatically update ho jaati hain. Maintenance cost dramatically kam ho jaati hai.",
+        "hinglishExplanation": "VDM layering ka sabse bada faida hai DRY principle — Don't Repeat Yourself. Ek Interface View ek jagah database logic rakhta hai. Multiple Composite ya Consumption views same Interface view reuse karte hain. Agar database structure change ho (column rename) toh sirf Interface View update karo — saari dependent views automatically update ho jaati hain. Maintenance cost dramatically kam ho jaati hai.",
+        "interviewAnswer": "The biggest benefit of VDM layering is the DRY principle — Don't Repeat Yourself. An Interface View keeps the database logic in one place, and multiple Composite or Consumption views reuse that same Interface View. If the database structure changes, such as a column rename, only the Interface View needs to be updated — all dependent views are updated automatically. This dramatically reduces maintenance cost.",
         "realtimeExplanation": "Humara I_MaterialStock view 15 alag consumption views mein reuse hota hai — different apps, different filters, lekin same base logic. Jab ek performance fix kiya I_ view mein, saare 15 apps ko benefit mila ek hi change se.",
         "mistakes": "Har app ke liye alag-alag database select likhna avoid karo. Pehle check karo ki koi existing Interface View available hai ya nahi.",
-        "codeExample": "-- One Interface View, many consumers:\ndefine view Z_I_StockData { ... } -- one place\n\n-- Consumer 1: Fiori App\ndefine view Z_C_Stock_FioriApp\n  as select from Z_I_StockData { ... }\n\n-- Consumer 2: Analytics\ndefine view Z_C_Stock_Analytics\n  as select from Z_I_StockData { ... }\n\n-- Consumer 3: OData for external system\ndefine view Z_C_Stock_External\n  as select from Z_I_StockData { ... }"
+        "codeExample": "-- One Interface View, many consumers:\ndefine view Z_I_StockData { ... } -- one place\n\n-- Consumer 1: Fiori App\ndefine view Z_C_Stock_FioriApp\n  as select from Z_I_StockData { ... }\n\n-- Consumer 2: Analytics\ndefine view Z_C_Stock_Analytics\n  as select from Z_I_StockData { ... }\n\n-- Consumer 3: OData for external system\ndefine view Z_C_Stock_External\n  as select from Z_I_StockData { ... }",
+        "tier": "medium"
       },
       {
         "question": "Extension Views ka VDM mein kya role hai?",
-        "hinglishExplanation": "Extension Views SAP standard VDM views mein custom fields add karne ka tarika hai bina original view modify kiye. Include structure use karke custom fields standard views mein append hote hain.",
-        "interviewAnswer": "Extension Views (@VDM.viewType: #EXTENSION) se hum SAP standard Interface ya Composite views extend kar sakte hain. Custom Include structure banate hain, phir Extension View create karte hain jo standard view ki fields ke saath custom fields bhi expose karta hai. Yeh upgrade-safe solution hai — SAP updates ke baad bhi customization preserve rehti hai.",
+        "hinglishExplanation": "Extension Views (@VDM.viewType: #EXTENSION) se hum SAP standard Interface ya Composite views extend kar sakte hain. Custom Include structure banate hain, phir Extension View create karte hain jo standard view ki fields ke saath custom fields bhi expose karta hai. Yeh upgrade-safe solution hai — SAP updates ke baad bhi customization preserve rehti hai.",
+        "interviewAnswer": "Extension Views (@VDM.viewType: #EXTENSION) allow us to extend SAP standard Interface or Composite views. We create a custom include structure and then an Extension View that exposes the standard view's fields along with the custom fields. This is an upgrade-safe solution — the customization is preserved even after SAP updates.",
         "realtimeExplanation": "Customer ne I_SalesOrder mein extra fields chahiye the. Include CI_VBAK banaya custom fields ke saath, Extension View ne sab kuch ek jagah expose kiya — standard upgrade ke baad bhi sab kaam karta raha.",
         "mistakes": "Standard SAP views ko directly modify (enhancement) karne se upgrade issues aate hain. Hamesha Extension View approach use karo.",
-        "codeExample": "-- Step 1: Create Include structure\n@EndUserText.label: 'Sales Order Extension'\nextend view I_SalesOrder with Z_EX_SalesOrder\n{\n  -- Custom append fields from CI_VBAK\n  vbak.zz_custom_field1 as CustomField1,\n  vbak.zz_region as SalesRegion\n}\n-- Now I_SalesOrder automatically has custom fields\n-- visible in all dependent views"
+        "codeExample": "-- Step 1: Create Include structure\n@EndUserText.label: 'Sales Order Extension'\nextend view I_SalesOrder with Z_EX_SalesOrder\n{\n  -- Custom append fields from CI_VBAK\n  vbak.zz_custom_field1 as CustomField1,\n  vbak.zz_region as SalesRegion\n}\n-- Now I_SalesOrder automatically has custom fields\n-- visible in all dependent views",
+        "tier": "medium"
       },
       {
         "question": "Composite Views mein aggregation kaise karte hain?",
-        "hinglishExplanation": "Composite Views mein GROUP BY aur aggregate functions jaise SUM, COUNT, MAX use kar sakte ho. Cube Views ek special type hai jo aggregation ke liye optimized hota hai — @Analytics.dataCategory: #CUBE annotation se.",
-        "interviewAnswer": "Composite Views mein aggregation ke liye GROUP BY clause use karte hain. SUM(NetValue) as TotalSales, COUNT(*) as OrderCount jaise expressions use hote hain. Analytical scenarios ke liye @Analytics.dataCategory: #CUBE annotation wale views hote hain jo BI tools aur Analytical Queries ke liye optimized hain. @Analytics.dataCategory: #DIMENSION dimension views ke liye hota hai.",
+        "hinglishExplanation": "Composite Views mein aggregation ke liye GROUP BY clause use karte hain. SUM(NetValue) as TotalSales, COUNT(*) as OrderCount jaise expressions use hote hain. Analytical scenarios ke liye @Analytics.dataCategory: #CUBE annotation wale views hote hain jo BI tools aur Analytical Queries ke liye optimized hain. @Analytics.dataCategory: #DIMENSION dimension views ke liye hota hai.",
+        "interviewAnswer": "Aggregation in Composite Views is done with the GROUP BY clause, using expressions like SUM(NetValue) as TotalSales and COUNT(*) as OrderCount. For analytical scenarios, views with the @Analytics.dataCategory: #CUBE annotation are optimized for BI tools and Analytical Queries, while @Analytics.dataCategory: #DIMENSION is used for dimension views.",
         "realtimeExplanation": "Monthly sales aggregation ke liye Composite View mein SUM aur GROUP BY use kiya — jo pehle ABAP report 10 minutes mein chalti thi, woh CDS aggregation se 30 seconds mein aa gayi.",
         "mistakes": "Interface views mein aggregation avoid karo — woh raw data ke liye hain. Aggregation Composite ya dedicated Cube views mein karo.",
-        "codeExample": "-- Composite View with Aggregation\n@VDM.viewType: #COMPOSITE\n@Analytics.dataCategory: #CUBE\ndefine view Z_CP_MonthlySales\n  as select from Z_I_SalesOrder\n{\n  @Semantics.calendar.yearMonth: true\n  left(CreationDate, 6) as YearMonth,\n  SoldToParty,\n  -- Aggregation\n  @DefaultAggregation: #SUM\n  sum(NetValue) as TotalSales,\n  @DefaultAggregation: #COUNT\n  count(*) as OrderCount\n}\ngroup by left(CreationDate, 6), SoldToParty"
+        "codeExample": "-- Composite View with Aggregation\n@VDM.viewType: #COMPOSITE\n@Analytics.dataCategory: #CUBE\ndefine view Z_CP_MonthlySales\n  as select from Z_I_SalesOrder\n{\n  @Semantics.calendar.yearMonth: true\n  left(CreationDate, 6) as YearMonth,\n  SoldToParty,\n  -- Aggregation\n  @DefaultAggregation: #SUM\n  sum(NetValue) as TotalSales,\n  @DefaultAggregation: #COUNT\n  count(*) as OrderCount\n}\ngroup by left(CreationDate, 6), SoldToParty",
+        "tier": "medium"
       },
       {
         "question": "VDM naming convention SAP mein kya follow karte hain?",
-        "hinglishExplanation": "SAP standard hai: I_ for Interface views, C_ for Consumption views, CP_ for Composite views. Custom views mein Z ya Y prefix add hota hai: ZI_ ya Z_I_ for custom interface views. Consistency bahut important hai team work mein.",
-        "interviewAnswer": "SAP VDM naming: SAP standard Interface views I_ se start hote hain (I_SalesOrder), Consumption views C_ se (C_SalesOrderTP), Composite views multiple forms mein. Custom development mein: ZI_ ya Z_I_ for interface, ZC_ ya Z_C_ for consumption, ZCP_ for composite. Namespace prefix bhi use kar sakte hain registered namespace ke saath. Consistent naming se code reviews aur impact analysis easy hoti hai.",
+        "hinglishExplanation": "SAP VDM naming: SAP standard Interface views I_ se start hote hain (I_SalesOrder), Consumption views C_ se (C_SalesOrderTP), Composite views multiple forms mein. Custom development mein: ZI_ ya Z_I_ for interface, ZC_ ya Z_C_ for consumption, ZCP_ for composite. Namespace prefix bhi use kar sakte hain registered namespace ke saath. Consistent naming se code reviews aur impact analysis easy hoti hai.",
+        "interviewAnswer": "SAP VDM naming conventions: SAP standard Interface views start with I_ (I_SalesOrder), Consumption views with C_ (C_SalesOrderTP), and Composite views appear in several forms. In custom development we use ZI_ or Z_I_ for interface views, ZC_ or Z_C_ for consumption views, and ZCP_ for composite views. A registered namespace prefix can also be used. Consistent naming makes code reviews and impact analysis easier.",
         "realtimeExplanation": "Project mein pehle koi naming convention nahi tha — Z_View1, Z_MyReport jaise random names the. Baad mein VDM naming adopt kiya aur ABAP package structure bhi align kiya — maintenance 50% fast ho gayi.",
         "mistakes": "Z_ prefix ke baad direct business name mat do bina layer indicator ke — Z_SalesOrder se pata nahi chalta ki yeh interface hai ya consumption. ZI_SalesOrder ya Z_C_SalesOrder_App better hai.",
-        "codeExample": "-- Naming Convention Examples:\n-- Custom Interface View:\n@VDM.viewType: #BASIC\ndefine view ZI_PurchaseOrder { ... }\n-- or: Z_I_PurchaseOrder\n\n-- Custom Composite View:\n@VDM.viewType: #COMPOSITE\ndefine view ZCP_PurchaseOrderDetails { ... }\n\n-- Custom Consumption View:\n@VDM.viewType: #CONSUMPTION\ndefine view ZC_PurchaseOrder_App { ... }\n-- Package: ZPURCHASE_VDM_BASIC, _COMPOSITE, _CONSUMPTION"
+        "codeExample": "-- Naming Convention Examples:\n-- Custom Interface View:\n@VDM.viewType: #BASIC\ndefine view ZI_PurchaseOrder { ... }\n-- or: Z_I_PurchaseOrder\n\n-- Custom Composite View:\n@VDM.viewType: #COMPOSITE\ndefine view ZCP_PurchaseOrderDetails { ... }\n\n-- Custom Consumption View:\n@VDM.viewType: #CONSUMPTION\ndefine view ZC_PurchaseOrder_App { ... }\n-- Package: ZPURCHASE_VDM_BASIC, _COMPOSITE, _CONSUMPTION",
+        "tier": "advanced"
       },
       {
         "question": "Value Help views aur Transactional views VDM mein kaise alag hote hain?",
-        "hinglishExplanation": "Value Help views (suffix StdVH ya VH) input fields ke dropdown ke liye hote hain. Transactional Views (#TRANSACTIONAL_QUERY) BOPF ya RAP framework ke saath Create/Update/Delete operations ke liye hote hain — sirf read-only nahi.",
-        "interviewAnswer": "Value Help views: @Consumption.valueHelpDefinition annotation se define hote hain, suffix mein StdVH ya VH hota hai jaise C_CompanyCodeStdVH. Yeh search helps ke liye optimized hain — fuzzy search, exact match support karte hain. Transactional Views: RAP (RESTful Application Programming) framework mein use hote hain, @VDM.viewType: #CONSUMPTION ke saath behavior definition attach hoti hai jahan Create/Update/Delete implement hota hai. Business Objects ke liye hain.",
+        "hinglishExplanation": "Value Help views: @Consumption.valueHelpDefinition annotation se define hote hain, suffix mein StdVH ya VH hota hai jaise C_CompanyCodeStdVH. Yeh search helps ke liye optimized hain — fuzzy search, exact match support karte hain. Transactional Views: RAP (RESTful Application Programming) framework mein use hote hain, @VDM.viewType: #CONSUMPTION ke saath behavior definition attach hoti hai jahan Create/Update/Delete implement hota hai. Business Objects ke liye hain.",
+        "interviewAnswer": "Value Help views are defined with the @Consumption.valueHelpDefinition annotation and usually carry a StdVH or VH suffix, such as C_CompanyCodeStdVH. They are optimized for search helps and support fuzzy search and exact match. Transactional Views are used in the RAP (RESTful Application Programming) framework with @VDM.viewType: #CONSUMPTION, with a behavior definition attached where Create/Update/Delete is implemented. They are meant for Business Objects.",
         "realtimeExplanation": "Fiori app mein Company Code input field ke liye C_CompanyCodeStdVH directly use kiya — ek annotation se ready-made search help aa gayi. RAP ke liye alag Transactional view banaya tha.",
         "mistakes": "Value Help view ko data display ke liye main view ki tarah use karna avoid karo — yeh search help optimized hain, full data nahi. Aur Transactional views mein behavior definition zaroori hai otherwise sirf read kaam karega.",
-        "codeExample": "-- Value Help View:\n@VDM.viewType: #CONSUMPTION\n@Search.searchable: true\n@ObjectModel.representativeKey: 'CompanyCode'\ndefine view ZC_CompanyCodeVH\n  as select from Z_I_CompanyCode\n{\n  @Search.defaultSearchElement: true\n  CompanyCode,\n  @Search.defaultSearchElement: true\n  CompanyCodeName\n}\n\n-- Usage in Consumption View:\n@Consumption.valueHelpDefinition: [{ entity: { name: 'ZC_CompanyCodeVH', element: 'CompanyCode' } }]\nCompanyCode,"
+        "codeExample": "-- Value Help View:\n@VDM.viewType: #CONSUMPTION\n@Search.searchable: true\n@ObjectModel.representativeKey: 'CompanyCode'\ndefine view ZC_CompanyCodeVH\n  as select from Z_I_CompanyCode\n{\n  @Search.defaultSearchElement: true\n  CompanyCode,\n  @Search.defaultSearchElement: true\n  CompanyCodeName\n}\n\n-- Usage in Consumption View:\n@Consumption.valueHelpDefinition: [{ entity: { name: 'ZC_CompanyCodeVH', element: 'CompanyCode' } }]\nCompanyCode,",
+        "tier": "advanced"
       }
     ]
   }

@@ -56,7 +56,26 @@ export type QuestionAnswer = Record<AnswerKey, string> & {
   memoryTricks: string;
   aiMentorPrompt: string;
   followupAnswerBank: FollowupAnswer[];
+  /* ABAPPrep 9-section schema (optional — rolled out incrementally) */
+  interviewScriptHinglish?: string;
+  interviewScriptEnglish?: string;
+  wordByWordSamjho?: WordExplanation[];
+  commonMistakesSection?: CommonMistake[];
+  quickRevisionNotes?: string;
 };
+
+export type WordExplanation = {
+  keyword: string;
+  meaning: string;
+};
+
+export type CommonMistake = {
+  mistake: string;
+  whyWrong: string;
+  correctApproach: string;
+};
+
+export type FollowupTier = "easy" | "medium" | "advanced";
 
 export type Followup = {
   id: string;
@@ -72,6 +91,7 @@ export type FollowupAnswer = {
   realtimeExplanation: string;
   mistakes: string;
   codeExample: string;
+  tier?: FollowupTier;
 };
 
 export type Question = {

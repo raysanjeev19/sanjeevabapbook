@@ -2,12 +2,76 @@
   "selection-screens-004": {
     "easyUnderstanding": "AT SELECTION-SCREEN OUTPUT ek ABAP event hai jo tab fire hota hai jab selection screen screen pe display hone wali hoti hai — ya re-display hoti hai. Jaise waiter jo khana laane se pehle check karta hai table proper set hai ya nahi — woh khaana table pe rakhne se pehle dekh leta hai ki sab kuch theek hai. Har baar user kuch action kare, screen dobara render hone se pehle ye event chalta hai. Is event ka sabse bada use hai: fields ko dynamically show ya hide karna. Ek real example socho: agar user ne ek checkbox ticked kiya hai 'Show Advanced Options', toh nayi fields dikhni chahiye. Yeh OUTPUT event mein hoga — tum LOOP AT SCREEN karke fields ka SCREEN-ACTIVE flag toggle karte ho. Phir MODIFY SCREEN se changes apply karte ho. Ek aur use: logged-in user ke hisaab se default values set karna — SY-UNAME se user info lo, database se unki preferences lo, aur fields mein pre-fill karo. INITIALIZATION se fark: INITIALIZATION sirf ek baar fire hota hai. OUTPUT baar baar fire hota hai — pehle display ke pehle, aur phir har user action ke baad re-display se pehle. Sequence yaad rakho: INITIALIZATION → OUTPUT (1st display) → user kuch kare → AT SELECTION-SCREEN (validation) → OUTPUT (re-display) → ... isi loop mein chalta rehta hai.",
     "hinglishMasterExplanation": "AT SELECTION-SCREEN OUTPUT interview mein important topic hai kyunki yahan dynamic screen control hoti hai. Sub-points mein samjho:\n\n1. Kab fire hota hai: Selection screen display hone se PEHLE fire hota hai. Pehli baar bhi, aur har re-display pe bhi — jaise user F8 dabaye, button click kare, ya field change kare. Yeh OUTPUT event hai — before rendering.\n\n2. AT SELECTION-SCREEN se fark: AT SELECTION-SCREEN fires AFTER user input (user ne Enter ya Execute dabaya). OUTPUT fires BEFORE display (screen render hone se pehle). Yeh timing difference bahut important hai interview mein.\n\n3. MODIF ID ka use: PARAMETERS ya SELECT-OPTIONS declare karte waqt MODIF ID xxx lagao (3 char max). Phir OUTPUT event mein LOOP AT SCREEN. SCREEN-GROUP1 field mein wo ID hoti hai. Usi se pehchano kaun sa group hai aur SCREEN-ACTIVE = 0 karo hide ke liye, 1 karo show ke liye. MODIFY SCREEN lagao har change ke baad.\n\n4. Field ko display-only banana: SCREEN-INPUT = 0 karo — field dikhega lekin user edit nahi kar sakta. Authorization checks yahan ache lagte hain.\n\n5. Pre-populate values: INITIALIZATION mein bhi kar sakte ho, lekin agar logic complex ho aur depends kare kisi aur field pe, toh OUTPUT event mein karo. Yahan runtime values access hoti hain.\n\n6. Field label change karna: SCREEN-NAME field se field ka naam milta hai. Lekin label change ke liye SET TITLEBAR ya text elements use karte hain — directly SCREEN se nahi hota easily.\n\n7. Real project example: Invoice report mein ek checkbox tha 'Include Cancelled Invoices'. Jab checkbox ON tha, additional date range fields show hote the. AT SELECTION-SCREEN OUTPUT mein LOOP AT SCREEN, check SCREEN-GROUP1 = 'ADV', agar checkbox off hai toh SCREEN-ACTIVE = 0. Elegant aur user-friendly.",
-    "interviewMeKyaBolnaHai": "Interview mein exactly yeh bolna hai:\n\n'AT SELECTION-SCREEN OUTPUT fires before the selection screen is displayed or re-displayed — it fires before every rendering. It is used to dynamically control field visibility using MODIF ID and LOOP AT SCREEN, pre-populate field values based on logged-in user or other field values, and set fields as input or display-only based on authorization. The key difference from AT SELECTION-SCREEN is timing: OUTPUT fires before the screen renders, AT SELECTION-SCREEN fires after the user submits input. In my project, I used this event to show or hide advanced filter fields based on a checkbox selection — I used MODIF ID on the field groups, then in OUTPUT I looped through SCREEN and set SCREEN-ACTIVE accordingly.'\n\nHinglish tip: Interview mein OUTPUT vs AT SELECTION-SCREEN ka difference important hai: OUTPUT = before display (rendering se pehle), AT SELECTION-SCREEN = after user input (user ne Enter dabaaya ya button click kiya). Ye timing difference clearly bolna strong answer hai. Aur MODIF ID + LOOP AT SCREEN + MODIFY SCREEN — yeh tino milake dynamic visibility control karte hain, teeno ka naam lo.",
+    "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'AT SELECTION-SCREEN OUTPUT fires before the selection screen is rendered, both for the first display and for every re-display. I use it for three things: dynamically showing or hiding fields using MODIF ID with LOOP AT SCREEN and MODIFY SCREEN, setting fields as display-only via screen-input = 0 based on authorization, and pre-populating runtime-dependent values. The key timing distinction is that OUTPUT fires before display while AT SELECTION-SCREEN fires after the user presses Enter or Execute — so OUTPUT is for layout, AT SELECTION-SCREEN is for validation. In one report, I used a checkbox plus MODIF ID groups so that advanced filter fields appeared only when the user enabled them — clean UI and zero extra clicks for the common case.'",
     "codeExamples": "REPORT zdynamic_screen_demo.\n\nPARAMETERS: p_adv  TYPE c LENGTH 1.   \" Checkbox: Show advanced\nSELECT-OPTIONS: s_bukrs FOR bkpf-bukrs MODIF ID adv.\nPARAMETERS:     p_gjahr TYPE gjahr     MODIF ID adv.\n\nINITIALIZATION.\n  \" Default: hide advanced fields on first load\n  p_adv = ' '.\n\nAT SELECTION-SCREEN OUTPUT.\n  LOOP AT SCREEN.\n    IF screen-group1 = 'ADV'.\n      IF p_adv = 'X'.\n        screen-active = 1.   \" Show field\n      ELSE.\n        screen-active = 0.   \" Hide field\n      ENDIF.\n      MODIFY SCREEN.\n    ENDIF.\n  ENDLOOP.\n\nAT SELECTION-SCREEN.\n  IF p_adv = 'X' AND s_bukrs IS INITIAL.\n    MESSAGE 'Company code required in advanced mode' TYPE 'E'.\n  ENDIF.\n\nSTART-OF-SELECTION.\n  WRITE: / 'Advanced mode:', p_adv.",
+    "interviewScriptHinglish": "AT SELECTION-SCREEN OUTPUT ek dynpro event hai jo selection screen render hone se pehle fire hota hai, both first display pe aur har re-display pe. Main isko teen purposes ke liye use karta hoon: dynamic field visibility MODIF ID aur LOOP AT SCREEN ke through, screen-input zero ke through authorization-based display-only fields set karna, aur runtime-dependent values pre-populate karna. AT SELECTION-SCREEN se timing distinction critical hai — OUTPUT display se pehle chalta hai, AT SELECTION-SCREEN Execute ke baad. Ek invoice report mein ek checkbox ek advanced filter block control karta tha — toggle karne pe additional date range fields reveal hote the MODIF ID se grouped. LOOP AT SCREEN, screen-active set karo, phir MODIFY SCREEN — yeh pattern clean default UI deta hai aur advanced options on demand available rakhta hai.",
+    "interviewScriptEnglish": "AT SELECTION-SCREEN OUTPUT is a dynpro event that fires before the selection screen is rendered, both on first display and every re-display. I use it for three purposes: dynamic field visibility through MODIF ID and LOOP AT SCREEN, setting fields to display-only via screen-input zero based on authorization, and pre-populating runtime-dependent values. The timing distinction from AT SELECTION-SCREEN is critical — OUTPUT runs before display, AT SELECTION-SCREEN runs after Execute. In one invoice report a checkbox controlled an advanced filter block — toggling it revealed additional date range fields grouped by MODIF ID. The pattern of LOOP AT SCREEN, set screen-active, then MODIFY SCREEN delivers a clean default UI while keeping advanced options available on demand.",
+    "wordByWordSamjho": [
+      {
+        "keyword": "AT SELECTION-SCREEN OUTPUT",
+        "meaning": "Event fired before each screen render for dynamic layout control"
+      },
+      {
+        "keyword": "LOOP AT SCREEN",
+        "meaning": "Iterates SCREEN system table exposing each field's runtime properties"
+      },
+      {
+        "keyword": "screen-active",
+        "meaning": "Visibility flag set to 0 to hide or 1 to show the field"
+      },
+      {
+        "keyword": "screen-input",
+        "meaning": "Editability flag — 0 makes field display-only, 1 allows input"
+      },
+      {
+        "keyword": "screen-group1",
+        "meaning": "Holds the MODIF ID assigned at declaration for group identification"
+      },
+      {
+        "keyword": "MODIFY SCREEN",
+        "meaning": "Commits screen field property changes back to the screen runtime"
+      },
+      {
+        "keyword": "MODIF ID",
+        "meaning": "Group tag attached to PARAMETERS or SELECT-OPTIONS for dynamic control"
+      },
+      {
+        "keyword": "AS CHECKBOX",
+        "meaning": "Addition that makes a PARAMETERS field a checkbox storing X or SPACE"
+      },
+      {
+        "keyword": "INITIALIZATION",
+        "meaning": "Event fired once before first display, for setting defaults"
+      }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Placing validation logic in AT SELECTION-SCREEN OUTPUT",
+        "whyWrong": "OUTPUT fires on every refresh causing repeated validation and performance lag",
+        "correctApproach": "Keep validation in AT SELECTION-SCREEN which fires only on Execute"
+      },
+      {
+        "mistake": "Forgetting MODIFY SCREEN inside the LOOP AT SCREEN block",
+        "whyWrong": "Screen property changes only exist in the in-memory work area and never apply to the actual screen",
+        "correctApproach": "Always call MODIFY SCREEN at the end of each loop iteration where properties are set"
+      },
+      {
+        "mistake": "Populating SELECT-OPTIONS defaults in OUTPUT instead of INITIALIZATION",
+        "whyWrong": "Output runs repeatedly causing duplicate range entries to accumulate over time",
+        "correctApproach": "Set range table defaults in INITIALIZATION which fires only once, or guard the append with a flag"
+      },
+      {
+        "mistake": "Using MESSAGE TYPE E inside AT SELECTION-SCREEN OUTPUT",
+        "whyWrong": "Triggers an infinite redisplay loop because the error message itself refires OUTPUT",
+        "correctApproach": "Use only TYPE I or W in OUTPUT and place TYPE E errors in AT SELECTION-SCREEN"
+      }
+    ],
+    "quickRevisionNotes": "What: AT SELECTION-SCREEN OUTPUT is the dynpro event that fires before each selection screen render\n\nUsed for:\n- Dynamic field show or hide via MODIF ID and LOOP AT SCREEN\n- Setting fields to display-only with screen-input zero based on authorization\n- Pre-populating runtime-dependent default values\n\nKey syntax / tables / Tcodes:\n- LOOP AT SCREEN with MODIFY SCREEN inside the loop\n- SCREEN structure fields: screen-name, screen-group1, screen-active, screen-input\n- INITIALIZATION for one-time defaults, AT SELECTION-SCREEN for validation\n\nInterview keyword: Pre-render dynpro event with LOOP AT SCREEN and MODIFY SCREEN",
     "followupAnswerBank": [
       {
         "question": "What is the difference between AT SELECTION-SCREEN OUTPUT and AT SELECTION-SCREEN?",
-        "hinglishExplanation": "OUTPUT fires BEFORE screen display hoti hai — rendering se pehle. AT SELECTION-SCREEN fires AFTER user ne input diya — Enter ya Execute dabane ke baad. OUTPUT dynamic visibility ke liye hai, AT SELECTION-SCREEN validation ke liye hai. Dono ka timing different hai — yeh samajhna interview mein bahut zaroori hai.",
+        "tier": "easy",
+        "hinglishExplanation": "AT SELECTION-SCREEN OUTPUT selection screen render hone se pehle fire hota hai — dynamic field control, values pre-populating, aur fields ko display-only set karne ke liye use hota hai. AT SELECTION-SCREEN user ke input submit karne ke baad fire hota hai — validation ke liye use hota hai. OUTPUT har screen refresh pe fire hota hai; AT SELECTION-SCREEN sirf tab fire hota hai jab user koi action leta hai jaise Enter ya Execute press karna.",
         "interviewAnswer": "AT SELECTION-SCREEN OUTPUT fires before the selection screen is rendered — used for dynamic field control, pre-populating values, and setting fields as display-only. AT SELECTION-SCREEN fires after the user submits input — used for validation. OUTPUT fires on every screen refresh; AT SELECTION-SCREEN fires only when user takes an action like pressing Enter or Execute.",
         "realtimeExplanation": "Project mein OUTPUT se fields show/hide kiye based on checkbox. AT SELECTION-SCREEN mein date range validate kiya. Dono events milake complete screen lifecycle control mila.",
         "mistakes": "Validation logic OUTPUT mein mat likho — woh bar bar fire hota hai aur performance hit hogi. Validation hamesha AT SELECTION-SCREEN mein rakho.",
@@ -15,7 +79,8 @@
       },
       {
         "question": "How does MODIF ID work with LOOP AT SCREEN?",
-        "hinglishExplanation": "MODIF ID ek 3-character group ID hai jo tum field declaration pe lagate ho. Jab OUTPUT event mein LOOP AT SCREEN chalate ho, toh SCREEN-GROUP1 field mein woh ID milti hai. Usi se identify karo kaun se fields hide/show karne hain. MODIFY SCREEN se change apply hota hai. Teen steps: ID lagao, LOOP mein check karo, MODIFY karo.",
+        "tier": "easy",
+        "hinglishExplanation": "MODIF ID selection screen declaration mein fields ko ek group identifier (up to 3 characters) assign karta hai. AT SELECTION-SCREEN OUTPUT mein, LOOP AT SCREEN saare screen elements iterate karta hai. SCREEN-GROUP1 har element ka MODIF ID hold karta hai. SCREEN-ACTIVE ko 0 set karne se field hide hota hai, 1 se show hota hai. MODIFY SCREEN change apply karta hai. Yeh dynamic field visibility ka standard pattern hai.",
         "interviewAnswer": "MODIF ID assigns a group identifier (up to 3 characters) to fields in the selection screen declaration. In AT SELECTION-SCREEN OUTPUT, LOOP AT SCREEN iterates all screen elements. SCREEN-GROUP1 contains the MODIF ID of each element. Setting SCREEN-ACTIVE to 0 hides a field, 1 shows it. MODIFY SCREEN applies the change. This is the standard pattern for dynamic field visibility.",
         "realtimeExplanation": "Report mein 'Date Selection' group ke fields ko conditionally show karna tha. MODIF ID 'DAT' lagaya un fields pe. OUTPUT mein LOOP AT SCREEN, IF screen-group1 = 'DAT' → active set karo, MODIFY SCREEN.",
         "mistakes": "MODIFY SCREEN ko LOOP AT SCREEN ke andar hi call karo, baad mein nahi. Aur MODIF ID sirf 3 characters tak hota hai — zyada doge toh syntax error.",
@@ -23,7 +88,8 @@
       },
       {
         "question": "How do you make a field display-only in AT SELECTION-SCREEN OUTPUT?",
-        "hinglishExplanation": "SCREEN-INPUT = 0 karo — field dikhega lekin user usme kuch type nahi kar sakta. SCREEN-ACTIVE se alag hai: ACTIVE = 0 matlab field completely invisible. INPUT = 0 matlab visible hai lekin readonly. Authorization check ke baad fields readonly banana ek common real-life use case hai.",
+        "tier": "medium",
+        "hinglishExplanation": "AT SELECTION-SCREEN OUTPUT mein, LOOP AT SCREEN ke andar, SCREEN-INPUT = 0 set karo ek field ko display-only banane ke liye — field visible rehta hai lekin edit nahi ho sakta. Yeh SCREEN-ACTIVE = 0 se alag hai jo field ko completely hide kar deta hai. Display-only tab use hota hai jab values authorization ya user profile se pre-populated hain aur user ko override nahi karna chahiye.",
         "interviewAnswer": "In AT SELECTION-SCREEN OUTPUT, inside LOOP AT SCREEN, set SCREEN-INPUT = 0 to make a field display-only — the field remains visible but cannot be edited. This differs from SCREEN-ACTIVE = 0 which hides the field completely. Display-only is used when values are pre-populated from authorization or user profile and should not be overridden by the user.",
         "realtimeExplanation": "User ka company code SY-UNAME se fetch kiya, field mein pre-fill kiya, aur SCREEN-INPUT = 0 kiya — user apna company code change nahi kar sakta tha. Security requirement thi.",
         "mistakes": "SCREEN-INPUT = 0 karne ke baad bhi field ki value program mein available hoti hai — sirf user edit nahi kar sakta. Value read karna kaam karta hai.",
@@ -31,7 +97,8 @@
       },
       {
         "question": "Can you pre-populate SELECT-OPTIONS values in AT SELECTION-SCREEN OUTPUT?",
-        "hinglishExplanation": "SELECT-OPTIONS ek internal table hai — directly pre-populate karna INITIALIZATION mein zyada common hai. Lekin OUTPUT mein bhi kar sakte ho. Structure: s_matnr = VALUE #( ( sign = 'I' option = 'EQ' low = '100-000' high = '' ) ). Ek limitation: OUTPUT baar baar fire hota hai, isliye check karo ki pehli baar hi fill karo, dobara dobara nahi.",
+        "tier": "medium",
+        "hinglishExplanation": "SELECT-OPTIONS ko INITIALIZATION ya AT SELECTION-SCREEN OUTPUT mein pre-populate kar sakte hain. INITIALIZATION mein ek baar fire hota hai; OUTPUT mein har re-display pe fire hota hai isliye use ek flag ke saath guard karo. Internal table directly populate karo: APPEND VALUE #( sign = 'I' option = 'EQ' low = value ) TO s_field. Yeh useful hai jab default ranges runtime data pe depend karte hain jaise logged-in user ke assigned plants.",
         "interviewAnswer": "SELECT-OPTIONS can be pre-populated in INITIALIZATION or AT SELECTION-SCREEN OUTPUT. In INITIALIZATION it fires once; in OUTPUT it fires on every re-display so guard it with a flag. Populate the internal table directly: APPEND VALUE #( sign = 'I' option = 'EQ' low = value ) TO s_field. This is useful when default ranges depend on runtime data like the logged-in user's assigned plants.",
         "realtimeExplanation": "User ke assigned plants SE38 authorization object se fetch karke s_werks mein pre-fill kiye. INITIALIZATION mein kiya — ek baar hi fire hota hai. User dekh sakta tha values aur modify bhi kar sakta tha.",
         "mistakes": "OUTPUT mein pre-populate karte ho toh har re-display pe append hota jaata hai — duplicates aajate hain. Ek flag rakho: first time hi fill karo ya pehle CLEAR karo table.",
@@ -39,7 +106,8 @@
       },
       {
         "question": "What is the event sequence of a selection screen program?",
-        "hinglishExplanation": "Sequence yaad rakho: LOAD-OF-PROGRAM (program load) → INITIALIZATION (default values, ek baar) → AT SELECTION-SCREEN OUTPUT (first display se pehle) → user values bharta hai → AT SELECTION-SCREEN ON FIELD (field-level validation) → AT SELECTION-SCREEN (full validation) → OUTPUT phir (re-display) → ... jab sab theek ho → START-OF-SELECTION. Yeh loop tab tak chalta hai jab tak user galat values de ya cancel na kare.",
+        "tier": "easy",
+        "hinglishExplanation": "Event sequence yeh hai: LOAD-OF-PROGRAM → INITIALIZATION (ek baar, defaults ke liye) → AT SELECTION-SCREEN OUTPUT (first display se pehle) → user interact karta hai → AT SELECTION-SCREEN ON field (field-level) → AT SELECTION-SCREEN (full-screen validation) → AT SELECTION-SCREEN OUTPUT (re-display se pehle) → yeh loop tab tak repeat hota hai jab tak valid na ho → START-OF-SELECTION. Yeh sequence samajhna correct event mein logic place karne ke liye essential hai.",
         "interviewAnswer": "The event sequence is: LOAD-OF-PROGRAM → INITIALIZATION (once, for defaults) → AT SELECTION-SCREEN OUTPUT (before first display) → user interacts → AT SELECTION-SCREEN ON field (field-level) → AT SELECTION-SCREEN (full-screen validation) → AT SELECTION-SCREEN OUTPUT (before re-display) → this loop repeats until valid → START-OF-SELECTION. Understanding this sequence is essential for placing logic in the correct event.",
         "realtimeExplanation": "Bug tha — default values baar baar reset ho rahe the. Sequence samjhne ke baad pata chala ki logic galat event mein thi — INITIALIZATION mein hona chahiye tha, lekin OUTPUT mein tha jo baar baar fire ho raha tha.",
         "mistakes": "START-OF-SELECTION mein selection screen logic mat likho — tab selection screen already close ho chuki hoti hai. Validation hamesha AT SELECTION-SCREEN mein, defaults INITIALIZATION mein.",
@@ -47,7 +115,8 @@
       },
       {
         "question": "How do you change the title of a selection screen dynamically?",
-        "hinglishExplanation": "Selection screen ka title titlebar ke through change hota hai. SET TITLEBAR 'T01' statement use karte hain — T01 ek text element (program ke text symbols mein) hota hai. Dynamic title ke liye variable use karo: SET TITLEBAR 'T01' WITH lv_title. AT SELECTION-SCREEN OUTPUT mein yeh statement likho — har re-display pe title update ho sakta hai.",
+        "tier": "advanced",
+        "hinglishExplanation": "Selection screen ka title SET TITLEBAR statement ke saath ek text element ID use karke change hota hai. Dynamic titles ke liye, SET TITLEBAR 'T01' WITH variable use karo, jahan text element &1 jaise placeholders contain karta hai. Ise AT SELECTION-SCREEN OUTPUT mein place karo taaki har display pe update ho. Yeh useful hai jab same program different modes mein chalta hai aur title current context reflect karna chahiye.",
         "interviewAnswer": "The selection screen title is changed using SET TITLEBAR statement with a text element ID. For dynamic titles, use SET TITLEBAR 'T01' WITH variable, where the text element contains placeholders like &1. Place this in AT SELECTION-SCREEN OUTPUT so it updates on every display. This is useful when the same program runs in different modes and the title should reflect the current context.",
         "realtimeExplanation": "Same report company code ke hisaab se alag mode mein chalta tha. AT SELECTION-SCREEN OUTPUT mein SET TITLEBAR se dynamic title set kiya — '1000: Invoice Report' ya '2000: Invoice Report' — user ko pata chalta tha kaunse company ka report hai.",
         "mistakes": "Titlebar text element program ke Text Symbols mein define hona chahiye — SE38 → Goto → Text Elements → Title. Warna run time error aata hai.",
@@ -55,7 +124,8 @@
       },
       {
         "question": "What is SCREEN-GROUP1 and how many group levels exist?",
-        "hinglishExplanation": "SCREEN-GROUP1 MODIF ID ki value store karta hai. Iske alawa SCREEN-GROUP2, SCREEN-GROUP3, SCREEN-GROUP4 bhi hote hain — yaani ek field pe 4 alag MODIF IDs assign kar sakte ho! MODIF ID 1 lagao, MODIF ID 2 lagao — syntax: MODIF ID ab1. Lekin ek field pe sirf ek MODIF ID ABAP syntax mein hota hai — multiple groups alag field grouping se handle karte hain.",
+        "tier": "advanced",
+        "hinglishExplanation": "SCREEN-GROUP1 selection screen declaration mein field ko assigned MODIF ID value hold karta hai. SCREEN internal table mein SCREEN-GROUP2, SCREEN-GROUP3, aur SCREEN-GROUP4 bhi hote hain — per field up to four group identifiers allow karte hain. Lekin, ABAP selection screen syntax mein, per field sirf ek MODIF ID directly supported hai. GROUP2-4 typically dynpro screens ke saath use hote hain, report selection screens ke saath nahi.",
         "interviewAnswer": "SCREEN-GROUP1 holds the MODIF ID value assigned to a field in the selection screen declaration. The SCREEN internal table also has SCREEN-GROUP2, SCREEN-GROUP3, and SCREEN-GROUP4 — allowing up to four group identifiers per field. However, in ABAP selection screen syntax, only one MODIF ID per field is supported directly. GROUP2-4 are typically used with dynpro screens, not report selection screens.",
         "realtimeExplanation": "Complex dynpro screen mein multiple groupings chahiye thi — GROUP1 visibility ke liye, GROUP2 color coding ke liye. Report selection screens mein sirf GROUP1 (MODIF ID) practically use hota hai.",
         "mistakes": "Report selection screen mein ek field pe sirf ek MODIF ID assign hota hai. Multiple MODIF IDs chahiye toh fields ko alag alag group karo ya complex logic likhni padegi.",
@@ -63,7 +133,8 @@
       },
       {
         "question": "How do you use AT SELECTION-SCREEN OUTPUT to set authorization-based field access?",
-        "hinglishExplanation": "Authorization check OUTPUT event mein karo — AUTHORITY-CHECK OBJECT 'S_TCODE' ID 'TCD' FIELD 'SE38'. Agar authority nahi mili (SY-SUBRC ne 0 nahi aaya), toh SCREEN-INPUT = 0 karo us field ke liye. Isse user field dekh sakta hai lekin edit nahi kar sakta. Sensitive fields jaise company code, plant — inhe authorization se protect karna best practice hai.",
+        "tier": "medium",
+        "hinglishExplanation": "AT SELECTION-SCREEN OUTPUT mein, AUTHORITY-CHECK OBJECT use karke authority check perform karo. SY-SUBRC ke basis pe, restricted fields ko display-only banane ke liye SCREEN-INPUT = 0 set karo, ya unhe completely hide karne ke liye SCREEN-ACTIVE = 0. Yeh ensure karta hai ki bina authorization wale users critical selection fields modify nahi kar sakte. Display-only fields ke liye field value ek default se pre-populate karo taaki unme meaningful data ho.",
         "interviewAnswer": "In AT SELECTION-SCREEN OUTPUT, perform an authority check using AUTHORITY-CHECK OBJECT. Based on SY-SUBRC, set SCREEN-INPUT = 0 to make restricted fields display-only, or SCREEN-ACTIVE = 0 to hide them completely. This ensures users without authorization cannot modify critical selection fields. Pre-populate the field value from a default so display-only fields still have meaningful data.",
         "realtimeExplanation": "Finance report mein company code field authorization se protect ki. Normal users ko sirf apna company code dikhta tha (display-only, pre-filled). Senior users sab company codes select kar sakte the (INPUT = 1).",
         "mistakes": "AUTHORITY-CHECK sirf SCREEN-INPUT set karta hai — underlying data block nahi karta. START-OF-SELECTION mein bhi authority check karo actual data access ke liye.",
@@ -74,12 +145,72 @@
   "selection-screens-005": {
     "easyUnderstanding": "Variant matlab saved settings. Jaise tumhara ghar ka WiFi password saved hai phone mein — har baar nahi daalna padta, ek tap mein connect ho jaate ho. Selection screen mein bhi baar baar same values daalna boring aur time-waste hai. Ek baar variant mein save karo, baar baar use karo. Socho: every month end ek report run karna hai — same company code, same plant, same fiscal period ka pattern. Pehle variant banao — sab values ek baar save karo. Phir har mahine sirf variant select karo aur Execute. Kaam ho gaya. Background job scheduling ke liye toh variant MANDATORY hai — SM36 mein jab ABAP program ko schedule karte ho toh program interactive nahi hota, koi user screen pe nahi hota values daalne ke liye. Isliye variant chahiye — woh saved values use kar leta hai. Default variant bhi set kar sakte ho — program khulte hi automatically woh variant load ho jaata hai, user ko kuch select nahi karna padta. Variants user-specific bhi ban sakte hain (sirf apne liye) ya sab users ke liye. SE38 mein jaake Goto → Variants se manage karte hain. Transport bhi ho sakte hain — development se production tak.",
     "hinglishMasterExplanation": "Variants ka concept interviews mein important hai kyunki yeh real production work se directly connected hai. Sub-points:\n\n1. Variant kaise banate hain: Selection screen pe values bharo → Toolbar mein 'Save' button (floppy disk icon) ya Goto → Variants → Save as Variant → naam do (max 14 chars) → Protected (only owner change kar sake) ya for all users choose karo → Save.\n\n2. Variant use karna: Selection screen pe Goto → Variants → Get → list mein se variant choose karo. Values automatically fill ho jaati hain.\n\n3. ABAP code mein variant use: SUBMIT program_name USING SELECTION-SET 'VARIANT_NAME' AND RETURN. Yeh doosre program ko woh variant ke values ke saath call karta hai.\n\n4. Background Job (SM36): New Job → Job Step → Program name likho → Variant select karo. Variant ke bina background job ka step save nahi hoga — mandatory hai.\n\n5. Default Variant: Goto → Variants → Default Values → ek variant ko default mark karo. Jab program next time khulega, woh variant automatically load hoga.\n\n6. SE38 mein manage karna: SE38 → Program name → Goto → Variants → yahan list, create, change, delete, transport sab possible hai.\n\n7. Transport: Variants ko SAP transport request ke through transport kar sakte ho — development → quality → production. SE38 → Goto → Variants → Transport → request select karo.\n\n8. User-specific variants: Variant save karte waqt 'Only for user' checkbox tick karo — woh sirf tumhe dikhega.\n\n9. Real project: Month-end FI posting report ka 'MONTHEND_RUN' variant banaya — company code 1000, posting period last month, document type SA. Har month end SM36 se job schedule kiya us variant ke saath.",
-    "interviewMeKyaBolnaHai": "Interview mein exactly yeh bolna hai:\n\n'Selection variants allow saving a set of selection screen input values for reuse. Users create them via Goto → Variants → Save as Variant in the selection screen. Variants are critical for background job scheduling in SM36 — when scheduling a job step with an ABAP program, a variant is mandatory because there is no interactive user to fill the screen at runtime. Variants can be user-specific or shared with all users. A default variant can be configured to auto-load when the program opens. In code, I can use SUBMIT zprogram USING SELECTION-SET variant_name AND RETURN to call a program with a specific variant. Variants can also be transported across systems via SE38.'\n\nHinglish tip: Interview mein bolo: 'Variants background jobs ke liye essential hain — SM36 mein job schedule karte waqt variant select karna mandatory hota hai, warna selection screen interactive open ho jaata hai jo background mein nahi chalti.' Ye practical point strong impression deta hai. Phir add karo: 'Maine production mein month-end report ke liye variant banaya aur SM36 se job schedule kiya — fully automated.'",
+    "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'Selection variants are saved sets of selection screen values, created via Goto then Variants then Save as Variant from SE38 or from the running report. Variants are mandatory for background job scheduling in SM36 because the job runs without an interactive user. They can be user-specific (only visible to the creator) or shared. A default variant set via SE38 then Goto then Variants then Default Values is auto-loaded when the program starts. From ABAP I call another program with a saved variant using SUBMIT zprogram USING SELECTION-SET variant_name AND RETURN — the AND RETURN ensures control returns to the calling program. Variants transport across systems as separate objects (R3TR VARI for values, R3TR VARX for attributes). In production I built a MONTH_END variant for a finance report and scheduled it monthly in SM36 — fully automated, zero manual entry each month.'",
     "codeExamples": "REPORT zvariant_demo.\n\nPARAMETERS: p_bukrs TYPE bukrs OBLIGATORY,\n            p_gjahr TYPE gjahr OBLIGATORY.\nSELECT-OPTIONS: s_matnr FOR mara-matnr.\n\n\" Submit another program using a saved variant\nFORM call_with_variant.\n  SUBMIT zother_report\n    USING SELECTION-SET 'MONTHLY_RUN'\n    AND RETURN.\nENDFORM.\n\n\" Pass specific values programmatically (bypassing selection screen)\nFORM call_with_values.\n  SUBMIT zother_report\n    WITH p_bukrs = '1000'\n    WITH p_gjahr = '2024'\n    AND RETURN.\nENDFORM.\n\nSTART-OF-SELECTION.\n  WRITE: / 'Company:', p_bukrs.\n  WRITE: / 'Year:', p_gjahr.\n  PERFORM call_with_variant.",
+    "interviewScriptHinglish": "variants saved selection screen value sets hote hain jo SE38 mein Goto then Variants then Save as Variant se banaye jaate hain, ya directly running report se. SM36 mein background scheduling ke liye yeh mandatory hain kyunki runtime pe koi user nahi hota mandatory fields fill karne ke liye. Variants user-specific bhi ho sakte hain ya shared, aur ek default variant program open hote hi automatically load ho jaata hai. ABAP mein SUBMIT zprogram USING SELECTION-SET variant_name AND RETURN ek program ko stored variant ke saath execute karta hai, aur AND RETURN ensure karta hai control caller pe wapas aaye. Variants separate objects ke roop mein transport hote hain (R3TR VARI values ke liye, R3TR VARX attributes ke liye). Ek finance project mein maine MONTHEND_RUN variant banaya tha aur SM36 mein monthly schedule kiya tha fully automated batch execution ke liye.",
+    "interviewScriptEnglish": "Variants are saved selection screen value sets created via Goto then Variants then Save as Variant in SE38, or directly from the running report. They are mandatory for background scheduling in SM36 since no user is present to fill mandatory fields at runtime. Variants can be user-specific or shared, and a default variant loads automatically when the program opens. In ABAP, SUBMIT zprogram USING SELECTION-SET variant_name AND RETURN executes a program with a stored variant, with AND RETURN ensuring control returns to the caller. Variants transport as separate objects (R3TR VARI for values, R3TR VARX for attributes). In a finance project I created a MONTHEND_RUN variant and scheduled it monthly in SM36 for fully automated batch execution.",
+    "wordByWordSamjho": [
+      {
+        "keyword": "SUBMIT",
+        "meaning": "Executes another ABAP report from within the current program"
+      },
+      {
+        "keyword": "USING SELECTION-SET",
+        "meaning": "Addition that passes a saved variant name to populate the called report's selection screen"
+      },
+      {
+        "keyword": "AND RETURN",
+        "meaning": "Ensures execution control returns to the calling program after the submitted report completes"
+      },
+      {
+        "keyword": "WITH p_field = value",
+        "meaning": "Passes individual parameter values directly to the called report bypassing the variant"
+      },
+      {
+        "keyword": "WITH s_field IN range_table",
+        "meaning": "Passes a populated range table to a SELECT-OPTIONS in the called report"
+      },
+      {
+        "keyword": "VARIANT",
+        "meaning": "Named container of saved selection screen field values reusable across runs"
+      },
+      {
+        "keyword": "R3TR VARI",
+        "meaning": "Transport object type for variant value data"
+      },
+      {
+        "keyword": "R3TR VARX",
+        "meaning": "Transport object type for variant header attributes"
+      }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Calling SUBMIT without the AND RETURN clause",
+        "whyWrong": "Control does not return to the calling program — the orchestrator effectively terminates",
+        "correctApproach": "Always append AND RETURN unless explicit hand-off termination is required"
+      },
+      {
+        "mistake": "Using a user-specific variant for a background job in SM36",
+        "whyWrong": "Background batch user cannot access another user's slash-prefixed variants",
+        "correctApproach": "Always use shared general variants for production background scheduling"
+      },
+      {
+        "mistake": "Forgetting to transport the variant along with the program changes",
+        "whyWrong": "Variants are separate transport objects — program transport alone leaves production variant missing",
+        "correctApproach": "Add R3TR VARI and VARX entries for the variant to the transport request explicitly"
+      },
+      {
+        "mistake": "Saving sensitive credentials inside variant fields visible to other users",
+        "whyWrong": "Shared variants are readable by all authorized users which is a security exposure",
+        "correctApproach": "Avoid storing secrets in variant fields, use secure parameters or user-specific protected variants"
+      }
+    ],
+    "quickRevisionNotes": "What: A variant is a saved set of selection screen values stored under a named identifier\n\nUsed for:\n- Avoiding repetitive manual entry of the same filter values\n- Providing required input to background jobs scheduled in SM36\n- Driving programmatic SUBMIT calls between reports\n\nKey syntax / tables / Tcodes:\n- SUBMIT program USING SELECTION-SET variant_name AND RETURN\n- Goto > Variants > Save as Variant / Get Variant / Default Values\n- SE38 / SM36 / SM37 for variant creation, scheduling, monitoring; transport types R3TR VARI and VARX\n\nInterview keyword: Saved selection-screen state required for background scheduling in SM36",
     "followupAnswerBank": [
       {
         "question": "How do you create a variant for a background job in SM36?",
-        "hinglishExplanation": "SM36 mein job create karo → Job Steps mein jaao → ABAP program type select karo → Program name likho → Variant field mein apna variant naam dalo. Agar variant exist nahi karta, SM36 nahi chalega — pehle SE38 se ya selection screen se variant banana padega. Variant mandatory hai background job step ke liye.",
+        "tier": "easy",
+        "hinglishExplanation": "SM36 mein, naya job create karo, Job Steps mein jaao, type ABAP Program select karo, program name enter karo, aur Variant field mein variant name enter karo. Agar variant exist nahi karta, toh job step save nahi ho sakta. Pehle program ko interactively run karke aur Goto → Variants → Save as Variant se save karke variant banao, phir SM36 mein use reference karo. Variant runtime pe saari selection values provide karta hai.",
         "interviewAnswer": "In SM36, create a new job, go to Job Steps, select type ABAP Program, enter the program name, and in the Variant field enter the variant name. If the variant does not exist, the job step cannot be saved. First create the variant by running the program interactively and saving via Goto → Variants → Save as Variant, then reference it in SM36. The variant provides all selection values at runtime.",
         "realtimeExplanation": "Production mein daily stock report ka job SM36 mein schedule kiya. ZSTOCK_REPORT program ke liye 'DAILY_STOCK' variant banaya SE38 se — plant 1000-1999, previous day date. SM36 mein yahi variant attach kiya.",
         "mistakes": "Background job mein agar variant nahi diya ya galat naam diya toh job step save nahi hogi ya runtime fail hogi. Variant naam exact match hona chahiye — case sensitive hota hai.",
@@ -87,7 +218,8 @@
       },
       {
         "question": "What is the difference between user-specific and shared variants?",
-        "hinglishExplanation": "User-specific variant sirf us user ko dikhta hai jisne banaya — 'Only for User' checkbox tick karke save karte hain. Shared variant sab users ko dikhta hai. Background jobs ke liye hamesha shared variant use karo — background job ek different user context mein chal sakti hai. User-specific variant wahan nahi milega.",
+        "tier": "easy",
+        "hinglishExplanation": "User-specific variant sirf usi user ko visible hota hai jisne create kiya — save ke dauran 'Only for User' check karke set hota hai. Shared variant us program ke saare users ko visible hota hai. SM36 mein background scheduling ke liye, hamesha shared variants use karo kyunki job ek service user context ke under chalta hai aur user-specific variants access nahi kar sakta. Shared variants team standardization ke liye bhi useful hain.",
         "interviewAnswer": "A user-specific variant is visible only to the user who created it — set by checking 'Only for User' during save. A shared variant is visible to all users of that program. For background scheduling in SM36, always use shared variants because the job runs under a service user context and cannot access user-specific variants. Shared variants are also useful for team standardization.",
         "realtimeExplanation": "Team mein ek user ne user-specific variant banaya aur SM36 mein diya. Background job fail ho rahi thi. Root cause: user-specific variant background context mein nahi mila. Shared variant banane se fix hua.",
         "mistakes": "Background jobs mein user-specific variants kabhi use mat karo — job fail hogi ya galat default values use karegi.",
@@ -95,7 +227,8 @@
       },
       {
         "question": "How do you set a default variant for a program?",
-        "hinglishExplanation": "SE38 mein program open karo → Goto → Variants → Default Values → available variants ki list dikhegi → jis variant ko default banana hai use select karo → Save. Ab jab bhi yeh program execute hoga, woh variant automatically load hoga. User manually koi aur variant bhi select kar sakta hai — default sirf starting point hai.",
+        "tier": "medium",
+        "hinglishExplanation": "Default variant SE38 → program select karo → Goto → Variants → Default Values → list se variant select karo → Save se set karte hain. Jab program execute hota hai, us variant ki values automatically selection screen mein load ho jaati hain. Users phir bhi different variant select karke ya values manually change karke override kar sakte hain. Yeh standard parameters wali frequently run reports ke liye usability improve karta hai.",
         "interviewAnswer": "Set a default variant via SE38 → select the program → Goto → Variants → Default Values → select the variant from the list → Save. When the program is executed, that variant's values are automatically loaded into the selection screen. Users can still override by selecting a different variant or changing values manually. This improves usability for frequently run reports with standard parameters.",
         "realtimeExplanation": "GL account report ke liye 'CURRENT_YEAR' default variant set kiya — current company code aur fiscal year pre-filled. Finance team ne appreciate kiya — daily use mein manually fill nahi karna pada.",
         "mistakes": "Default variant set karne ke liye program must be in active state aur variant must exist. Agar program transport kiya bina variant transport ke, toh production mein default variant nahi milega.",
@@ -103,7 +236,8 @@
       },
       {
         "question": "Can variants be transported to production? How?",
-        "hinglishExplanation": "Haan, variants transport ho sakte hain. SE38 → program select → Goto → Variants → list mein variant select → phir Goto → Transport (ya menu mein transport option). Transport request create hogi, variant us mein add ho jaayega. STMS se transport request production mein import karo. Important: variant transport separately hota hai program transport se.",
+        "tier": "medium",
+        "hinglishExplanation": "Haan, variants transport ho sakte hain. SE38 ke through: program open karo, Goto → Variants, variant select karo, phir Object → Transport Variant (ya menu). Ise ek transport request mein add karo. Alternatively, transaction SE01/STMS use karke variant object include karo. Object type VARX (variant) aur VARI (variant values) hota hai. Note: program transport karne se uske variants automatically transport nahi hote — unhe separately transport karna padta hai.",
         "interviewAnswer": "Yes, variants can be transported. Via SE38: open the program, Goto → Variants, select the variant, then Object → Transport Variant (or menu). Add it to a transport request. Alternatively, use transaction SE01/STMS to include the variant object. The object type is VARX (variant) and VARI (variant values). Note: transporting a program does not automatically transport its variants — they must be transported separately.",
         "realtimeExplanation": "New report develop kiya development mein, variant banaya, transport request mein program aur variant dono alag alag add kiye. Production import ke baad dono available the.",
         "mistakes": "Program transport karne ke baad variant transport karna bhool jaate hain — production mein SM36 setup karte waqt variant not found error aata hai. Checklist mein variant transport daalo.",
@@ -111,7 +245,8 @@
       },
       {
         "question": "How do you use SUBMIT with USING SELECTION-SET?",
-        "hinglishExplanation": "SUBMIT statement se ek ABAP program ko doosre program se call karte hain. USING SELECTION-SET 'VARNAME' add karo — woh program apne us variant ki values use karta hai. AND RETURN lagao agar control wapas chahiye. Bina AND RETURN ke calling program terminate ho jaata hai.",
+        "tier": "easy",
+        "hinglishExplanation": "SUBMIT program_name USING SELECTION-SET 'variant_name' AND RETURN ek aur ABAP program ko saved variant values use karke execute karta hai, interactive selection screen bypass karte hue. AND RETURN ensure karta hai ki execution ke baad control calling program ko wapas aaye. AND RETURN ke bina, calling program terminate ho jaata hai. Yeh commonly batch driver programs mein use hota hai jo different variants ke saath multiple reports call karte hain.",
         "interviewAnswer": "SUBMIT program_name USING SELECTION-SET 'variant_name' AND RETURN executes another ABAP program using saved variant values, bypassing the interactive selection screen. AND RETURN ensures control returns to the calling program after execution. Without AND RETURN, the calling program terminates. This is commonly used in batch driver programs that call multiple reports with different variants.",
         "realtimeExplanation": "Ek master program tha jo 5 alag reports ko sequence mein call karta tha — har report ka apna variant tha. SUBMIT ... USING SELECTION-SET ... AND RETURN se chain banaya. Fully automated month-end processing.",
         "mistakes": "AND RETURN bhool gaye toh calling program end ho jaata hai — chain break ho jaati hai. Aur variant naam exact match karo — case sensitivity check karo.",
@@ -119,7 +254,8 @@
       },
       {
         "question": "How do you restrict users to only use variants (no free selection)?",
-        "hinglishExplanation": "ABAP mein selection screen pe NO-DISPLAY addition ya authorization object se free selection restrict kar sakte ho. Zyada controlled approach: program ko ek specific transaction se call karo aur transaction mein PARAMETER_DEFAULT lagao jo variant force kare. Ya programmatically: AT SELECTION-SCREEN OUTPUT mein sab fields SCREEN-INPUT = 0 karo — user kuch type nahi kar sakta, sirf variant se values load ho sakti hain.",
+        "tier": "advanced",
+        "hinglishExplanation": "Users ko sirf variants tak restrict karne ke liye, AT SELECTION-SCREEN OUTPUT mein SCREEN-INPUT = 0 use karke saari selection screen fields ko display-only set karo. Users values manually type nahi kar sakte aur valid data lene ke liye variant load karna padega. Additionally, SET PF-STATUS use karke free selection toolbar buttons hide kar sakte ho. Ek cleaner approach yeh enforce karna hai authorization objects ya role-based transaction access ke through pre-assigned variants ke saath.",
         "interviewAnswer": "To restrict users to variants only, set all selection screen fields to display-only in AT SELECTION-SCREEN OUTPUT using SCREEN-INPUT = 0. Users cannot type values manually and must load a variant to get valid data. Additionally, you can hide the free selection toolbar buttons using SET PF-STATUS. A cleaner approach is to enforce this through authorization objects or role-based transaction access with pre-assigned variants.",
         "realtimeExplanation": "Audit report mein free selection allow nahi thi — scope manipulation se bachne ke liye. Sab fields SCREEN-INPUT = 0 set kiye. Variant load karne ka button available tha. Auditors sirf approved variants use kar sakte the.",
         "mistakes": "Sirf SCREEN-INPUT = 0 karna enough nahi — user ABAP debugger se values change kar sakta hai. Production security ke liye authorization objects aur role restrictions zaroori hain.",
@@ -127,7 +263,8 @@
       },
       {
         "question": "What are the naming conventions for variants?",
-        "hinglishExplanation": "Variant naam maximum 14 characters ka hota hai. SAP-delivered variants ek slash se shuru hote hain: /DEFAULT ya /ALL_USERS — in mein SAP namespace reserved hai. Customer variants slash se shuru nahi honge generally. Naam meaningful rakho: 'MONTHLY_1000', 'DAILY_PLANT_1000'. Case sensitive nahi hota variant naam — uppercase mein store hota hai automatically.",
+        "tier": "easy",
+        "hinglishExplanation": "Variant names up to 14 characters lambe ho sakte hain. SAP-delivered variants forward slash se shuru hote hain (e.g., /DEFAULT). Customer-created variants ek naming convention follow karni chahiye jaise ZREPORT_MONTHLY ya PROJECT_SPECIFIC names. Variant names uppercase mein store hote hain aur lookup ke dauran case-sensitive nahi hote. Names mein spaces avoid karo. Variant names ko functional specs mein document karo kyunki yeh SM36 jobs aur SUBMIT statements mein reference hote hain.",
         "interviewAnswer": "Variant names can be up to 14 characters long. SAP-delivered variants start with a forward slash (e.g., /DEFAULT). Customer-created variants should follow a naming convention like ZREPORT_MONTHLY or PROJECT_SPECIFIC names. Variant names are stored in uppercase and are not case-sensitive during lookup. Avoid spaces in names. Document variant names in functional specs since they are referenced in SM36 jobs and SUBMIT statements.",
         "realtimeExplanation": "Project convention thi: 'PROG_FREQ_SCOPE' format — jaise 'INV_DAILY_ALL' (Invoice report, daily, all plants). SM36 jobs aur SUBMIT statements mein same naam use kiya. Naming convention document kiya tha onboarding guide mein.",
         "mistakes": "Variant naam mein spaces avoid karo — technically allowed hai lekin SUBMIT statement mein issues aa sakte hain. Hamesha uppercase mein document karo kyunki SAP uppercase mein store karta hai.",
@@ -135,7 +272,8 @@
       },
       {
         "question": "How do you programmatically read variant values in ABAP?",
-        "hinglishExplanation": "Function module RS_SUPPORT_SELECTIONS ya GET_SELSCREEN_VALUES se variant values read kar sakte ho. Ya low level pe RSVAR table se direct SELECT karo — lekin function module zyada safe hai. Yeh use hota hai jab tumhe ek program mein doosre program ka variant check karna ho ya variant values dynamically build karni ho.",
+        "tier": "advanced",
+        "hinglishExplanation": "Variant values programmatically read karne ke liye, function module RS_SUPPORT_SELECTIONS ya RS_VARIANT_CONTENTS use karo. Yeh ek variant mein stored selection parameters return karte hain. Table RSVARIANT (variant attributes) aur RSPARAMS (variant parameter values) ko bhi directly query kar sakte ho. Yeh useful hai validation programs, variant management utilities, ya variant contents ke basis pe dynamic SUBMIT calls build karte waqt.",
         "interviewAnswer": "To read variant values programmatically, use function module RS_SUPPORT_SELECTIONS or RS_VARIANT_CONTENTS. These return the selection parameters stored in a variant. You can also query table RSVARIANT (variant attributes) and RSPARAMS (variant parameter values) directly. This is useful in validation programs, variant management utilities, or when building dynamic SUBMIT calls based on variant contents.",
         "realtimeExplanation": "Ek utility program banaya jo sab active variants list karta tha aur unke values validate karta tha — expired date ranges wale variants flag kiye jaate the. RSPARAMS table se LOW aur HIGH values read kiye.",
         "mistakes": "RSPARAMS directly read karna technically works lekin SAP internal tables hain — upgrades mein structure change ho sakta hai. Hamesha function modules prefer karo.",
@@ -146,12 +284,76 @@
   "selection-screens-006": {
     "easyUnderstanding": "Date range validation matlab: agar user ne FROM date > TO date daali, toh report galat data dikhayega ya koi data nahi aayega. Ye business validation tum AT SELECTION-SCREEN mein likhte ho — yahan user ko rokaa jaata hai aur screen open rehti hai jab tak sahi values na de. Jaise bus conductor check karta hai: kya ticket valid date pe hai? Agar nahi toh andar nahi jaane deta. SAP mein bhi yahi hota hai — MESSAGE TYPE 'E' dikhao, selection screen open rehti hai, user ko sahi values daalni padti hain. Date comparison ABAP mein simple hai kyunki date DATUM type mein YYYYMMDD format mein hoti hai — direct greater-than less-than comparison hoti hai. 20240101 automatically 20230101 se bada hai — manually parse nahi karna padta. SELECT-OPTIONS mein LOW aur HIGH fields hote hain — s_date-low (from date) aur s_date-high (to date) — inhe compare karo. PARAMETERS mein p_date1 aur p_date2 ko compare karo. Real project mein: monthly finance reports, quarterly inventory reports, annual tax reports — sab mein date range validation mandatory hai. Ek bhi galat date range aane se accountants ko crore rupaye ka wrong report milta hai. Isliye yeh validation ek important piece hai.",
     "hinglishMasterExplanation": "Date range validation ABAP interview mein common practical question hai. Sub-points:\n\n1. Basic check: AT SELECTION-SCREEN mein IF p_date1 > p_date2 → MESSAGE TYPE 'E'. Yahi sabse common validation hai.\n\n2. MESSAGE TYPE 'E' ka matlab: Error message dikhata hai — red color mein screen ke neeche. Selection screen OPEN REHTI HAI. User ko sahi values daalni padti hain. TYPE 'S' ya 'I' se screen close nahi rukti — galti karte hain log.\n\n3. FIELD statement se specific field highlight karna: AT SELECTION-SCREEN. FIELD p_date1. yeh statement specific field ko red highlight karta hai — user seedha jaanta hai kahan galti hai.\n\n4. Empty date check: Agar date mandatory hai toh: IF p_date1 IS INITIAL → MESSAGE TYPE 'E'. SELECT-OPTIONS ke liye: IF s_date IS INITIAL → error.\n\n5. Cross-field validation: Dono filled honi chahiye ya dono empty — ek filled ek empty nahi chalega. IF p_date1 IS NOT INITIAL AND p_date2 IS INITIAL → error.\n\n6. Date range duration limit: Business requirement ho sakti hai — max 90 days ya 1 year. IF p_date2 - p_date1 > 365 → error.\n\n7. SELECT-OPTIONS ke liye: s_date-low aur s_date-high compare karo. IF s_date-low > s_date-high → error.\n\n8. Real project example: Accounts Payable aging report — s_pstng FOR bkpf-budat. AT SELECTION-SCREEN mein check: IF s_pstng-low > s_pstng-high THEN error. Aur IF s_pstng-high - s_pstng-low > 365 THEN 'Date range cannot exceed 1 year'.",
-    "interviewMeKyaBolnaHai": "Interview mein exactly yeh bolna hai:\n\n'Date range validation is done in the AT SELECTION-SCREEN event. I compare the FROM and TO date parameters — if FROM is greater than TO, I display an error using MESSAGE TYPE E, which keeps the selection screen open and forces the user to correct the input. I also use the FIELD statement to highlight the specific field in error, making it user-friendly. Additionally, I check for empty mandatory date fields and validate that the date range does not exceed business-defined limits like 90 days or 1 year. For SELECT-OPTIONS, I check the LOW and HIGH values of the range table. This is standard practice in any date-driven report.'\n\nHinglish tip: Interview mein concrete code line bolna powerful hai: 'IF p_date1 > p_date2. MESSAGE e001(z_msg) TYPE E. ENDIF.' Phir add karo: 'MESSAGE TYPE E selection screen pe rokti hai user ko — S ya I type nahi use karte validation ke liye.' Ye MESSAGE types ka knowledge interviewer appreciate karta hai. Aur FIELD statement ka mention karo — ye junior developers miss karte hain.",
+    "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'Date range validation goes in AT SELECTION-SCREEN, never in START-OF-SELECTION, because TYPE E there behaves like an abort and the user loses all their input. For PARAMETERS I compare directly — IF p_date1 GT p_date2 then MESSAGE e001(zmsg) WITH p_date1 p_date2 TYPE E — using a message class with WITH placeholders so the actual values appear in the error text. For SELECT-OPTIONS I LOOP through the range table and check BT entries where low GT high. Additional checks include the range width (for example reject more than 365 days) and the use of DATE_CHECK_PLAUSIBILITY when manual date entry is possible. MESSAGE TYPE E keeps the selection screen open and lets the user fix only the wrong field while preserving the rest — TYPE W warns but allows continue, TYPE I just shows a dialog, and TYPE A aborts so neither W, I, nor A is correct for hard validation.'",
     "codeExamples": "REPORT zdate_validation_demo.\n\nPARAMETERS: p_date1 TYPE d OBLIGATORY,  \" From date\n            p_date2 TYPE d OBLIGATORY.  \" To date\nSELECT-OPTIONS: s_pstng FOR bkpf-budat. \" Posting date range\n\nAT SELECTION-SCREEN.\n  \" Check 1: FROM date must be before TO date (PARAMETERS)\n  IF p_date1 > p_date2.\n    MESSAGE 'From date cannot be greater than To date' TYPE 'E'.\n  ENDIF.\n\n  \" Check 2: Date range must not exceed 365 days\n  IF ( p_date2 - p_date1 ) > 365.\n    MESSAGE 'Date range cannot exceed 365 days' TYPE 'E'.\n  ENDIF.\n\n  \" Check 3: SELECT-OPTIONS range validation\n  IF s_pstng-low IS NOT INITIAL AND s_pstng-high IS NOT INITIAL.\n    IF s_pstng-low > s_pstng-high.\n      MESSAGE 'Posting date FROM cannot exceed TO date' TYPE 'E'.\n    ENDIF.\n  ENDIF.\n\nSTART-OF-SELECTION.\n  WRITE: / 'Date range valid:', p_date1, '-', p_date2.",
+    "interviewScriptHinglish": "date range validation AT SELECTION-SCREEN mein hoti hai, kabhi START-OF-SELECTION mein nahi, kyunki wahan TYPE E abort ki tarah behave karta hai jo user input destroy kar deta hai. PARAMETERS ke liye direct comparison use karte hain: IF p_date1 GT p_date2, MESSAGE e001(zmsg) WITH p_date1 p_date2 TYPE E. SELECT-OPTIONS ke liye range table loop karte hain aur BT entries check karte hain jahan low high se exceed karta ho. ABAP date type DATUM internally YYYYMMDD store karta hai isliye subtraction direct day count deti hai. Additional checks include width limits jaise 365 days se zyada ranges reject karna, aur DATE_CHECK_PLAUSIBILITY invalid calendar dates jaise February 30 ke liye. Ek AP aging report mein maine dono from-to check aur width limit implement kiye the, jisse impossible ranges pe wasteful database queries prevent hui.",
+    "interviewScriptEnglish": "Date range validation belongs in AT SELECTION-SCREEN, never START-OF-SELECTION, because TYPE E there behaves like an abort destroying user input. For PARAMETERS use direct comparison: IF p_date1 GT p_date2, MESSAGE e001(zmsg) WITH p_date1 p_date2 TYPE E. For SELECT-OPTIONS loop the range table and check BT entries where low exceeds high. ABAP date type DATUM stores YYYYMMDD internally so subtraction directly gives day count. Additional checks include width limits like rejecting ranges over 365 days, and DATE_CHECK_PLAUSIBILITY for invalid calendar dates like February 30. In an AP aging report I implemented both the from-to check and a width limit, preventing wasteful database queries on impossible ranges.",
+    "wordByWordSamjho": [
+      {
+        "keyword": "AT SELECTION-SCREEN",
+        "meaning": "Event for full-screen validation that keeps the screen open on TYPE E errors"
+      },
+      {
+        "keyword": "MESSAGE ... TYPE 'E'",
+        "meaning": "Error message that blocks execution and returns the user to the selection screen"
+      },
+      {
+        "keyword": "MESSAGE ... TYPE 'W'",
+        "meaning": "Warning that allows the user to continue execution by pressing Enter"
+      },
+      {
+        "keyword": "DATE_CHECK_PLAUSIBILITY",
+        "meaning": "Standard function module that validates a date as a real calendar date"
+      },
+      {
+        "keyword": "TYPE d",
+        "meaning": "ABAP date type storing values in YYYYMMDD format, supports direct subtraction"
+      },
+      {
+        "keyword": "s_field-low",
+        "meaning": "Low value of the first entry in a SELECT-OPTIONS range table"
+      },
+      {
+        "keyword": "s_field-high",
+        "meaning": "High value of the first entry used with BT option in SELECT-OPTIONS"
+      },
+      {
+        "keyword": "IS INITIAL",
+        "meaning": "Checks if a field or range table is empty or default-valued"
+      },
+      {
+        "keyword": "MESSAGE e001(zmsg) WITH",
+        "meaning": "References error message 001 from class ZMSG, inserting dynamic placeholder values"
+      }
+    ],
+    "commonMistakesSection": [
+      {
+        "mistake": "Placing date validation in START-OF-SELECTION instead of AT SELECTION-SCREEN",
+        "whyWrong": "TYPE E there aborts the program completely and the user loses all entered values",
+        "correctApproach": "Always perform date range checks in AT SELECTION-SCREEN so the screen stays open for correction"
+      },
+      {
+        "mistake": "Using TYPE W or TYPE S for hard date validation failures",
+        "whyWrong": "Warning or success types allow the user to bypass the check and run with invalid data",
+        "correctApproach": "Use TYPE E for hard validation errors and TYPE W only for non-blocking performance advisories"
+      },
+      {
+        "mistake": "Hardcoding error message strings inside MESSAGE",
+        "whyWrong": "Hardcoded strings are not transportable or translatable across systems and languages",
+        "correctApproach": "Define messages in SE91 message classes and reference them with MESSAGE e001(zmsg) WITH placeholders"
+      },
+      {
+        "mistake": "Skipping the date width limit check on SELECT-OPTIONS",
+        "whyWrong": "Wide date ranges (years of data) cause severe database performance issues",
+        "correctApproach": "Add an explicit width check rejecting ranges greater than the business-allowed maximum like 365 days"
+      }
+    ],
+    "quickRevisionNotes": "What: Date range validation enforces FROM less than or equal to TO and reasonable width on date inputs\n\nUsed for:\n- Preventing inverted ranges that return zero records silently\n- Limiting performance-impacting wide date ranges\n- Validating that manually entered dates are valid calendar dates\n\nKey syntax / tables / Tcodes:\n- AT SELECTION-SCREEN with IF s_date-low GT s_date-high MESSAGE TYPE E\n- DATE_CHECK_PLAUSIBILITY function for calendar validation\n- SE91 for message class with WITH placeholders in error text\n\nInterview keyword: AT SELECTION-SCREEN validation with TYPE E for date range checks",
     "followupAnswerBank": [
       {
         "question": "What is the difference between MESSAGE TYPE 'E', 'W', 'I', and 'S' on a selection screen?",
-        "hinglishExplanation": "TYPE 'E' = Error — selection screen open rehti hai, execution rukta hai. TYPE 'W' = Warning — message dikhta hai lekin user phir bhi continue kar sakta hai. TYPE 'I' = Information — ek dialog box aata hai, user OK dabake continue karta hai. TYPE 'S' = Success/Status — screen ke neeche green status bar mein dikhta hai, execution nahi rukta. Date validation mein sirf TYPE 'E' use karo.",
+        "tier": "easy",
+        "hinglishExplanation": "MESSAGE TYPE 'E' ek error display karta hai, selection screen open rakhta hai, aur execution prevent karta hai — mandatory validation ke liye use hota hai. TYPE 'W' ek warning dikhata hai lekin user ko proceed karne deta hai. TYPE 'I' ek informational dialog box dikhata hai. TYPE 'S' status bar mein ek green status message dikhata hai bina execution interrupt kiye. Date range validation ke liye, hamesha TYPE 'E' use karo rule enforce karne aur invalid input block karne ke liye.",
         "interviewAnswer": "MESSAGE TYPE 'E' displays an error, keeps the selection screen open, and prevents execution — used for mandatory validation. TYPE 'W' shows a warning but allows the user to proceed. TYPE 'I' shows an informational dialog box. TYPE 'S' shows a green status message in the status bar without interrupting execution. For date range validation, always use TYPE 'E' to enforce the rule and block invalid input.",
         "realtimeExplanation": "Pehle TYPE 'W' use kiya tha date validation ke liye — users warning ignore karke chalate rahe the. Bug reports aane lage. TYPE 'E' se badla — ab force karta hai sahi dates daalne ke liye.",
         "mistakes": "Validation mein TYPE 'W' ya TYPE 'S' use karna galat hai — user skip kar sakta hai. Strict business rules ke liye hamesha TYPE 'E'.",
@@ -159,7 +361,8 @@
       },
       {
         "question": "How does the FIELD statement work in AT SELECTION-SCREEN for highlighting errors?",
-        "hinglishExplanation": "FIELD statement AT SELECTION-SCREEN ke baad specific field ko red highlight karta hai jab error hota hai. Isse user directly jaanta hai kaun sa field fix karna hai. Normal message bina FIELD ke sirf text dikhata hai — kaunsi field galat hai clearly nahi pata chalta. FIELD statement user experience improve karta hai significantly.",
+        "tier": "advanced",
+        "hinglishExplanation": "FIELD statement jo AT SELECTION-SCREEN ke baad use hota hai woh ek specific field ko red mein highlight karta hai jab validation error hota hai. Syntax: AT SELECTION-SCREEN. FIELD p_date1. MESSAGE ... TYPE 'E'. FIELD keyword SAP ko batata hai kaunse screen element ko visually flag karna hai. FIELD ke bina, error message appear hota hai lekin koi specific field highlight nahi hoti. Yeh especially useful hai jab multiple fields exist karte hain aur error message alone clear nahi karta kaunsa field galat hai.",
         "interviewAnswer": "The FIELD statement used after AT SELECTION-SCREEN highlights a specific field in red when a validation error occurs. Syntax: AT SELECTION-SCREEN. FIELD p_date1. MESSAGE ... TYPE 'E'. The FIELD keyword tells SAP which screen element to visually flag. Without FIELD, the error message appears but no specific field is highlighted. This is especially useful when multiple fields exist and the error message alone may not make it clear which field is wrong.",
         "realtimeExplanation": "Date range error pe FIELD p_date1 lagaya — users seedha us field pe cursor jaata tha. Before fix, users confuse hote the ki kaunsi date galat hai. After fix, ek second mein fix karte the.",
         "mistakes": "FIELD statement sirf AT SELECTION-SCREEN event mein kaam karta hai — dusre events mein nahi. Aur field naam exact match karna chahiye declaration se.",
@@ -167,7 +370,8 @@
       },
       {
         "question": "How do you validate that both FROM and TO dates are filled (cross-field validation)?",
-        "hinglishExplanation": "Cross-field validation: dono fields ka status check karo together. Agar ek filled hai aur doosra empty hai, toh error. Ya dono empty hain — depending on requirement, yeh allowed ho sakta hai (no filter) ya nahi. AT SELECTION-SCREEN mein dono check karo: IF p_date1 IS NOT INITIAL AND p_date2 IS INITIAL → 'Please provide To date' TYPE E.",
+        "tier": "medium",
+        "hinglishExplanation": "Cross-field date validation check karta hai ki FROM aur TO dates dono filled hain ya dono empty. AT SELECTION-SCREEN mein: check karo ki p_date1 IS NOT INITIAL AND p_date2 IS INITIAL — incomplete range ke liye error dikhao. Reverse bhi check karo: p_date2 filled lekin p_date1 empty. Agar dono mandatory hone chahiye, dono fields pe OBLIGATORY use karo. Agar range optional hai lekin use hote waqt complete hona chahiye, manual check zaroori hai.",
         "interviewAnswer": "Cross-field date validation checks that both FROM and TO dates are either both filled or both empty. In AT SELECTION-SCREEN: check if p_date1 IS NOT INITIAL AND p_date2 IS INITIAL — show error for incomplete range. Also check the reverse: p_date2 filled but p_date1 empty. If both must be mandatory, use OBLIGATORY on both fields. If the range is optional but must be complete when used, the manual check is required.",
         "realtimeExplanation": "Inventory aging report mein date range optional thi lekin agar di toh complete honi chahiye thi. AT SELECTION-SCREEN mein dono directions check kiye — ek di doosri nahi di toh error.",
         "mistakes": "Sirf ek direction check karna — p_date1 > p_date2 — enough nahi. Cross-field completeness bhi check karo: ek filled ek empty scenario handle karo.",
@@ -175,7 +379,8 @@
       },
       {
         "question": "How do you validate SELECT-OPTIONS date range (s_date-low and s_date-high)?",
-        "hinglishExplanation": "SELECT-OPTIONS ek internal table hai — seedha s_date-low aur s_date-high access nahi hota directly, pehle READ TABLE ya LOOP karo. AT SELECTION-SCREEN mein s_date ek structure ki tarah access hoti hai — s_date-low first entry ka LOW hai. Simple validation: READ TABLE s_date INTO DATA(ls_range) INDEX 1. Phir ls_range-low aur ls_range-high compare karo.",
+        "tier": "medium",
+        "hinglishExplanation": "SELECT-OPTIONS date validation ke liye, s_date-low aur s_date-high access karo jo range table ki first entry ko refer karte hain. AT SELECTION-SCREEN mein: IF s_date-low IS NOT INITIAL AND s_date-high IS NOT INITIAL AND s_date-low > s_date-high → MESSAGE TYPE 'E'. Alternatively, complex range validation ke liye sari entries loop karo. Note ki s_date IS INITIAL check karta hai ki entire range table empty hai ya nahi.",
         "interviewAnswer": "For SELECT-OPTIONS date validation, access s_date-low and s_date-high which refer to the first entry in the range table. In AT SELECTION-SCREEN: IF s_date-low IS NOT INITIAL AND s_date-high IS NOT INITIAL AND s_date-low > s_date-high → MESSAGE TYPE 'E'. Alternatively, loop through all entries for complex range validation. Note that s_date IS INITIAL checks if the entire range table is empty.",
         "realtimeExplanation": "Finance report mein s_budat (posting date) SELECT-OPTIONS tha. AT SELECTION-SCREEN mein s_budat-low > s_budat-high check kiya. Users sometimes accidentally swapped dates in the range — yeh validation ne catch kiya.",
         "mistakes": "s_date IS INITIAL check karna aur s_date-low IS INITIAL check karna alag hai. IS INITIAL on the table name checks if table is empty. -low/-high fields check karta hai specific entry values.",
@@ -183,7 +388,8 @@
       },
       {
         "question": "How do you validate that the date range does not exceed a business-defined maximum?",
-        "hinglishExplanation": "ABAP mein date arithmetic direct hoti hai — p_date2 - p_date1 se difference milta hai number of days mein (INTEGER). Agar yeh difference 90 se zyada hai, error dikhao. Yeh business rule typical hai: reporting performance reasons se ya policy se. DATE type YYYYMMDD format mein hoti hai — SAP internally numeric representation use karta hai, isliye direct subtraction kaam karta hai.",
+        "tier": "medium",
+        "hinglishExplanation": "ABAP date arithmetic direct subtraction allow karta hai: DATA lv_days TYPE i. lv_days = p_date2 - p_date1. Agar lv_days business limit exceed karta hai (e.g., 90 ya 365), MESSAGE TYPE 'E' dikhao. ABAP mein date type (DATUM) dates ko internally ek 8-digit number ke roop mein YYYYMMDD store karta hai, isliye subtraction days mein difference deta hai. Yeh high-volume reports mein common requirement hai jahan unrestricted date ranges performance issues cause karte hain.",
         "interviewAnswer": "ABAP date arithmetic allows direct subtraction: DATA lv_days TYPE i. lv_days = p_date2 - p_date1. If lv_days exceeds the business limit (e.g., 90 or 365), display MESSAGE TYPE 'E'. Date type in ABAP (DATUM) stores dates as YYYYMMDD internally as an 8-digit number, so subtraction gives the difference in days. This is a common requirement in high-volume reports where unrestricted date ranges cause performance issues.",
         "realtimeExplanation": "ALV report database query pe heavy load daalta tha agar 1 year se zyada date range di jaaye. Business ne 90-day limit set ki. AT SELECTION-SCREEN mein: IF p_date2 - p_date1 > 90 → 'Date range cannot exceed 90 days'.",
         "mistakes": "Date subtraction negative bhi ho sakti hai agar FROM > TO ho — pehle FROM > TO check karo, phir duration check karo. Order matter karta hai.",
@@ -191,7 +397,8 @@
       },
       {
         "question": "Should date validation be done in AT SELECTION-SCREEN or START-OF-SELECTION? Why?",
-        "hinglishExplanation": "Hamesha AT SELECTION-SCREEN mein karo. START-OF-SELECTION mein karne se: pehle program execution shuru ho jaati hai, heavy DB queries lag sakti hain, phir ek dialog box aata hai error ke saath. Agar user cancel kare toh sab kuch waste. AT SELECTION-SCREEN mein error hone pe selection screen open rehti hai — zero DB queries, zero waste, instant feedback. Early validation always better hai.",
+        "tier": "easy",
+        "hinglishExplanation": "Hamesha AT SELECTION-SCREEN mein validate karo, START-OF-SELECTION mein kabhi nahi. AT SELECTION-SCREEN processing begin hone se pehle fire hota hai — agar validation fail hoti hai, selection screen ek error ke saath open rehti hai aur koi database processing nahi hoti. START-OF-SELECTION selection screen close hone aur processing begin hone ke baad fire hota hai — tab tak, program potentially expensive queries execute karna shuru kar chuka hota hai. Early validate karna instant feedback deta hai aur wasted processing avoid karta hai.",
         "interviewAnswer": "Always validate in AT SELECTION-SCREEN, never in START-OF-SELECTION. AT SELECTION-SCREEN fires before processing begins — if validation fails, the selection screen stays open with an error and no database processing occurs. START-OF-SELECTION fires after the selection screen closes and processing begins — by then, the program has potentially started executing expensive queries. Validating early provides instant feedback and avoids wasted processing.",
         "realtimeExplanation": "Legacy code mein date validation START-OF-SELECTION mein thi. Large report pe 30 seconds baad error aata tha. Moved validation to AT SELECTION-SCREEN — instant feedback, no performance waste. Users happy the.",
         "mistakes": "START-OF-SELECTION mein validation aur MESSAGE TYPE 'E' likhna runtime error deta hai — screen already closed hai, error properly display nahi hoti. Ek common bug hai legacy code mein.",
@@ -199,7 +406,8 @@
       },
       {
         "question": "How do you validate dates in real projects with message classes?",
-        "hinglishExplanation": "Hardcoded message strings mat likho — MESSAGE 'From date...' TYPE 'E' transport issues create karta hai aur multilingual support nahi hota. Message class banao SE91 mein — jaise ZMSG_DATES — message numbers assign karo. Phir: MESSAGE e001(zmsg_dates) TYPE 'E'. Yeh proper SAP way hai — messages transport ho sakte hain, translate ho sakte hain, centrally maintain ho sakte hain.",
+        "tier": "advanced",
+        "hinglishExplanation": "Real projects mein, hardcoded strings ki jagah message classes use karo. SE91 mein ek message class create karo, messages ko numbers ke saath define karo (e.g., 001: 'From date & cannot exceed To date &'), phir MESSAGE e001(zmessage) WITH p_date1 p_date2 TYPE 'E' use karo. Yeh transportable hai, translation support karta hai, aur SAP development standards follow karta hai. WITH clause message placeholders (&) mein dynamic values pass karta hai.",
         "interviewAnswer": "In real projects, use message classes instead of hardcoded strings. Create a message class in SE91, define messages with numbers (e.g., 001: 'From date & cannot exceed To date &'), then use MESSAGE e001(zmessage) WITH p_date1 p_date2 TYPE 'E'. This is transportable, supports translation, and follows SAP development standards. The WITH clause passes dynamic values to message placeholders (&).",
         "realtimeExplanation": "Project mein ZMSG_SELSCR message class banaya. E001: date range error, E002: mandatory field missing, E003: company code invalid. AT SELECTION-SCREEN mein hamesha message class reference kiya — code clean aur professional tha.",
         "mistakes": "Hardcoded message strings transportable nahi hote aur translation mein problems create karte hain. Real projects mein hamesha message class use karo — code review mein yeh check hota hai.",
@@ -207,7 +415,8 @@
       },
       {
         "question": "How do you validate a single date field for being a valid calendar date?",
-        "hinglishExplanation": "ABAP mein automatically invalid dates reject hoti hain agar tum TYPE d use karo — jaise 20240231 (31 Feb) enter karna SAP allow nahi karta. Lekin programmatic check ke liye: CALL FUNCTION 'DATE_CHECK_PLAUSIBILITY' — yeh date validity verify karta hai. Ya simple: CONVERT DATE TO TIME STAMP — agar date invalid hai toh exception aata hai. Real project mein: user kadhi kadhi date field mein manually weird values paste karta hai.",
+        "tier": "medium",
+        "hinglishExplanation": "ABAP ka TYPE d automatically format errors reject karta hai, lekin additional plausibility checks function module DATE_CHECK_PLAUSIBILITY use karke ho sakte hain. Ise AT SELECTION-SCREEN mein date value ke saath call karo — yeh invalid dates jaise February 30 ke liye exceptions raise karta hai. Alternatively, CONVERT DATE use karke date convert karne ki koshish karo aur exceptions catch karo. Standard selection screens ke liye, SAP input checks usually invalid date formats prevent karte hain, lekin custom validation ek extra safety layer add karta hai.",
         "interviewAnswer": "ABAP's TYPE d automatically rejects format errors, but additional plausibility checks can be done using function module DATE_CHECK_PLAUSIBILITY. Call it in AT SELECTION-SCREEN with the date value — it raises exceptions for invalid dates like February 30. Alternatively, try converting the date using CONVERT DATE and catch exceptions. For standard selection screens, SAP input checks usually prevent invalid date formats, but custom validation adds an extra safety layer.",
         "realtimeExplanation": "Legacy program mein manual date entry tha — users clipboard se dates paste karte the. Kabhi kabhi garbage values aati thi. DATE_CHECK_PLAUSIBILITY se validate kiya — clean data guarantee mili.",
         "mistakes": "Sirf format check mat karo — 20240230 format mein valid lagta hai lekin calendar pe exist nahi karta. Plausibility check zaroori hai.",

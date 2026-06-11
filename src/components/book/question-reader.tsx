@@ -2,6 +2,7 @@
 
 import * as Accordion from "@radix-ui/react-accordion";
 import {
+  AlertTriangle,
   ArrowUp,
   Bookmark,
   BookOpen,
@@ -23,6 +24,7 @@ import {
   MessageSquare,
   RotateCcw,
   StickyNote,
+  Type,
   WandSparkles,
 } from "lucide-react";
 import Link from "next/link";
@@ -30,7 +32,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { allQuestions, getChapterColor } from "@/lib/content";
 import type { Question } from "@/lib/types";
-import { cn, percent, readingMinutes } from "@/lib/utils";
+import { cn, ink, percent, readingMinutes } from "@/lib/utils";
 import { useStudyStore } from "@/store/use-study-store";
 import { Badge, difficultyVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -66,7 +68,17 @@ export function QuestionReader({ question }: { question: Question }) {
   const chapterColor = getChapterColor(question.chapterSlug);
 
   const [showFloatingNext, setShowFloatingNext] = useState(false);
-  const [activeTab, setActiveTab] = useState<"easy" | "master" | "interview" | "code">("easy");
+  const [activeTab, setActiveTab] = useState<
+    | "easy"
+    | "deepDive"
+    | "interviewHi"
+    | "interviewEn"
+    | "code"
+    | "wordByWord"
+    | "mistakes"
+    | "revision"
+    | "followups"
+  >("easy");
   const [scrollProgress, setScrollProgress] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const answerHidden = recallMode && !revealed;
@@ -148,10 +160,49 @@ export function QuestionReader({ question }: { question: Question }) {
     return slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   }, [question.chapterSlug]);
 
+  /* ── ABAPPrep 9-section structure ── */
+  const TABS = [
+    { key: "easy"         as const, label: "Seedha Samjho",        sublabel: "Simple Hindi mein samjho",  Icon: Lightbulb,     color: "#F59E0B" },
+    { key: "deepDive"     as const, label: "Deep Dive",             sublabel: "Technical understanding",   Icon: BookOpen,      color: chapterColor },
+    { key: "interviewHi"  as const, label: "Interview (Hinglish)",  sublabel: "Speakable script",          Icon: MessageSquare, color: "#22C55E" },
+    { key: "interviewEn"  as const, label: "Interview (English)",   sublabel: "Corporate script",          Icon: Languages,     color: "#2563EB" },
+    { key: "code"         as const, label: "Code Example",          sublabel: "ABAP + comments",           Icon: Code2,         color: "#6366F1" },
+    { key: "wordByWord"   as const, label: "Word-by-Word",          sublabel: "Each keyword explained",    Icon: Type,          color: "#A855F7" },
+    { key: "mistakes"     as const, label: "Common Mistakes",       sublabel: "Galat vs sahi",             Icon: AlertTriangle, color: "#EF4444" },
+    { key: "revision"     as const, label: "Quick Revision",        sublabel: "2-min recap",               Icon: Clock,         color: "#F59E0B" },
+    { key: "followups"    as const, label: "Follow-Up Questions",   sublabel: "Easy / Medium / Advanced",  Icon: HelpCircle,    color: chapterColor },
+  ];
+  const activeTabCfg = TABS.find((t) => t.key === activeTab) ?? TABS[0];
+  const tabIndex = TABS.findIndex((t) => t.key === activeTab);
+  const prevTab = tabIndex > 0 ? TABS[tabIndex - 1] : undefined;
+  const nextTab = tabIndex < TABS.length - 1 ? TABS[tabIndex + 1] : undefined;
+
+  /* Legacy field → new tab fallback while content rolls out */
+  const a = question.answers;
+  const interviewHinglish = a.interviewScriptHinglish ?? a.interviewMeKyaBolnaHai;
+  const interviewEnglish  = a.interviewScriptEnglish  ?? a.interviewMeKyaBolnaHai;
+
+  const activeContent =
+    activeTab === "easy"         ? a.easyUnderstanding :
+    activeTab === "deepDive"     ? a.hinglishMasterExplanation :
+    activeTab === "interviewHi"  ? interviewHinglish :
+    activeTab === "interviewEn"  ? interviewEnglish :
+    activeTab === "code"         ? a.codeExamples :
+    activeTab === "revision"     ? (a.quickRevisionNotes ?? "") :
+    activeTab === "wordByWord"   ? (a.wordByWordSamjho ?? []).map(w => `${w.keyword}: ${w.meaning}`).join("\n") :
+    activeTab === "mistakes"     ? (a.commonMistakesSection ?? []).map(m => `${m.mistake}\n  Why: ${m.whyWrong}\n  Fix: ${m.correctApproach}`).join("\n\n") :
+                                   ""; /* followups copies nothing */
+
+  /* Switch section and bring the reader back to the top of the card */
+  const goToTab = (key: typeof activeTab) => {
+    setActiveTab(key);
+    document.getElementById("answer-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
     <main
-      className="min-h-screen bg-background px-4 py-5 sm:px-6 lg:px-8"
-      style={{ "--accent": chapterColor, "--accent-glow": `${chapterColor}33` } as React.CSSProperties}
+      className="min-h-screen bg-background px-4 pb-28 pt-5 sm:px-6 sm:pb-8 lg:px-8"
+      style={{ "--accent": ink(chapterColor), "--accent-contrast": "var(--background)", "--accent-glow": `${chapterColor}33` } as React.CSSProperties}
     >
       {/* Top reading progress bar — reflects how far through this page you've read */}
       <div className="fixed left-0 top-0 z-50 h-[3px] w-full bg-border">
@@ -198,6 +249,7 @@ export function QuestionReader({ question }: { question: Question }) {
               aria-label="Bookmark question"
               variant={bookmarked ? "default" : "secondary"}
               size="icon"
+              className="hidden sm:inline-flex"
               onClick={() => toggleBookmark(question.id)}
             >
               <Bookmark size={18} fill={bookmarked ? "currentColor" : "none"} />
@@ -206,6 +258,7 @@ export function QuestionReader({ question }: { question: Question }) {
               aria-label="Mark complete"
               variant={isDone ? "default" : "secondary"}
               size="icon"
+              className="hidden sm:inline-flex"
               onClick={() => {
                 if (!isDone) {
                   markComplete(question.id);
@@ -243,35 +296,18 @@ export function QuestionReader({ question }: { question: Question }) {
             <span>Q{questionIndex + 1} of {allQuestions.length}</span>
           </div>
 
-          <div className="mt-6 grid gap-3 sm:grid-cols-3">
-            <Tracker icon={<Gauge size={17} />} label="Confidence" value={`${confidence}%`} color={chapterColor} />
+          <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-3">
+            <Tracker icon={<Gauge size={15} />} label="Confidence" value={`${confidence}%`} color={ink(chapterColor)} />
             <Tracker
-              icon={<RotateCcw size={17} />}
+              icon={<RotateCcw size={15} />}
               label="Revision"
               value={isDone ? "Completed" : "Due Today"}
-              color={isDone ? "#0e7c72" : chapterColor}
+              color={isDone ? "var(--success)" : ink(chapterColor)}
             />
-            <Tracker icon={<StickyNote size={17} />} label="Book Progress" value={`${readingProgress}%`} color={chapterColor} />
+            <Tracker icon={<StickyNote size={15} />} label="Progress" value={`${readingProgress}%`} color={ink(chapterColor)} />
           </div>
         </header>
 
-        {/* Tab definitions — defined inside render so chapterColor is in scope */}
-        {(() => {
-          const TABS = [
-            { key: "easy"      as const, label: "Seedha Samjho",       sublabel: "Simple words mein",          Icon: Lightbulb,     color: "#F59E0B" },
-            { key: "master"    as const, label: "Deep Dive",            sublabel: "Expert-level explanation",   Icon: BookOpen,      color: chapterColor },
-            { key: "interview" as const, label: "Interview Script",     sublabel: "Word-by-word bolna hai",     Icon: MessageSquare, color: "#10B981" },
-            { key: "code"      as const, label: "Code Example",         sublabel: "ABAP code + comments",       Icon: Code2,         color: "#6366F1" },
-          ];
-          const activeTabCfg = TABS.find((t) => t.key === activeTab) ?? TABS[0];
-
-          const activeContent =
-            activeTab === "easy"      ? question.answers.easyUnderstanding :
-            activeTab === "master"    ? question.answers.hinglishMasterExplanation :
-            activeTab === "interview" ? question.answers.interviewMeKyaBolnaHai :
-                                        question.answers.codeExamples;
-
-          return (
         <div className={cn("mt-6 grid gap-6", !focusMode && "lg:grid-cols-[1fr_300px]")}>
           {/* Main reading column */}
           <div className="min-w-0 space-y-5">
@@ -282,32 +318,29 @@ export function QuestionReader({ question }: { question: Question }) {
             ) : (
               <>
                 {/* ── Tab card ── */}
-                <Card className="overflow-hidden">
-                  {/* Tab bar */}
-                  <div className="flex overflow-x-auto border-b border-border bg-surface-2/40">
-                    {TABS.map((tab) => {
+                <Card id="answer-card" className="scroll-mt-16">
+                  {/* Section pills — numbered 9-step reading path, sticky while reading */}
+                  <div className="no-scrollbar sticky top-[3px] z-30 flex gap-1.5 overflow-x-auto rounded-t-xl border-b border-border bg-surface/95 px-3 py-2.5 backdrop-blur-md">
+                    {TABS.map((tab, i) => {
                       const active = activeTab === tab.key;
                       return (
                         <button
                           key={tab.key}
-                          onClick={() => setActiveTab(tab.key)}
+                          onClick={() => goToTab(tab.key)}
                           className={cn(
-                            "group flex flex-1 min-w-[90px] flex-col items-center gap-1.5 px-3 py-3.5 text-center transition-all duration-150",
-                            active ? "bg-surface" : "hover:bg-surface-2/70",
+                            "flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full border px-3 py-2 text-[12px] font-semibold transition-colors duration-150",
+                            !active && "border-border bg-surface text-muted hover:border-border-strong hover:text-foreground",
                           )}
-                          style={active ? { boxShadow: `inset 0 -2px 0 ${tab.color}` } : undefined}
+                          style={active ? { backgroundColor: `${tab.color}1c`, borderColor: `${tab.color}55`, color: ink(tab.color) } : undefined}
+                          aria-current={active ? "true" : undefined}
                         >
-                          <tab.Icon
-                            size={16}
-                            style={{ color: active ? tab.color : undefined }}
-                            className={cn(!active && "text-muted group-hover:text-foreground transition-colors")}
-                          />
                           <span
-                            className={cn("text-[11px] font-semibold leading-tight", active ? "text-foreground" : "text-muted group-hover:text-foreground")}
-                            style={active ? { color: tab.color } : undefined}
+                            className="flex h-[18px] w-[18px] items-center justify-center rounded-full text-[9px] font-bold"
+                            style={active ? { backgroundColor: ink(tab.color), color: "var(--background)" } : { backgroundColor: "var(--surface-2)", color: "var(--faint)" }}
                           >
-                            {tab.label}
+                            {i + 1}
                           </span>
+                          {tab.label}
                         </button>
                       );
                     })}
@@ -320,7 +353,7 @@ export function QuestionReader({ question }: { question: Question }) {
                   >
                     <span
                       className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
-                      style={{ backgroundColor: `${activeTabCfg.color}1e`, color: activeTabCfg.color }}
+                      style={{ backgroundColor: `${activeTabCfg.color}1e`, color: ink(activeTabCfg.color) }}
                     >
                       <activeTabCfg.Icon size={15} />
                     </span>
@@ -342,83 +375,55 @@ export function QuestionReader({ question }: { question: Question }) {
                   </div>
 
                   {/* Tab content */}
-                  <div className="p-6 sm:p-8">
-                    {activeTab === "code" ? (
-                      <pre className={cn("code-block overflow-x-auto whitespace-pre-wrap rounded-xl border border-border bg-surface-2 p-5 text-foreground", measureClass)}>
-                        {question.answers.codeExamples}
-                      </pre>
-                    ) : activeTab === "interview" ? (
-                      <div
-                        className={cn("rounded-xl border-l-[3px] bg-surface-2/40 p-5", measureClass)}
-                        style={{ borderLeftColor: "#10B981" }}
+                  <div className="p-5 sm:p-8">
+                    <TabContent
+                      activeTab={activeTab}
+                      tabColor={activeTabCfg.color}
+                      answers={a}
+                      interviewHinglish={interviewHinglish}
+                      interviewEnglish={interviewEnglish}
+                      chapterColor={chapterColor}
+                      measureClass={measureClass}
+                      readingStyle={readingStyle}
+                    />
+                  </div>
+
+                  {/* Section-to-section reading flow — read all 9 like book pages */}
+                  <div className="flex items-center justify-between gap-2 rounded-b-xl border-t border-border bg-surface-2/40 px-4 py-3 sm:px-6">
+                    {prevTab ? (
+                      <button
+                        onClick={() => goToTab(prevTab.key)}
+                        className="flex min-w-0 cursor-pointer items-center gap-1.5 rounded-lg px-2 py-2 text-[13px] font-medium text-muted transition-colors hover:text-foreground"
                       >
-                        <AnswerText text={question.answers.interviewMeKyaBolnaHai} className="reading" style={readingStyle} />
-                      </div>
-                    ) : (
-                      <AnswerText
-                        text={activeTab === "easy" ? question.answers.easyUnderstanding : question.answers.hinglishMasterExplanation}
-                        className={cn("reading", measureClass)}
-                        style={readingStyle}
-                      />
-                    )}
+                        <ChevronLeft size={15} className="shrink-0" />
+                        <span className="truncate">{prevTab.label}</span>
+                      </button>
+                    ) : <span />}
+
+                    <span className="shrink-0 text-[11px] font-semibold uppercase tracking-widest text-faint">
+                      {tabIndex + 1} / {TABS.length}
+                    </span>
+
+                    {nextTab ? (
+                      <button
+                        onClick={() => goToTab(nextTab.key)}
+                        className="flex min-w-0 cursor-pointer items-center gap-1.5 rounded-lg px-2 py-2 text-[13px] font-semibold transition-colors"
+                        style={{ color: ink(nextTab.color) }}
+                      >
+                        <span className="truncate">{nextTab.label}</span>
+                        <ChevronRight size={15} className="shrink-0" />
+                      </button>
+                    ) : nextQuestion ? (
+                      <Link
+                        href={`/questions/${nextQuestion.id}`}
+                        className="flex min-w-0 items-center gap-1.5 rounded-lg px-2 py-2 text-[13px] font-semibold text-accent transition-colors"
+                      >
+                        <span className="truncate">Next question</span>
+                        <ChevronRight size={15} className="shrink-0" />
+                      </Link>
+                    ) : <span />}
                   </div>
                 </Card>
-
-                {/* ── Follow-up Questions card ── */}
-                {question.answers.followupAnswerBank?.length > 0 && (
-                  <Card className="overflow-hidden">
-                    <div className="flex items-center gap-3 border-b border-border px-5 py-4">
-                      <span
-                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold"
-                        style={{ backgroundColor: `${chapterColor}18`, color: chapterColor }}
-                      >
-                        <HelpCircle size={15} />
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-foreground">Follow-up Questions</span>
-                          <span
-                            className="rounded-full px-2 py-0.5 text-[10px] font-bold"
-                            style={{ backgroundColor: `${chapterColor}18`, color: chapterColor }}
-                          >
-                            {question.answers.followupAnswerBank.length}
-                          </span>
-                        </div>
-                        <p className="mt-0.5 text-xs text-muted">Interviewer ye bhi pooch sakta hai — ready raho</p>
-                      </div>
-                    </div>
-
-                    <Accordion.Root type="single" collapsible className="divide-y divide-border">
-                      {question.answers.followupAnswerBank.map((followup, index) => (
-                        <Accordion.Item key={followup.question} value={followup.question} className="group">
-                          <Accordion.Trigger className="flex w-full items-start gap-3 px-5 py-4 text-left transition-colors hover:bg-surface-2/50 data-[state=open]:bg-surface-2/50">
-                            <span
-                              className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold"
-                              style={{ backgroundColor: `${chapterColor}18`, color: chapterColor }}
-                            >
-                              {index + 1}
-                            </span>
-                            <span className="flex-1 text-sm font-medium text-foreground leading-snug">{followup.question}</span>
-                            <ChevronDown size={15} className="mt-0.5 shrink-0 text-muted transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                          </Accordion.Trigger>
-                          <Accordion.Content className="overflow-hidden data-[state=open]:animate-slide-down data-[state=closed]:animate-slide-up">
-                            <div className="space-y-2.5 px-5 pb-5 pt-1">
-                              <MentorBlock title="Hinglish Explanation" body={followup.hinglishExplanation} color={chapterColor} />
-                              <MentorBlock title="Interview Answer"     body={followup.interviewAnswer}    color="#10B981" />
-                              <MentorBlock title="Real-time Example"    body={followup.realtimeExplanation} color={chapterColor} />
-                              <MentorBlock title="Avoid These Mistakes" body={followup.mistakes}           color="#EF4444" />
-                              {followup.codeExample?.trim() && (
-                                <pre className="code-block overflow-x-auto rounded-lg border border-border bg-surface-2 p-3 text-[0.82rem] text-foreground">
-                                  {followup.codeExample}
-                                </pre>
-                              )}
-                            </div>
-                          </Accordion.Content>
-                        </Accordion.Item>
-                      ))}
-                    </Accordion.Root>
-                  </Card>
-                )}
               </>
             )}
           </div>
@@ -432,19 +437,20 @@ export function QuestionReader({ question }: { question: Question }) {
                   <p className="text-xs font-semibold uppercase tracking-widest text-muted">Sections</p>
                 </div>
                 <div className="flex flex-col divide-y divide-border">
-                  {TABS.map((tab) => {
+                  {TABS.map((tab, i) => {
                     const active = activeTab === tab.key;
                     return (
                       <button
                         key={tab.key}
-                        onClick={() => setActiveTab(tab.key)}
+                        onClick={() => goToTab(tab.key)}
                         className={cn(
-                          "flex items-center gap-2.5 px-4 py-2.5 text-sm text-left transition-colors",
+                          "flex cursor-pointer items-center gap-2.5 px-4 py-2.5 text-sm text-left transition-colors",
                           active ? "bg-surface-2/70 font-semibold text-foreground" : "text-muted hover:bg-surface-2/50 hover:text-foreground",
                         )}
                       >
-                        <tab.Icon size={13} style={{ color: active ? tab.color : undefined }} className={cn(!active && "text-muted")} />
-                        <span style={active ? { color: tab.color } : undefined}>{tab.label}</span>
+                        <span className="w-4 shrink-0 text-[10px] font-bold text-faint">{i + 1}</span>
+                        <tab.Icon size={13} style={{ color: active ? ink(tab.color) : undefined }} className={cn(!active && "text-muted")} />
+                        <span style={active ? { color: ink(tab.color) } : undefined}>{tab.label}</span>
                         {active && <span className="ml-auto h-1.5 w-1.5 rounded-full" style={{ backgroundColor: tab.color }} />}
                       </button>
                     );
@@ -514,8 +520,6 @@ export function QuestionReader({ question }: { question: Question }) {
             </Card>
           </aside>
         </div>
-          );
-        })()}
 
         {/* Prev / Next navigation */}
         <nav className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -547,13 +551,67 @@ export function QuestionReader({ question }: { question: Question }) {
         </nav>
 
         <div className="mt-6 text-center text-xs text-faint">
-          5 learning sections · {allQuestions.length} questions in this book
+          9 learning sections · {allQuestions.length} questions in this book
         </div>
       </div>
 
-      {/* Floating controls */}
+      {/* Mobile bottom action bar — thumb-reachable controls */}
+      <div className="pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 px-3 pt-2 backdrop-blur-md sm:hidden">
+        <div className="mx-auto flex max-w-md items-center justify-between gap-1">
+          <Link
+            href={previousQuestion ? `/questions/${previousQuestion.id}` : "#"}
+            aria-label="Previous question"
+            className={cn(
+              "flex h-11 w-11 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-2",
+              !previousQuestion && "pointer-events-none opacity-30",
+            )}
+          >
+            <ChevronLeft size={20} />
+          </Link>
+          <button
+            aria-label="Bookmark question"
+            onClick={() => {
+              toggleBookmark(question.id);
+              toast.success(bookmarked ? "Bookmark removed" : "Bookmarked!");
+            }}
+            className={cn(
+              "flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg transition-colors",
+              bookmarked ? "text-accent" : "text-muted hover:bg-surface-2",
+            )}
+          >
+            <Bookmark size={19} fill={bookmarked ? "currentColor" : "none"} />
+          </button>
+          <button
+            aria-label="Mark complete"
+            onClick={() => {
+              if (!isDone) {
+                markComplete(question.id);
+                toast.success("Marked complete!");
+              }
+            }}
+            className={cn(
+              "flex h-11 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg text-[13px] font-semibold transition-colors",
+              isDone ? "bg-success-soft text-success" : "bg-accent text-accent-contrast",
+            )}
+          >
+            <Check size={16} /> {isDone ? "Completed" : "Mark complete"}
+          </button>
+          <Link
+            href={nextQuestion ? `/questions/${nextQuestion.id}` : "#"}
+            aria-label="Next question"
+            className={cn(
+              "flex h-11 w-11 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-2",
+              !nextQuestion && "pointer-events-none opacity-30",
+            )}
+          >
+            <ChevronRight size={20} />
+          </Link>
+        </div>
+      </div>
+
+      {/* Floating controls (desktop) */}
       {showFloatingNext && (
-        <div className="animate-fade-in fixed bottom-6 right-6 z-50 flex items-center gap-2">
+        <div className="animate-fade-in fixed bottom-6 right-6 z-50 hidden items-center gap-2 sm:flex">
           <Button
             variant="secondary"
             size="icon"
@@ -580,7 +638,7 @@ function RecallCover({ color, minutes, onReveal }: { color: string; minutes: num
     <div className="flex flex-col items-center justify-center px-6 py-16 text-center sm:py-20">
       <span
         className="flex h-12 w-12 items-center justify-center rounded-full"
-        style={{ backgroundColor: `${color}1f`, color }}
+        style={{ backgroundColor: `${color}1f`, color: ink(color) }}
       >
         <Lock size={20} />
       </span>
@@ -605,7 +663,7 @@ function MentorBlock({ title, body, color }: { title: string; body: string; colo
     >
       <div
         className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest"
-        style={{ color }}
+        style={{ color: ink(color) }}
       >
         {title}
       </div>
@@ -624,7 +682,7 @@ function AiTool({ icon, label, prompt, color }: { icon: React.ReactNode; label: 
         toast.success(`${label} prompt copied`);
       }}
     >
-      <span style={{ color }}>{icon}</span>
+      <span style={{ color: ink(color) }}>{icon}</span>
       {label}
     </Button>
   );
@@ -632,12 +690,203 @@ function AiTool({ icon, label, prompt, color }: { icon: React.ReactNode; label: 
 
 function Tracker({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: string; color: string }) {
   return (
-    <div className="rounded-lg border border-border bg-surface-2 p-4">
-      <div className="flex items-center gap-2" style={{ color }}>
-        {icon}
-        <span className="text-[10px] font-semibold uppercase tracking-[0.1em]">{label}</span>
+    <div className="rounded-lg border border-border bg-surface-2 p-2.5 sm:p-4">
+      <div className="flex items-center gap-1.5 sm:gap-2" style={{ color }}>
+        <span className="hidden sm:inline-flex">{icon}</span>
+        <span className="truncate text-[9px] font-semibold uppercase tracking-[0.02em] sm:text-[10px] sm:tracking-[0.1em]">{label}</span>
       </div>
-      <div className="mt-2 text-lg font-bold text-foreground">{value}</div>
+      <div className="mt-1.5 text-sm font-bold text-foreground sm:mt-2 sm:text-lg">{value}</div>
     </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────
+   ABAPPrep 9-section tab content router
+   Each tab renders a specialised view of the question's answers.
+   New sections (wordByWord, mistakes, revision, tieredFollowups)
+   show a clean "Coming soon" placeholder until content lands.
+   ────────────────────────────────────────────────────────────── */
+
+type TabKey =
+  | "easy" | "deepDive" | "interviewHi" | "interviewEn" | "code"
+  | "wordByWord" | "mistakes" | "revision" | "followups";
+
+function TabContent({
+  activeTab,
+  tabColor,
+  answers,
+  interviewHinglish,
+  interviewEnglish,
+  chapterColor,
+  measureClass,
+  readingStyle,
+}: {
+  activeTab: TabKey;
+  tabColor: string;
+  answers: import("@/lib/types").QuestionAnswer;
+  interviewHinglish: string;
+  interviewEnglish: string;
+  chapterColor: string;
+  measureClass: string;
+  readingStyle: React.CSSProperties;
+}) {
+  switch (activeTab) {
+    case "easy":
+      return <AnswerText text={answers.easyUnderstanding} className={cn("reading", measureClass)} style={readingStyle} />;
+
+    case "deepDive":
+      return <AnswerText text={answers.hinglishMasterExplanation} className={cn("reading", measureClass)} style={readingStyle} />;
+
+    case "interviewHi":
+      return (
+        <div className={cn("rounded-xl border-l-[3px] bg-surface-2/40 p-5", measureClass)} style={{ borderLeftColor: "#22C55E" }}>
+          <AnswerText text={interviewHinglish} className="reading" style={readingStyle} />
+        </div>
+      );
+
+    case "interviewEn":
+      return (
+        <div className={cn("rounded-xl border-l-[3px] bg-surface-2/40 p-5", measureClass)} style={{ borderLeftColor: "#2563EB" }}>
+          <AnswerText text={interviewEnglish} className="reading" style={readingStyle} />
+        </div>
+      );
+
+    case "code":
+      return (
+        <pre className={cn("code-block overflow-x-auto whitespace-pre-wrap rounded-xl border border-border bg-surface-2 p-5 text-foreground", measureClass)}>
+          {answers.codeExamples}
+        </pre>
+      );
+
+    case "wordByWord": {
+      const words = answers.wordByWordSamjho;
+      if (!words?.length) return <EmptySection color={tabColor} label="Word-by-Word Samjho" hint="ABAP keyword-by-keyword breakdown — coming soon." />;
+      return (
+        <div className={cn("space-y-2", measureClass)}>
+          {words.map((w) => (
+            <div key={w.keyword} className="grid gap-1 rounded-lg border border-border bg-surface-2/40 p-3 sm:grid-cols-[140px_1fr] sm:items-baseline sm:gap-4">
+              <code className="font-mono text-sm font-semibold" style={{ color: tabColor }}>{w.keyword}</code>
+              <p className="text-sm leading-relaxed text-foreground">{w.meaning}</p>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    case "mistakes": {
+      const mistakes = answers.commonMistakesSection;
+      if (!mistakes?.length) return <EmptySection color={tabColor} label="Common Mistakes" hint="Top mistakes + correct approach — coming soon." />;
+      return (
+        <ul className={cn("space-y-3", measureClass)}>
+          {mistakes.map((m, i) => (
+            <li key={i} className="rounded-xl border border-error-soft bg-error-soft p-4">
+              <p className="flex items-start gap-2 text-sm font-semibold text-foreground">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-error text-[10px] font-bold text-white">{i + 1}</span>
+                {m.mistake}
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-muted"><span className="font-semibold text-error">Why wrong:</span> {m.whyWrong}</p>
+              <p className="mt-1 text-sm leading-relaxed text-muted"><span className="font-semibold text-success">Correct approach:</span> {m.correctApproach}</p>
+            </li>
+          ))}
+        </ul>
+      );
+    }
+
+    case "revision": {
+      const notes = answers.quickRevisionNotes;
+      if (!notes) return <EmptySection color={tabColor} label="Quick Revision Notes" hint="2-minute keyword recap — coming soon." />;
+      return (
+        <div className={cn("rounded-xl border-l-[3px] bg-warning-soft p-5", measureClass)} style={{ borderLeftColor: "#F59E0B" }}>
+          <AnswerText text={notes} className="reading" style={readingStyle} />
+        </div>
+      );
+    }
+
+    case "followups": {
+      const flat = answers.followupAnswerBank;
+      if (!flat?.length) return <EmptySection color={tabColor} label="Follow-Up Questions" hint="Tiered Easy / Medium / Advanced follow-ups — coming soon." />;
+      const hasTiers = flat.some((f) => f.tier);
+      if (hasTiers) return <TieredFollowupAccordion items={flat} accent={chapterColor} />;
+      return <FlatFollowupAccordion items={flat} accent={chapterColor} />;
+    }
+  }
+}
+
+function EmptySection({ color, label, hint }: { color: string; label: string; hint: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-surface-2/30 px-6 py-16 text-center">
+      <span className="flex h-10 w-10 items-center justify-center rounded-full" style={{ backgroundColor: `${color}1f`, color: ink(color) }}>
+        <Lightbulb size={18} />
+      </span>
+      <h3 className="mt-3 font-serif text-base font-semibold text-foreground">{label}</h3>
+      <p className="mt-1 max-w-sm text-sm leading-6 text-muted">{hint}</p>
+      <p className="mt-2 text-[11px] uppercase tracking-widest text-faint">Section reserved · V1 content rollout</p>
+    </div>
+  );
+}
+
+function TieredFollowupAccordion({ items, accent }: { items: import("@/lib/types").FollowupAnswer[]; accent: string }) {
+  const tiers: Array<{ key: "easy" | "medium" | "advanced"; label: string; color: string }> = [
+    { key: "easy",     label: "Easy",     color: "#22C55E" },
+    { key: "medium",   label: "Medium",   color: "#F59E0B" },
+    { key: "advanced", label: "Advanced", color: "#EF4444" },
+  ];
+  const untiered = items.filter((f) => !f.tier);
+  return (
+    <div className="space-y-4">
+      {tiers.map((t) => {
+        const group = items.filter((f) => f.tier === t.key);
+        if (!group.length) return null;
+        return (
+          <div key={t.key} className="overflow-hidden rounded-xl border border-border">
+            <div className="flex items-center gap-2 border-b border-border bg-surface-2/40 px-4 py-3">
+              <span className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest" style={{ backgroundColor: `${t.color}1e`, color: ink(t.color) }}>{t.label}</span>
+              <span className="text-xs text-faint">{group.length} question{group.length === 1 ? "" : "s"}</span>
+            </div>
+            <FlatFollowupAccordion items={group} accent={accent} />
+          </div>
+        );
+      })}
+      {untiered.length > 0 && (
+        <div className="overflow-hidden rounded-xl border border-border">
+          <div className="flex items-center gap-2 border-b border-border bg-surface-2/40 px-4 py-3">
+            <span className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-muted">Untiered</span>
+            <span className="text-xs text-faint">{untiered.length} question{untiered.length === 1 ? "" : "s"}</span>
+          </div>
+          <FlatFollowupAccordion items={untiered} accent={accent} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FlatFollowupAccordion({ items, accent }: { items: import("@/lib/types").FollowupAnswer[]; accent: string }) {
+  return (
+    <Accordion.Root type="single" collapsible className="divide-y divide-border rounded-xl border border-border">
+      {items.map((followup, index) => (
+        <Accordion.Item key={followup.question} value={followup.question} className="group">
+          <Accordion.Trigger className="flex w-full items-start gap-3 px-5 py-4 text-left transition-colors hover:bg-surface-2/50 data-[state=open]:bg-surface-2/50">
+            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold" style={{ backgroundColor: `${accent}18`, color: ink(accent) }}>
+              {index + 1}
+            </span>
+            <span className="flex-1 text-sm font-medium text-foreground leading-snug">{followup.question}</span>
+            <ChevronDown size={15} className="mt-0.5 shrink-0 text-muted transition-transform duration-200 group-data-[state=open]:rotate-180" />
+          </Accordion.Trigger>
+          <Accordion.Content className="overflow-hidden data-[state=open]:animate-slide-down data-[state=closed]:animate-slide-up">
+            <div className="space-y-2.5 px-5 pb-5 pt-1">
+              <MentorBlock title="Hinglish Explanation" body={followup.hinglishExplanation} color={accent} />
+              <MentorBlock title="Interview Answer"     body={followup.interviewAnswer}    color="#22C55E" />
+              <MentorBlock title="Real-time Example"    body={followup.realtimeExplanation} color={accent} />
+              <MentorBlock title="Avoid These Mistakes" body={followup.mistakes}           color="#EF4444" />
+              {followup.codeExample?.trim() && (
+                <pre className="code-block overflow-x-auto rounded-lg border border-border bg-surface-2 p-3 text-[0.82rem] text-foreground">
+                  {followup.codeExample}
+                </pre>
+              )}
+            </div>
+          </Accordion.Content>
+        </Accordion.Item>
+      ))}
+    </Accordion.Root>
   );
 }
