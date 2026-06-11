@@ -136,7 +136,7 @@
       },
       {
         "question": "How do you create a Transaction Code for a Module Pool?",
-        "hinglishExplanation": "SE93 mein, main dialog transaction banata hoon transaction code provide karke, 'Program and selection screen' type select karke, module pool program name aur initial screen number enter karke. Save aur transport ke baad, users command field mein T-code enter karke custom screen execute kar sakte hain — kisi bhi standard SAP transaction ki tarah.",
+        "hinglishExplanation": "SE93 mein, main dialog transaction banata hoon transaction code provide karke, 'Dialog Transaction (Program and screen)' type select karke, module pool program name aur initial screen number enter karke. Save aur transport ke baad, users command field mein T-code enter karke custom screen execute kar sakte hain — kisi bhi standard SAP transaction ki tarah.",
         "interviewAnswer": "In SE93, I create a dialog transaction by providing the transaction code, selecting 'Dialog Transaction (Program and screen)' type, entering the module pool program name and the initial screen number. After saving and transporting, users can execute the custom screen by entering the T-code in the command field — same as any standard SAP transaction.",
         "realtimeExplanation": "Production mein T-code PFCG se authorization role mein add karna padta hai taaki sirf authorized users access kar sakein. Transport sequence: module pool program first, then screen, then GUI status, then T-code.",
         "mistakes": "Module pool bana liya but SE93 mein transaction type galat choose kiya — 'Report transaction' select kiya 'Dialog transaction' ki jagah. Dialog transaction wala select karna mandatory hai module pool ke liye.",

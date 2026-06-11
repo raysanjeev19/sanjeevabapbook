@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
-import { ArrowLeft, BookmarkX, ChevronRight, Clock, History, Star } from "lucide-react";
+import { ArrowLeft, BookmarkX, Check, ChevronRight, Clock, History, Star } from "lucide-react";
 import { allQuestions, chapters } from "@/lib/content";
 import { Badge, difficultyVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -32,14 +32,14 @@ export default function LibraryPage() {
   );
 
   return (
-    <main className="min-h-screen bg-background px-4 py-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-4xl">
-        {/* Nav */}
-        <nav className="mb-6 flex items-center justify-between rounded-xl border border-border bg-surface px-4 py-2.5">
+    <main className="min-h-screen bg-background">
+      {/* Nav */}
+      <nav className="sticky top-0 z-40 mx-auto w-full max-w-4xl px-4 pt-3 sm:px-6 lg:px-8">
+        <div className="glass flex items-center justify-between rounded-xl px-4 py-2.5 shadow-card">
           <div className="flex items-center gap-2">
             <Link href="/" className="flex items-center gap-2">
               <BrandLogo size={28} />
-              <span className="font-serif text-sm font-semibold text-foreground">ABAPPrep</span>
+              <span className="font-serif text-sm font-semibold text-foreground">CodeGurukul</span>
             </Link>
             <ChevronRight size={12} className="text-faint" />
             <span className="text-sm font-semibold text-accent">Library</span>
@@ -51,37 +51,49 @@ export default function LibraryPage() {
             </Button>
             <ThemeToggle />
           </div>
-        </nav>
-
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="font-serif text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">Your Library</h1>
-          <p className="mt-1 text-sm text-muted">
-            {bookmarked.length} saved · {completed.length} completed · pick up where you left off
-          </p>
         </div>
+      </nav>
 
+      <div className="ambient-top">
+        <div className="mx-auto max-w-4xl px-4 pt-6 sm:px-6 lg:px-8">
+          {/* Header */}
+          <div className="animate-fade-up mb-8 pb-2">
+            <h1 className="font-serif text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              Your <span className="text-gradient">Library</span>
+            </h1>
+            <p className="mt-1 text-sm text-muted">
+              {bookmarked.length} saved · {completed.length} completed · pick up where you left off
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-4xl px-4 pb-16 sm:px-6 lg:px-8">
         {/* Continue reading */}
-        <section className="mb-10">
+        <section className="animate-fade-up d-1 mb-10">
           <div className="mb-3 flex items-center gap-2">
-            <History size={16} className="text-accent" />
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent-soft text-accent">
+              <History size={14} />
+            </span>
             <h2 className="font-serif text-lg font-semibold text-foreground">Continue reading</h2>
           </div>
           {continueList.length === 0 ? (
             <EmptyState icon={<Clock size={22} />} text="Nothing yet. Open any question and it'll show up here." />
           ) : (
             <div className="grid gap-2">
-              {continueList.map((q) => (
-                <QuestionRow key={q.id} question={q} done={completed.includes(q.id)} />
+              {continueList.map((q, i) => (
+                <QuestionRow key={q.id} question={q} done={completed.includes(q.id)} index={i} />
               ))}
             </div>
           )}
         </section>
 
         {/* Bookmarks */}
-        <section>
+        <section className="animate-fade-up d-2">
           <div className="mb-3 flex items-center gap-2">
-            <Star size={16} className="text-accent" />
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-warning-soft text-warning">
+              <Star size={14} />
+            </span>
             <h2 className="font-serif text-lg font-semibold text-foreground">Bookmarks</h2>
           </div>
           {bookmarked.length === 0 ? (
@@ -91,8 +103,8 @@ export default function LibraryPage() {
             />
           ) : (
             <div className="grid gap-2">
-              {bookmarked.map((q) => (
-                <QuestionRow key={q.id} question={q} done={completed.includes(q.id)} />
+              {bookmarked.map((q, i) => (
+                <QuestionRow key={q.id} question={q} done={completed.includes(q.id)} index={i} />
               ))}
             </div>
           )}
@@ -102,17 +114,21 @@ export default function LibraryPage() {
   );
 }
 
-function QuestionRow({ question, done }: { question: Question; done: boolean }) {
+function QuestionRow({ question, done, index }: { question: Question; done: boolean; index: number }) {
   const color = chapterColorOf(question.chapterSlug);
   return (
     <Link href={`/questions/${question.id}`}>
-      <Card accent={color} className="group p-3.5 hover:border-border-strong hover:bg-surface-2">
+      <Card
+        accent={color}
+        className="hover-lift animate-fade-up group cursor-pointer p-3.5 hover:border-border-strong"
+        style={{ animationDelay: `${Math.min(index * 40, 320)}ms` }}
+      >
         <div className="flex items-center gap-3">
           <span
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-transform duration-200 group-hover:scale-110"
             style={{ backgroundColor: `${color}1f`, color: ink(color) }}
           >
-            {done ? "✓" : <Star size={13} />}
+            {done ? <Check size={13} /> : <Star size={13} />}
           </span>
           <div className="min-w-0 flex-1">
             <h3 className="truncate text-sm font-semibold text-foreground">{question.prompt}</h3>
@@ -123,7 +139,7 @@ function QuestionRow({ question, done }: { question: Question; done: boolean }) 
               <Badge className="px-1.5 py-0.5 text-[9px]">{question.experienceLevel}</Badge>
             </div>
           </div>
-          <ChevronRight className="shrink-0 text-faint transition-colors group-hover:text-muted" size={14} />
+          <ChevronRight className="shrink-0 text-faint transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-accent" size={14} />
         </div>
       </Card>
     </Link>
@@ -133,7 +149,7 @@ function QuestionRow({ question, done }: { question: Question; done: boolean }) 
 function EmptyState({ icon, text }: { icon: React.ReactNode; text: string }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-surface px-6 py-10 text-center">
-      <span className="text-faint">{icon}</span>
+      <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-surface-2 text-faint">{icon}</span>
       <p className="mt-3 max-w-sm text-sm text-muted">{text}</p>
     </div>
   );

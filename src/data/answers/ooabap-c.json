@@ -9,22 +9,22 @@
     "commonMistakesSection": [
       {
         "mistake": "Test method ka naam test_ se shuru na karna ya FOR TESTING annotation miss karna — test run hi nahi hoga.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "ABAP Unit framework sirf FOR TESTING classes aur methods ko discover karta hai — bina annotation ke method kabhi execute hi nahi hota, aur test suite green dikhti hai jabki actually kuch test hua hi nahi. Is false confidence ke saath bugs seedhe production tak pahunch jaate hain.",
         "correctApproach": "Aur assertions ke bina sirf code execute karna — woh test nahi hai, woh dry run hai."
       },
       {
         "mistake": "Mock class mein real DB call karna — woh mock nahi hai.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Test phir system data pe depend karta hai — alag client ya system mein wahi test fail ho jaata hai, runtime seconds se minutes mein chala jaata hai, aur test runs flaky ho jaate hain kyunki data har environment mein different hai.",
         "correctApproach": "Test slow hoga aur data-dependent hoga. Mock should always return deterministic, hardcoded values."
       },
       {
         "mistake": "ATC sirf code inspector samajhna.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "ATC static checks ke saath AUnit tests bhi execute karta hai — agar aap ise sirf Code Inspector samjhoge toh tests likhne ki zaroorat hi nahi feel hogi, aur 'ATC green' ka matlab quality samajh ke untested code transport ho jaata hai.",
         "correctApproach": "ATC mein unit tests bhi run hote hain — dono alag alag cheezein nahi hain, ek integrated quality check hai."
       },
       {
         "mistake": "Directly CALL FUNCTION rakhe bina wrapper ke aur phir complain karna ki testability nahi hai.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Direct CALL FUNCTION ko mock nahi kiya ja sakta — har unit test real FM execute karta hai jo DB ya RFC hit karta hai. Class effectively unit-testable nahi rehti aur tests slow, data-dependent integration tests ban jaate hain.",
         "correctApproach": "Wrapper pattern ek extra class add karta hai but testability dramatically improve hoti hai."
       }
     ],
@@ -156,22 +156,22 @@
     "commonMistakesSection": [
       {
         "mistake": "Interface banana lekin fir bhi class ke andar NEW lcl_real_db( ) karna — ye DI nahi hai, ye interface use karna hai tightly coupled way mein.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
-        "correctApproach": "Use the correct approach as described in the deep-dive section."
+        "whyWrong": "Class ab bhi concrete implementation se tightly coupled hai — unit test mein mock inject karne ka koi raasta nahi bachta, toh har test real DB hit karta hai. Interface ka asli benefit (substitutability) zero ho jaata hai.",
+        "correctApproach": "Constructor injection use karo: METHODS constructor IMPORTING io_db TYPE REF TO lif_db_reader — kaunsi implementation aayegi yeh caller ya factory decide kare; class ke andar concrete class ka NEW kabhi nahi."
       },
       {
         "mistake": "Setter injection use karna kyunki 'constructor mein bahut saare parameters ho jaate hain.' Agar constructor ke 6+ parameters hain toh class ki responsibility zyada hai — split the class, don't switch to setter.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
-        "correctApproach": "Use the correct approach as described in the deep-dive section."
+        "whyWrong": "Setter injection se object partially-initialized state mein ban sakta hai — agar koi setter call bhool gaya toh uninitialized reference dereference hote hi runtime pe OBJECTS_OBJREF_NOT_ASSIGNED dump aata hai. Constructor injection guarantee deta hai ki object kabhi invalid state mein exist nahi karta.",
+        "correctApproach": "Constructor injection hi rakho; agar constructor 6+ dependencies maang raha hai toh Single Responsibility ke hisaab se class ko chhoti cohesive classes mein split karo, ya closely related dependencies ko ek facade/parameter object mein group karo."
       },
       {
         "mistake": "Har NEW ko bad samajhna.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Is extreme par har chhoti value object ke liye bhi interface aur injection banane padte hain — codebase unnecessary abstractions se bhar jaata hai, constructors bloat hote hain, aur navigation slow ho jaati hai bina kisi testability gain ke.",
         "correctApproach": "Internal value objects aur small helper structures banane ke liye NEW perfectly fine hai. Sirf external dependencies (DB, logger, mailer, RFC) ke liye injection necessary hai."
       },
       {
         "mistake": "Ek class mein CASE-WHEN blocks for different behaviors rakhna ('IF lv_type = 'EMAIL' ..",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Har naya type (e.g. WHATSAPP notification) add karne ke liye already-tested class ko phir se modify karna padta hai — har change regression risk lata hai, aur wahi CASE blocks dheere-dheere multiple methods mein duplicate ho jaate hain. Yeh Open-Closed Principle ka classic violation aur maintenance trap hai.",
         "correctApproach": "ELSEIF lv_type = SMS'). Ye OCP violation hai. Alag implementations banao, inject karo."
       }
     ],
@@ -299,22 +299,22 @@
     "commonMistakesSection": [
       {
         "mistake": "Early return ke baad bhi ELSE rakhna — woh early return ka faida khatam karta hai.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "ELSE block ek unnecessary nesting level add karta hai — guard clause ke baad code linear hona chahiye, lekin ELSE reader ko do parallel branches suggest karta hai. Readability girti hai aur future edits aksar galat branch mein land hote hain.",
         "correctApproach": "Agar early return hai toh ELSE ki zaroorat nahi."
       },
       {
         "mistake": "Exception class banao lekin andar MESSAGE statement rakho — double error handling.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "MESSAGE TYPE 'E' classical message handling trigger karta hai — background job ya RFC context mein program implicitly terminate ho sakta hai aur caller ka CATCH block kabhi reach hi nahi hota. Do parallel error mechanisms debugging ko unpredictable bana dete hain.",
         "correctApproach": "Exception class mein meaningful attributes rakho aur MESSAGE avoid karo completely."
       },
       {
         "mistake": "Method ko chhota karna sirf for the sake of size — har ek line ek method banana.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Logic dozens of one-line methods mein bikhar jaata hai — ek simple flow samajhne ke liye 10 navigation jumps lagte hain aur debugger ka call stack unreadable ho jaata hai. Fragmentation bhi utna hi bada readability problem hai jitna 200-line method.",
         "correctApproach": "Balance chahiye: too large = too complex, too small = fragmented logic that's hard to follow."
       },
       {
         "mistake": "Meaningful naam dene ke chakkar mein bahut lamba naam: lv_the_customer_number_from_the_kna1_table_for_billing.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Itne lambe names lines wrap karate hain aur signal-to-noise ratio girate hain — aur ABAP ki 30-character name limit aise names ko truncate ya inconsistent abbreviations mein force kar deti hai, jisse naming aur bhi confusing ho jaati hai.",
         "correctApproach": "Balance: lv_customer_number is perfect. Self-explaining but not verbose."
       }
     ],
@@ -420,7 +420,7 @@
         "question": "Why does Clean ABAP prefer functional ABAP expressions like COND, SWITCH, VALUE?",
         "hinglishExplanation": "Clean ABAP functional expressions — COND, SWITCH, VALUE, FILTER, REDUCE — promote karta hai kyunki yeh multiple procedural statements ke bajaye ek expression mein intent ko concisely express karte hain. Yeh intermediate variables ki sankhya kam karte hain, related logic ko ek saath rakhte hain, aur ek nazar mein padhne mein aasaan hote hain. Yeh DATA( ) aur FINAL( ) wale inline declarations ke saath bhi achhe se kaam karte hain.",
         "interviewAnswer": "Clean ABAP promotes functional expressions — COND, SWITCH, VALUE, FILTER, REDUCE — because they express intent concisely in one expression instead of multiple procedural statements. They reduce the number of intermediate variables, keep related logic together, and are easier to read at a glance. They also work well with inline declarations using DATA( ) and FINAL( ).",
-        "realtimeExplanation": "Migration tip: purane IF-ELSEIF-ELSE chains ko SWITCH ya COND se replace karo. LOOP AT with APPEND to another table ko FILTER se replace karo. Ek-ek refactor se code shorter aur clearer hota jaata hai. Eclipse refactoring tools help karte hain.",
+        "realtimeExplanation": "Migration tip: value-equality CASE/IF chains ko SWITCH se replace karo (WHEN ke baad sirf literal/constant values), aur range ya comparison conditions (>, <, BETWEEN) ke liye COND use karo. LOOP AT with APPEND to another table ko FILTER se replace karo. Ek-ek refactor se code shorter aur clearer hota jaata hai. Eclipse refactoring tools help karte hain.",
         "mistakes": "Over-using functional expressions for complex logic — ek nested COND inside REDUCE inside FILTER — becomes unreadable. Functional expressions best for simple-to-medium complexity. Complex logic mein explicit methods aur variables clearer hote hain.",
         "codeExample": "\" Old style (procedural)\nDATA lv_status TYPE string.\nIF ls_order-netwr > 10000.\n  lv_status = 'HIGH'.\nELSEIF ls_order-netwr > 1000.\n  lv_status = 'MEDIUM'.\nELSE.\n  lv_status = 'LOW'.\nENDIF.\n\n\" Clean ABAP (functional) — use COND for range conditions.\n\" SWITCH needs literal values after WHEN, so it does not fit range checks.\nDATA(lv_priority) = COND string(\n  WHEN ls_order-netwr > 10000 THEN 'HIGH'\n  WHEN ls_order-netwr > 1000  THEN 'MEDIUM'\n  ELSE 'LOW' ).",
         "tier": "advanced"

@@ -9,22 +9,22 @@
     "commonMistakesSection": [
       {
         "mistake": "Inheritance sirf code reuse ke liye use karna without IS-A relationship.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Subclass ko parent ke woh saare public/protected members mil jaate hain jo uske liye meaningless hain — fragile base class problem: parent mein chhota sa change saare unrelated subclasses tod deta hai, aur Liskov substitution violate hone se polymorphic calls galat behavior dete hain.",
         "correctApproach": "Agar class B, class A ka specialized version nahi hai — use composition instead of inheritance."
       },
       {
         "mistake": "Sirf technical benefits explain karna (clean code, SOLID principles) bina business impact ke.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "PM ko refactoring ya OO design ke liye time approve karne ka koi business reason nahi milta — technically sahi proposal bhi reject ho jaata hai, aur codebase mein shortcuts aur tactical fixes continue hote hain.",
         "correctApproach": "PM ko lines of code ya patterns nahi chahiye — unhe timelines aur risk chahiye."
       },
       {
         "mistake": "IF-ELSEIF chains use karna for different behaviors based on type — ye procedural approach hai.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Naya type aane par har aisi chain dhoondh kar modify karni padti hai — ek bhi jagah miss hui toh us type ke liye silently galat branch execute hota hai. Tested code baar-baar reopen hota hai aur har release ka regression risk badhta jaata hai.",
         "correctApproach": "Polymorphism means eliminating these chains with proper class hierarchy."
       },
       {
         "mistake": "Patterns ko forcefully apply karna jahan simple IF logic sufficient hai.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Simple requirement ke liye factory + strategy + interface ka boilerplate 3x code create karta hai — naye developer ko ek IF samajhne ke liye paanch classes traverse karni padti hain. Complexity aur review effort badhta hai bina kisi real flexibility benefit ke.",
         "correctApproach": "Over-engineering simple business rules with unnecessary pattern overhead increases complexity without benefit."
       }
     ],
@@ -152,22 +152,22 @@
     "commonMistakesSection": [
       {
         "mistake": "Clean ABAP sirf naming conventions samajhna.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Team sirf variables rename karke 'Clean ABAP done' declare kar deti hai jabki 500-line methods, global state aur untestable design as-is rehte hain — ATC findings aur defect rate bilkul improve nahi hote.",
         "correctApproach": "Ye broader hai — method size, dependency injection, exception handling, testability — sab cover hota hai."
       },
       {
         "mistake": "Classical report ya BOPF se RAP start karna — these are different paradigms.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Classical report aur BOPF patterns RAP ke managed framework se clash karte hain — developer EML aur behavior handler ke against fight karta hai, aur draft handling, locking, ETag jaise framework features galat ya adhoore implement hote hain.",
         "correctApproach": "RAP has its own lifecycle: define, project, expose. Start with SAP tutorials on RAP from scratch."
       },
       {
         "mistake": "7.4 features blindly everywhere use karna including complex nested expressions — readability can suffer.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Deeply nested VALUE/REDUCE expressions ko debugger ek hi step mein evaluate karta hai — intermediate values inspect nahi kar sakte, breakpoint andar nahi lagta. Production issue analysis ka time multiply ho jaata hai.",
         "correctApproach": "VALUE mein 10 levels nesting karna harder to debug hai than a simple loop."
       },
       {
         "mistake": "CX_ROOT se directly inherit karna — yeh unchecked exception hai, compiler warning nahi deta.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Custom exception classes waise bhi CX_ROOT se directly inherit nahi ho sakti — CX_STATIC_CHECK, CX_DYNAMIC_CHECK ya CX_NO_CHECK mein se chunna padta hai. Aur unchecked hierarchy (CX_NO_CHECK/CX_DYNAMIC_CHECK) mein compiler caller ko handle karne ke liye force nahi karta — unhandled exception production mein UNCAUGHT_EXCEPTION short dump banti hai.",
         "correctApproach": "Use CX_STATIC_CHECK for checked exceptions that callers must handle."
       }
     ],
@@ -299,22 +299,22 @@
     "commonMistakesSection": [
       {
         "mistake": "Har method ek alag class mein rakhna — over-engineering.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Cohesive logic dozens of micro-classes mein bikhar jaata hai — shared data ko baar-baar parameters mein pass karna padta hai, signatures bloat hote hain, aur ek simple flow trace karne ke liye where-used analysis painful ho jaati hai. Yeh SRP nahi, fragmentation hai.",
         "correctApproach": "SRP means cohesive responsibility, not one method per class. Related methods ek class mein rakhna bilkul sahi hai."
       },
       {
         "mistake": "Temporary computation results attributes mein store karna — ek method compute kare aur doosri read kare.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Methods ke beech hidden temporal coupling ban jaata hai — agar caller ne compute method pehle call nahi kiya toh read method stale ya initial value return karti hai, silently wrong results ke saath. Unit tests bhi order-dependent ho jaate hain.",
         "correctApproach": "Yeh implicit coupling hai — test order matters, methods not independent."
       },
       {
         "mistake": "Sab kuch FINAL karna even when extension is needed.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Jab genuinely extension chahiye (template method hooks, test-specific subclass) toh FINAL use block kar deta hai — consumers ko poori class copy-paste karni padti hai, aur duplicate copies mein bug fixes diverge ho jaate hain.",
         "correctApproach": "Design pattern classes like template method pattern need non-final methods by design. Context matters."
       },
       {
         "mistake": "Har class ke liye interface banana (one-to-one interface per class) — over-engineering.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Har internal helper ke liye interface banane se object count double ho jaata hai aur har navigation ek extra hop maangti hai — abstraction ka koi doosra consumer hi nahi hai, sirf ceremony. Real architectural seams noise mein kho jaate hain.",
         "correctApproach": "Sirf externally injected dependencies ke liye interface banao — internal implementation details ke liye zaroorat nahi."
       }
     ],
@@ -438,22 +438,22 @@
     "commonMistakesSection": [
       {
         "mistake": "Test method mein assertion nahi likhna — sirf method call karna.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "ABAP Unit test ko tab tak passed maanta hai jab tak koi assertion fail ya unexpected exception na ho — bina assertion ke test hamesha green rahega chahe logic bilkul galat output de. Coverage number badhta hai par defect detection zero hai.",
         "correctApproach": "Bina assertion ke test hamesha pass hoga, even if method throws exception in some paths. Always assert the expected output."
       },
       {
         "mistake": "Sirf object reference compare karna without behavioral test — reference equal ho sakti hain by coincidence (e.g., if both create fresh objects that happen to be the same due to garbage collection).",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Reference comparison sirf yeh batata hai ki dono variables same instance ko point karte hain — object sahi behave karta hai ya nahi, yeh nahi. Galat implementation bhi test pass kar jaati hai, toh test ka defect-catching value negligible hai.",
         "correctApproach": "Behavioral test is stronger."
       },
       {
         "mistake": "Factory test mein sirf non-initial reference check karna — ASSERT_BOUND.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "ASSERT_BOUND sirf confirm karta hai ki reference initial nahi hai — factory galat concrete class return kare toh bhi test green rahega, aur bug production mein pehli polymorphic call par hi surface hota hai.",
         "correctApproach": "Ye prove nahi karta ki correct implementation return hui. Type check ya behavior test zaroor karo."
       },
       {
         "mistake": "CL_ABAP_TESTDOUBLE configure karna aur phir assert_was_called na karna — then you only tested that no exception occurred, not that the right calls happened.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Bina verification step ke aap sirf yeh test karte ho ki koi exception nahi aayi — agar code under test ne dependency ko kabhi call hi nahi kiya, ya galat parameters se kiya, test phir bhi pass hota hai. Interaction bugs poori tarah undetected rehte hain.",
         "correctApproach": "Use verify step to confirm interactions."
       }
     ],

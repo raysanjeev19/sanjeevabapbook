@@ -9,22 +9,22 @@
     "commonMistakesSection": [
       {
         "mistake": "Sirf caller mein IS BOUND check add karna without fixing the factory.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Factory ab bhi initial reference return karti hai — baaki sab callers wahi CX_SY_REF_IS_INITIAL dump dete rahenge. Aur jis caller mein check lagaya, wahan unknown type ke records ab silently skip hote hain: dump gaya, par data chupchaap process hue bina nikal jaata hai.",
         "correctApproach": "Factory should never return null — it should raise an exception. Both fixes are needed."
       },
       {
         "mistake": "Exception ko silently swallow karna bina logging ke — bad observer ki failure invisible ho jaati hai.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Empty CATCH ka matlab: notification ya audit entry hafton tak fail hoti rehti hai aur kisi ko pata nahi chalta. Jab business missing data notice karta hai, koi diagnostic trail nahi hota — root cause analysis blind ho jaata hai.",
         "correctApproach": "Hamesha log karo — error table mein ya application log (SLG1)."
       },
       {
         "mistake": "Singleton ko always blame karna for concurrency — identify whether processes actually share memory.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "ABAP mein CLASS-DATA per internal session hota hai, processes ke beech shared memory nahi — to jis 'race condition' ko tum fix kar rahe ho woh exist hi nahi karti. Asli culprit (jaise missing ENQUEUE lock on the DB table) untouched reh jaata hai aur data inconsistency repeat hoti hai.",
         "correctApproach": "Regular CLASS-DATA singletons are per-process, not cross-process."
       },
       {
         "mistake": "Hard-coded factory ki CASE statement ko baar baar update karna.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Har naya variant tested production code mein change + DEV-QA-PRD transport cycle maangta hai — release process slow hota hai aur har edit existing CASE branches mein regression la sakta hai. Business 'sirf config change' expect karta hai, milta hai full development cycle.",
         "correctApproach": "Every time a new business variant is added, a transport is needed. Config-driven factory eliminates this recurring risk."
       }
     ],
@@ -152,22 +152,22 @@
     "commonMistakesSection": [
       {
         "mistake": "Interface definition mein breakpoint lagane ki koshish karna — ye kaam nahi karta kyunki interface method mein code nahi hota.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Interface method sirf signature hai, executable code nahi — breakpoint kabhi trigger hi nahi hota. Developer galat conclude karta hai ki 'code reach nahi ho raha' aur ghante call chain mein dhoondta hai, jabki implementation actually chal rahi thi.",
         "correctApproach": "Always break in the implementing class."
       },
       {
         "mistake": "Factory return ke baad seedha caller mein jaana bina runtime type verify kiye.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Agar factory ne galat subclass return ki, to tum ghante galat implementation ke through step karte ho — debugging effort wrong layer mein jaata hai. Debugger mein reference ka actual runtime type 5 second mein dikh jaata, jo seedha factory bug par point karta.",
         "correctApproach": "Agar wrong class return hui aur tum caller mein debug karo — wrong implementation ka behavior dekh rahe ho, not the factory bug."
       },
       {
         "mistake": "Interactive debugger use karna for batch Observer issues — batch jobs run in background work process, interactive debugger is ineffective.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Background work process ke paas GUI session nahi hoti — normal breakpoints trigger nahi hote, aur issue 'not reproducible' declare ho jaata hai jabki woh har raat production batch mein hota hai. Diagnosis days tak latak jaata hai.",
         "correctApproach": "Use application log for batch debugging."
       },
       {
         "mistake": "ST05 activate karna aur bahut zyada transactions run karne ke baad analyze karna — trace bahut bada ho jaata hai, relevant entries dhundhna mushkil.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Trace file ki size limit hoti hai — purani entries wrap/overwrite ho jaati hain, to ho sakta hai problem wala SQL trace mein bacha hi na ho. Saath mein lambi active trace shared system par sab users ke liye overhead daalti hai aur analysis mein ghante lagte hain.",
         "correctApproach": "Activate karo, targeted reproduction karo, immediately deactivate karo."
       }
     ],
@@ -295,22 +295,22 @@
     "commonMistakesSection": [
       {
         "mistake": "Loop ke andar object creation ko always bad maanna — agar object lightweight hai aur loop chhota hai, overhead negligible hai.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Bina measurement ke refactor karna premature optimization hai — object reuse ka matlab har iteration mein state manually reset karna, aur ek bhoola hua CLEAR stale-state bug deta hai jo sirf kuch records par galat output deta hai. Microseconds bachane ke liye correctness risk.",
         "correctApproach": "Profile karo, phir decide karo."
       },
       {
         "mistake": "Repository mein sirf single-record method banana assuming callers will not loop — they always do.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Callers loop mein single-record method call karte hain — classic N+1 problem: 10,000 records = 10,000 alag SELECTs instead of one array fetch. Dev mein 50 records par sab fast lagta hai; production volume par job runtime minutes se ghanton mein chala jaata hai.",
         "correctApproach": "Defensive repository design means providing bulk methods from the start."
       },
       {
         "mistake": "Sab observers ko async banana — agar mandatory observer (like audit log) async ho jaaye aur fail ho, critical data miss ho sakta hai.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Async observer original transaction ke COMMIT ke baad chalta hai — fail hua to rollback ka koi chance nahi: business document post ho chuka, par audit entry kabhi nahi bani. Compliance audit mein yeh gap serious finding banta hai.",
         "correctApproach": "Selectively async karo."
       },
       {
         "mistake": "Object pooling every class ke liye apply karna — premature optimization.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Pool management code apni complexity laata hai aur sabse bada risk stale state hai — pooled object pichhle use ka data leke wapas aata hai aur agla consumer galat values par kaam karta hai. Yeh sab microsecond-level construction cost bachane ke liye, jo ABAP mein waise hi negligible hai.",
         "correctApproach": "Profile first, confirm construction is the bottleneck, then consider pooling. Most ABAP objects create in microseconds — no pool needed."
       }
     ],
@@ -438,22 +438,22 @@
     "commonMistakesSection": [
       {
         "mistake": "SU53 developer ne chalana apne ID se — wrong.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "SU53 executing user ka LAST failed authorization check dikhata hai — developer apne ID se chalayega to apna (irrelevant) check dekhega, failing user ka nahi. Diagnosis galat object par jaati hai aur Basis se galat role change request ho jaati hai.",
         "correctApproach": "SU53 failing user ke ID se chalana chahiye, kyunki ye last check us session ke liye hota hai. Developer apne PC pe user ke error reproduce kare toh apne SU53 mein check dekhe."
       },
       {
         "mistake": "Authorization-sensitive data cache karna with only business key — this is a security hole.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "User A ne authorized read kiya, result cache mein gaya — ab user B (jiske paas authorization nahi hai) ko cache se wahi data serve ho jaata hai kyunki AUTHORITY-CHECK dobara chala hi nahi. Yeh seedha data leak hai jo security audit mein critical finding banta hai.",
         "correctApproach": "Always ask: can different users see different subsets of this data? If yes, include user in cache key."
       },
       {
         "mistake": "Assuming background task inherits dialog user's authorization context — it does not.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Background task alag (often system/batch) user ke under chalta hai — production mein AUTHORITY-CHECK fail hoke job cancel hota hai jabki dev mein dialog user se sab chala tha. Ulta case bhi khatarnaak hai: zyada-privileged batch user se woh actions ho jaate hain jo dialog user ke liye blocked the.",
         "correctApproach": "This is a common and serious security assumption error. Always verify with Basis which user context the background task runs under."
       },
       {
         "mistake": "Authorization class ko non-mockable banana — concrete class without interface, injected directly.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Unit tests ab real AUTHORITY-CHECK execute karte hain — results us system mein test user ke role assignments par depend karte hain. Wahi test ek developer ke paas green, doosre ke paas red, aur CI system user par randomly fail: non-deterministic, environment-dependent test suite.",
         "correctApproach": "Test mein real AUTHORITY-CHECK call hoti hai — tests depend on user's actual role assignments in the system. This makes tests environment-dependent and non-deterministic."
       }
     ],

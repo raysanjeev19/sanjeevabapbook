@@ -9,22 +9,22 @@
     "commonMistakesSection": [
       {
         "mistake": "New code mein FORM likhna aaj bhi — ek common mistake junior developers karte hain kyunki purane tutorials mein FORM examples bahut hain.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "FORM/PERFORM officially obsolete hai (classes ke andar to syntax error hi hai) — ATC/Code Inspector ise flag karta hai, ABAP Unit se test nahi hota, aur untyped USING parameters se type mismatches runtime tak chhupe rehte hain. Har naya FORM technical debt badhata hai.",
         "correctApproach": "Code review mein immediately flag karo aur method alternative suggest karo."
       },
       {
         "mistake": "New internal development ke liye function module banana when no RFC is needed — unnecessary complexity, no OO benefits, harder to test.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "FM function group ke shared global data se bandh jaata hai — session bhar leftover state agle calls ko corrupt kar sakta hai — aur inheritance, interfaces, ABAP Unit test isolation sab unavailable ho jaate hain. Baad mein OO consumers (RAP, CDS exits) se integrate karna mushkil hota hai.",
         "correctApproach": "Always ask: kya yeh RFC hoga? No RFC = use method."
       },
       {
         "mistake": "Static methods mein instance state access karne ki koshish karna — compile error deta hai.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "CLASS-METHODS bina instance ke chalti hain, isliye unke context mein me-> aur instance attributes exist hi nahi karte — syntax check 'instance attribute not accessible in static method' error deta hai. Asli trap: developers phir sab kuch static bana dete hain, jisse polymorphism aur test mein mocking dono khatam ho jaate hain.",
         "correctApproach": "Aur static method ko mock karna impossible hota hai in unit tests — agar logic testable hona chahiye, instance method use karo with dependency injection."
       },
       {
         "mistake": "Business logic includes mein likhna as a substitute for proper class design.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Include sirf source-code paste hai — na interface, na parameters, na encapsulation. Wahi include do programs mein use hua to har program ke global variables par depend karta hai: ek consumer mein syntax error, doosre mein subtly alag behavior, aur unit testing bilkul impossible.",
         "correctApproach": "Includes sirf code files hain — no encapsulation, no testing, no interface contract. Logic hamesha classes mein rakho."
       }
     ],
@@ -156,22 +156,22 @@
     "commonMistakesSection": [
       {
         "mistake": "CALL FUNCTION bina DESTINATION likhna aur RFC samajhna.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Bina DESTINATION ke call usi session mein locally execute hota hai — tum sochte ho data remote system mein gaya, lekin woh local system par process hua. Interface silently broken: koi error nahi, bas target system mein data kabhi pahunchta hi nahi.",
         "correctApproach": "Sirf DESTINATION addition se function module remotely call hota hai. Without DESTINATION, same system pe call hota hai — locally, like a regular function module call."
       },
       {
         "mistake": "CALL FUNCTION ke baad OTHERS exception map karna bina specific exceptions ke — then you cannot distinguish between different error scenarios.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "sy-subrc sirf batata hai 'koi error hua' — not_found, no_authority, locked sab same code par land karte hain. Error handling generic 'something failed' message ban jaata hai aur production mein root cause nikalne ke liye debugging session lagta hai jo ek IF sy-subrc = 2 se solve ho sakta tha.",
         "correctApproach": "Map each meaningful exception individually, OTHERS = catch-all for unexpected."
       },
       {
         "mistake": "CALL FUNCTION IN BACKGROUND TASK ke baad COMMIT WORK mat bhoolna — bina COMMIT task schedule nahi hoga.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "IN BACKGROUND TASK calls sirf register hote hain — actual execution COMMIT WORK par trigger hota hai. COMMIT bhoole to koi error nahi aata, bas registered call kabhi chalta hi nahi: interface 'works in debugging, sends nothing in production' wala classic silent failure.",
         "correctApproach": "Aur ROLLBACK WORK ke baad background tasks cancel ho jaati hain — agar error hota hai aur rollback kiya toh scheduled tasks bhi rollback."
       },
       {
         "mistake": "Method mein EXPORTING use karna when RETURNING would work — EXPORTING multiple small values instead of returning a structure.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "EXPORTING parameters functional call syntax, method chaining aur inline DATA(...) declarations block kar dete hain. Aur agar method kisi path par pass-by-reference EXPORTING parameter clear/set nahi karta, caller ko purani stale value milti hai — intermittent galat data ka classic source.",
         "correctApproach": "Clean ABAP recommends RETURNING for single return values, structure return for multiple related values."
       }
     ],
@@ -303,22 +303,22 @@
     "commonMistakesSection": [
       {
         "mistake": "Multiple patterns ek hi component pe stack karna unnecessarily — Singleton + Factory + Observer on one class.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Ek class teen responsibilities nibha rahi hai — lifecycle control, object creation, event notification — to har chhota change teen patterns ke through trace karna padta hai. Debugging aur onboarding cost kai guna badh jaati hai jabki problem shaayad ek simple factory se solve ho jaati.",
         "correctApproach": "Each pattern solves one problem. Combining increases complexity without proportional benefit."
       },
       {
         "mistake": "Only describing what the pattern is (textbook definition) instead of what you built and why.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Interviewer ko definition pehle se pata hai — woh check kar raha hai ki tumne pattern real problem par apply kiya ya nahi. Pure textbook answer se tum fresher bucket mein chale jaate ho aur 'design experience' wala evaluation box khaali reh jaata hai.",
         "correctApproach": "Interviewer knows what Factory pattern is — they want to know that you applied it to solve a real problem."
       },
       {
         "mistake": "Trying to convert all legacy code at once — creates conflict and technical risk simultaneously.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Big-bang rewrite ka matlab: months tak business changes freeze, massive regression surface kyunki tested production code ek saath badla, aur transport conflicts across teams. Aise projects aksar aadhe mein abandon hote hain — phir do half-migrated systems maintain karne padte hain.",
         "correctApproach": "Incremental: new features in OO, legacy maintained as-is until a refactoring sprint is explicitly planned."
       },
       {
         "mistake": "Singleton mein zyada data cache karna — all config tables, all master data.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Singleton instance poore internal session tak zinda rehta hai — bada cache har user session ki memory bloat karta hai, aur session ke beech config change hua to stale data se galat business results aate hain jo restart ke baad 'magically' theek ho jaate hain. Aisi bugs reproduce karna bahut mushkil hai.",
         "correctApproach": "Singleton sirf stable, infrequently changing data ke liye. Frequently changing data ke liye caching strategy alag hoti hai."
       }
     ],
@@ -450,22 +450,22 @@
     "commonMistakesSection": [
       {
         "mistake": "Sirf exception type dekh ke jump to fix karna.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Exception type sirf symptom batata hai, trigger condition nahi — bina ST22 dump ka context padhe tum symptom patch karte ho, root cause nahi. Result: wahi dump agle hafte doosre data set ke saath wapas aata hai, aur ab do incidents explain karne padte hain.",
         "correctApproach": "Always read full dump — 'What happened' section explains the exact condition, 'Source code' section shows the failing line. Context samajhna fix se pehle zaroori hai."
       },
       {
         "mistake": "Abstract class concrete karna as a quick fix to resolve the incident — wrong approach if the class is designed as abstract intentionally.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Abstract class jaan boojh ke incomplete hai — usko concrete banane ke liye abstract methods mein dummy implementations daalni padti hain, jisse instantiation to chal jaata hai par business logic hollow base-class behavior par chalta hai. Dump gaya, par ab silently galat results aate hain — that is worse.",
         "correctApproach": "Correct fix is always updating factory to concrete subclass."
       },
       {
         "mistake": "Production pe directly hotfix karna without sandpit verification — classic mistake, pressure mein hota hai.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Untested hotfix doosra dump de sakta hai ya — worse — galat documents post kar sakta hai jinka data correction dump se zyada mehenga hota hai. Direct prod change transport trail bhi todta hai: DEV/QA out of sync ho jaate hain aur agla transport fix ko overwrite kar deta hai.",
         "correctApproach": "Even under time pressure, 30 minutes sandpit verification prevents a second production incident from a bad fix."
       },
       {
         "mistake": "CX_DYNAMIC_CHECK ya CX_ROOT se inherit karna for exceptions that callers should always handle.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "CX_DYNAMIC_CHECK subclasses ke liye compiler RAISING declaration ya TRY-CATCH force nahi karta — callers handling bhool jaate hain aur exception production mein UNCAUGHT_EXCEPTION short dump ban jaata hai. Jo error business case mein expected hai, woh ab user-facing crash hai.",
         "correctApproach": "Dynamic check exceptions don't force caller handling — defeats the safety benefit. Use CX_STATIC_CHECK for business exceptions callers must explicitly address."
       }
     ],

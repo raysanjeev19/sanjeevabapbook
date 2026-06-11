@@ -5,10 +5,12 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ============================================================
-   ABAPPREP — LOCK-IN PALETTE
+   CODEGURUKUL — LOCK-IN PALETTE, ENRICHED
    Primary #2563EB (trust/learning), success #22C55E (progress),
    warning #F59E0B (interview tips), error #EF4444 (mistakes).
    Light bg #F8FAFC + cards #FFFFFF. Dark bg #0F172A + cards #1E293B.
+   Accent-2 (violet) and accent-3 (cyan) extend the primary into a
+   gradient family for heroes, headlines and effects.
    ============================================================ */
 
 :root,
@@ -29,7 +31,14 @@
   --accent: #2563eb; /* primary — blue-600 */
   --accent-soft: rgba(37, 99, 235, 0.1);
   --accent-contrast: #ffffff;
-  --accent-glow: rgba(37, 99, 235, 0.18);
+  --accent-glow: rgba(37, 99, 235, 0.22);
+
+  --accent-2: #7c3aed; /* violet — gradient partner */
+  --accent-2-soft: rgba(124, 58, 237, 0.1);
+  --accent-3: #0ea5e9; /* cyan — gradient partner */
+  --accent-3-soft: rgba(14, 165, 233, 0.1);
+
+  --gradient-accent: linear-gradient(135deg, #2563eb 0%, #4f46e5 55%, #7c3aed 100%);
 
   /* Semantic status colors — used across both themes */
   --success: #22c55e;
@@ -62,7 +71,14 @@
   --accent: #3b82f6; /* blue-500 — slightly brighter on dark for AA */
   --accent-soft: rgba(59, 130, 246, 0.14);
   --accent-contrast: #ffffff;
-  --accent-glow: rgba(59, 130, 246, 0.22);
+  --accent-glow: rgba(59, 130, 246, 0.28);
+
+  --accent-2: #a78bfa; /* violet-400 */
+  --accent-2-soft: rgba(167, 139, 250, 0.14);
+  --accent-3: #22d3ee; /* cyan-400 */
+  --accent-3-soft: rgba(34, 211, 238, 0.14);
+
+  --gradient-accent: linear-gradient(135deg, #3b82f6 0%, #6366f1 55%, #8b5cf6 100%);
 
   --success: #4ade80;
   --success-soft: rgba(74, 222, 128, 0.14);
@@ -89,6 +105,10 @@
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
   --color-accent-contrast: var(--accent-contrast);
+  --color-accent-2: var(--accent-2);
+  --color-accent-2-soft: var(--accent-2-soft);
+  --color-accent-3: var(--accent-3);
+  --color-accent-3-soft: var(--accent-3-soft);
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
   --color-warning: var(--warning);
@@ -110,8 +130,9 @@
 }
 
 html {
-  /* Smooth, calm theme transitions */
+  /* Smooth, calm theme transitions + smooth anchor scrolling */
   transition: background-color 0.3s ease;
+  scroll-behavior: smooth;
 }
 
 body {
@@ -143,7 +164,7 @@ body {
 
 /* ============================================================
    READING TYPOGRAPHY
-   ABAPPrep spec: Inter primary, body 18px, max 3 lines/para,
+   CodeGurukul spec: Inter primary, body 18px, max 3 lines/para,
    skimmable. We use Inter for body for clean UI legibility and
    keep Lora only for chapter/question headings (`font-serif`).
    ============================================================ */
@@ -170,17 +191,101 @@ body {
 }
 
 /* ============================================================
-   CALM SURFACES (names kept for backward compat; now restful)
+   SURFACES & EFFECTS
    ============================================================ */
 .aurora {
   background: var(--background);
 }
 
-/* Faint accent wash behind heroes — depth without distraction */
+/* Layered accent wash behind heroes — vibrant but never loud */
 .ambient-top {
   background:
     radial-gradient(56rem 28rem at 18% -10%, var(--accent-soft), transparent 65%),
-    radial-gradient(40rem 22rem at 95% 0%, var(--success-soft), transparent 70%);
+    radial-gradient(44rem 24rem at 78% -6%, var(--accent-2-soft), transparent 70%),
+    radial-gradient(36rem 20rem at 100% 30%, var(--accent-3-soft), transparent 70%);
+}
+
+/* Faint blueprint grid that fades out — hero depth layer */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, var(--border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+  background-size: 3.5rem 3.5rem;
+  -webkit-mask-image: radial-gradient(ellipse 90% 65% at 50% 0%, #000 55%, transparent 100%);
+  mask-image: radial-gradient(ellipse 90% 65% at 50% 0%, #000 55%, transparent 100%);
+}
+
+/* Soft glowing color orbs — ambient hero decoration */
+.orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(72px);
+  opacity: 0.55;
+  pointer-events: none;
+  animation: float-y 16s ease-in-out infinite;
+}
+.orb-2 {
+  animation-duration: 20s;
+  animation-delay: -6s;
+}
+
+/* Animated gradient headline text */
+.text-gradient {
+  background: linear-gradient(110deg, var(--accent), var(--accent-2) 40%, var(--accent-3) 70%, var(--accent) 100%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-pan 7s linear infinite;
+}
+
+/* Gradient fill for buttons / chips */
+.bg-gradient-accent {
+  background-image: var(--gradient-accent);
+}
+
+/* Gradient hairline ring (cards that deserve a halo) */
+.ring-gradient {
+  position: relative;
+}
+.ring-gradient::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--accent-glow), transparent 40%, var(--accent-2-soft) 80%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Hover lift — feedback without layout shift */
+.hover-lift {
+  transition:
+    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.25s ease,
+    border-color 0.25s ease,
+    background-color 0.25s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--elev-2);
+}
+
+/* Shimmer sweep over progress bars */
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: translateX(-100%);
+  animation: shimmer 2.4s ease-in-out infinite;
 }
 
 /* Horizontal pill strips (section tabs) — scrollable, no scrollbar */
@@ -197,8 +302,11 @@ body {
   padding-bottom: max(0.625rem, env(safe-area-inset-bottom));
 }
 
+/* Frosted glass surface (nav bars, overlays) */
 .glass {
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  backdrop-filter: blur(14px) saturate(1.4);
   border: 1px solid var(--border);
 }
 
@@ -224,7 +332,7 @@ body {
   outline-color: var(--accent);
 }
 
-/* Difficulty accent (used by chapter color system) — aligned with ABAPPrep palette */
+/* Difficulty accent (used by chapter color system) — aligned with CodeGurukul palette */
 .diff-beginner {
   --diff-color: #22c55e; /* success — beginner = green/easy */
 }
@@ -239,8 +347,8 @@ body {
 }
 
 /* ============================================================
-   MINIMAL MOTION — one gentle entrance, nothing more.
-   Respects prefers-reduced-motion.
+   MOTION — expressive entrances, soft ambience.
+   Everything collapses under prefers-reduced-motion.
    ============================================================ */
 @keyframes fade-in {
   from {
@@ -252,9 +360,81 @@ body {
     transform: translateY(0);
   }
 }
-
 .animate-fade-in {
   animation: fade-in 0.4s ease-out both;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-up {
+  animation: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-scale-in {
+  animation: scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Stagger helpers for entrance sequences */
+.d-1 { animation-delay: 0.06s; }
+.d-2 { animation-delay: 0.12s; }
+.d-3 { animation-delay: 0.18s; }
+.d-4 { animation-delay: 0.24s; }
+.d-5 { animation-delay: 0.3s; }
+.d-6 { animation-delay: 0.36s; }
+
+@keyframes gradient-pan {
+  to {
+    background-position: 220% center;
+  }
+}
+
+@keyframes shimmer {
+  65%,
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes float-y {
+  0%,
+  100% {
+    transform: translateY(0) translateX(0);
+  }
+  50% {
+    transform: translateY(-22px) translateX(12px);
+  }
+}
+
+/* Soft breathing dot for "live" markers */
+@keyframes pulse-dot {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--success-soft);
+  }
+  50% {
+    box-shadow: 0 0 0 5px var(--success-soft);
+  }
+}
+.pulse-dot {
+  animation: pulse-dot 2.2s ease-in-out infinite;
 }
 
 @keyframes slide-down {
@@ -274,6 +454,9 @@ body {
   *::after {
     animation-duration: 0.001ms !important;
     transition-duration: 0.001ms !important;
+  }
+  html {
+    scroll-behavior: auto;
   }
 }
 

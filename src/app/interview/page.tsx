@@ -16,14 +16,14 @@ export default function InterviewPickerPage() {
   const completed = useStudyStore((s) => s.completed);
 
   return (
-    <main className="min-h-screen bg-background px-4 py-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-3xl">
-        {/* Nav */}
-        <nav className="mb-6 flex items-center justify-between rounded-xl border border-border bg-surface px-4 py-2.5">
+    <main className="min-h-screen bg-background">
+      {/* Nav */}
+      <nav className="sticky top-0 z-40 mx-auto w-full max-w-3xl px-4 pt-3 sm:px-6 lg:px-8">
+        <div className="glass flex items-center justify-between rounded-xl px-4 py-2.5 shadow-card">
           <div className="flex items-center gap-2">
             <Link href="/" className="flex items-center gap-2">
               <BrandLogo size={28} />
-              <span className="font-serif text-sm font-semibold text-foreground">ABAPPrep</span>
+              <span className="font-serif text-sm font-semibold text-foreground">CodeGurukul</span>
             </Link>
             <ChevronRight size={12} className="text-faint" />
             <span className="text-sm font-semibold text-accent">AI Interview</span>
@@ -34,24 +34,30 @@ export default function InterviewPickerPage() {
             </Button>
             <ThemeToggle />
           </div>
-        </nav>
-
-        {/* Header */}
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-accent-soft text-accent">
-            <Brain size={28} />
-          </div>
-          <h1 className="font-serif text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            AI Mock Interview
-          </h1>
-          <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-muted">
-            Pick a chapter. The AI interviewer will ask questions, follow-ups, traps, and score your answers in real-time.
-          </p>
         </div>
+      </nav>
 
+      <div className="ambient-top">
+        <div className="mx-auto max-w-3xl px-4 pt-6 sm:px-6 lg:px-8">
+          {/* Header */}
+          <div className="animate-fade-up mb-8 pb-2 text-center">
+            <div className="bg-gradient-accent mx-auto mb-4 flex h-16 w-16 animate-scale-in items-center justify-center rounded-2xl text-accent-contrast shadow-pop">
+              <Brain size={28} />
+            </div>
+            <h1 className="font-serif text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              AI <span className="text-gradient">Mock Interview</span>
+            </h1>
+            <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-muted">
+              Pick a chapter. The AI interviewer will ask questions, follow-ups, traps, and score your answers in real-time.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-3xl px-4 pb-16 sm:px-6 lg:px-8">
         {/* Chapter grid */}
         <div className="grid gap-2 sm:grid-cols-2">
-          {chapters.map((chapter) => {
+          {chapters.map((chapter, i) => {
             const Icon = iconMap[chapter.icon as keyof typeof iconMap] ?? BookOpen;
             const done = completed.filter((id) => chapter.questions.some((q) => q.id === id)).length;
             const prog = percent(done, chapter.questions.length);
@@ -60,10 +66,11 @@ export default function InterviewPickerPage() {
               <Link key={chapter.slug} href={`/interview/${chapter.slug}`}>
                 <Card
                   accent={chapter.color}
-                  className="group flex items-center gap-3 p-3.5 hover:border-border-strong hover:bg-surface-2"
+                  className="hover-lift animate-fade-up group flex cursor-pointer items-center gap-3 p-3.5 hover:border-border-strong"
+                  style={{ animationDelay: `${Math.min(i * 45, 360)}ms` }}
                 >
                   <span
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-transform duration-200 group-hover:scale-110"
                     style={{ backgroundColor: `${chapter.color}1f`, color: ink(chapter.color) }}
                   >
                     <Icon size={17} />
@@ -76,7 +83,7 @@ export default function InterviewPickerPage() {
                       {prog > 0 && <span className="text-[10px] font-semibold text-accent">{prog}% read</span>}
                     </div>
                   </div>
-                  <Mic size={13} className="shrink-0 text-faint group-hover:text-muted" />
+                  <Mic size={13} className="shrink-0 text-faint transition-colors duration-200 group-hover:text-accent" />
                 </Card>
               </Link>
             );

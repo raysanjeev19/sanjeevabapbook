@@ -6,9 +6,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ---
 
-# ABAPPrep — Product Spec
+# CodeGurukul — Product Spec
 
-This repository ships **ABAPPrep**, a SAP ABAP interview-prep learning platform. Tagline: **Learn • Practice • Prepare • Get Hired**.
+This repository ships **CodeGurukul**, a SAP ABAP interview-prep learning platform. Tagline: **Learn • Practice • Prepare • Get Hired**.
 
 Target users: ABAP freshers, working developers, students prepping for interviews, professionals switching to SAP, 0–5 yrs experience.
 

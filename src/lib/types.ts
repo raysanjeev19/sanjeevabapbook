@@ -56,7 +56,7 @@ export type QuestionAnswer = Record<AnswerKey, string> & {
   memoryTricks: string;
   aiMentorPrompt: string;
   followupAnswerBank: FollowupAnswer[];
-  /* ABAPPrep 9-section schema (optional — rolled out incrementally) */
+  /* CodeGurukul 9-section schema (optional — rolled out incrementally) */
   interviewScriptHinglish?: string;
   interviewScriptEnglish?: string;
   wordByWordSamjho?: WordExplanation[];

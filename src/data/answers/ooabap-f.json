@@ -9,23 +9,23 @@
     "commonMistakesSection": [
       {
         "mistake": "Abstract Factory use karna jahan sirf ek object chahiye — unnecessary complexity.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Ek product ke liye abstract factory interface plus multiple factory classes maintain karni padti hain — har naya variant 2-3 classes touch karta hai instead of one, aur reviewers indirection trace karte rehte hain jo kuch deliver nahi karti. Pure maintenance overhead, zero benefit.",
         "correctApproach": "Single product ke liye simple Factory sufficient hai. Abstract Factory ka overhead tabhi worth hai jab family consistency guarantee zaroor ho."
       },
       {
         "mistake": "Java-style synchronized blocks dhundna in ABAP — they don't exist.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "ABAP mein SYNCHRONIZED keyword hai hi nahi — har user session apne work process mein isolated memory ke saath chalta hai, to Java-style locking code syntax error deta hai ya pointless complexity add karta hai. Cross-process consistency ke liye ENQUEUE lock objects hote hain, language-level mutex nahi.",
         "correctApproach": "ABAP execution model different hai. Over-engineering simple ABAP Singleton with unnecessary complexity."
       },
       {
         "mistake": "Code reuse ke liye inheritance use karna bina IS-A relationship ke — 'I want to reuse these five methods so I will inherit.' Yeh Liskov violation create karta hai.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
-        "correctApproach": "Composition se reuse karo instead."
+        "whyWrong": "Subclass ko parent ka poora public contract mil jaata hai — polymorphic code aise methods call kar sakta hai jo is class ke liye meaningless hain, jisse galat results ya runtime dumps aate hain. Upar se parent ki har change ek unrelated class mein ripple karti hai.",
+        "correctApproach": "Composition se reuse karo: jis class ke methods chahiye usko private attribute ke roop mein hold karo (HAS-A) aur calls delegate karo. Inheritance sirf tab jab genuine IS-A relationship ho aur subclass parent ka contract fully honor kare."
       },
       {
         "mistake": "Subclass mein parent methods ko silently ignore karna (empty ENDMETHOD) to 'skip' unwanted behavior — this is LSP violation and introduces silent bugs in polymorphic code.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
-        "correctApproach": "Use the correct approach as described in the deep-dive section."
+        "whyWrong": "Polymorphic caller method invoke karta hai parent ke documented effect ki expectation se, lekin kuch hota hi nahi — na error, na log. Validation ya posting silently skip ho jaati hai aur defect apne cause se bahut door surface hota hai, debugging nightmare.",
+        "correctApproach": "Hierarchy redesign karo: optional behavior ko alag interface mein nikalo ya superclass ko chhota karo taaki subclass sirf wahi inherit kare jo woh honor kar sakta hai. Agar operation genuinely apply nahi hota, to empty body ki jagah explicitly exception raise karo — kabhi bhi khaali override se parent logic 'off' mat karo."
       }
     ],
     "wordByWordSamjho": [
@@ -144,7 +144,7 @@
   },
   "ooabap-020": {
     "easyUnderstanding": "Simple words mein samjho: OOABAP aur Design Patterns ka code example dekhna ek recipe dekhne jaisa hai — ingredients aur steps clearly defined hote hain. Code example se teen cheezein clear ho jaati hain: 1) Syntax kya hoga ABAP mein. 2) Pattern ka structure actual code mein kaisa dikhta hai. 3) Business problem kaise solve hota hai. Ek small example mein hum Factory pattern dikhayenge: alag-alag countries ke liye tax calculator create karo bina calling code mein IF-ELSE likhey. Caller sirf bolta hai 'mujhe India ka tax calculator chahiye' — Factory decide karta hai kaunsa class banaya jaaye. Ye separation of concerns hai — calling code ko yeh nahi pata ki GST ki class kaunsi hai, Factory jaanti hai. Design patterns ki khoobsurati yahi hai: jab naya country add karna ho toh sirf ek naya class banao aur Factory mein ek mapping add karo — poora baaki code waise hi chalta rehta hai. Ek example mein char concepts ek saath dikhte hain: interface (contract), concrete class (implementation), factory (creation logic), aur exception handling (error case). Ye charon cheezein ABAP mein seedha code mein samjhana — aur phir interviewer ko explain karna — ek strong impression deta hai.",
-    "hinglishMasterExplanation": "OOABAP code example explain karte waqt ek structure follow karo — teen parts mein:\n\nPart 1 — Interface (Contract):\nInterface define karta hai kya ho sakta hai bina yeh bataye ki kaise hoga. INTERFACE zif_tax_calculator mein ek method calculate — input amount, output tax. Yeh contract hai — jo bhi class is interface ko implement karegi, woh method zaroor provide karegi. Business benefit: calling code sirf interface jaanta hai — real implementation swap karo bina caller change kiye.\n\nPart 2 — Concrete Implementations (How):\nzcl_gst_calculator India ke liye 18% calculate karta hai. zcl_vat_calculator Germany ke liye 19%. zcl_au_gst_calculator Australia ke liye 10%. Teeno same interface implement karte hain — calling code ke liye teeno same hain. Testing mein: ek aur mock class implement karo jo fake 0% tax return kare — unit test perfect ho jaata hai.\n\nPart 3 — Factory (Who Creates What):\nzcl_tax_factory mein CLASS-METHODS create — IMPORTING iv_country, RETURNING TYPE REF TO zif_tax_calculator. Andar SWITCH statement: 'IN' => zcl_gst, 'DE' => zcl_vat, else RAISE zcx_unknown_country. Caller sirf factory call karta hai — creation logic ek jagah centralized. Naya country add karna: naya class banao + factory mein ek line add karo. Existing callers untouched.\n\nCode walkthrough strategy for interview:\n1. Interface dikhao — 'Ye contract hai, sab implementations yahi method provide karein.'\n2. Ek implementation dikhao — 'GST calculator 18% apply karta hai.'\n3. Factory dikhao — 'Factory decide karti hai kaunsa calculator banana hai based on country.'\n4. Usage dikhao — 'Caller ko country pata hai, implementation nahi — Factory handle karta hai.'\n5. Extension point batao — 'Naya country: naya class + factory mein ek line. Koi aur change nahi.'\n\nYe walkthrough 3-4 minute mein complete hoti hai aur interviewer ko full picture milta hai — Design Patterns ka real value clearly visible hota hai.",
+    "hinglishMasterExplanation": "OOABAP code example explain karte waqt ek structure follow karo — teen parts mein:\n\nPart 1 — Interface (Contract):\nInterface define karta hai kya ho sakta hai bina yeh bataye ki kaise hoga. INTERFACE zif_tax_calculator mein ek method calculate — input amount, output tax. Yeh contract hai — jo bhi class is interface ko implement karegi, woh method zaroor provide karegi. Business benefit: calling code sirf interface jaanta hai — real implementation swap karo bina caller change kiye.\n\nPart 2 — Concrete Implementations (How):\nzcl_gst_calculator India ke liye 18% calculate karta hai. zcl_vat_calculator Germany ke liye 19%. zcl_au_gst_calculator Australia ke liye 10%. Teeno same interface implement karte hain — calling code ke liye teeno same hain. Testing mein: ek aur mock class implement karo jo fake 0% tax return kare — unit test perfect ho jaata hai.\n\nPart 3 — Factory (Who Creates What):\nzcl_tax_factory mein CLASS-METHODS create — IMPORTING iv_country, RETURNING TYPE REF TO zif_tax_calculator. Andar SWITCH expression: 'IN' => zcl_gst, 'DE' => zcl_vat, ELSE THROW zcx_unknown_country( ). Yaad rakho — RAISE EXCEPTION ek statement hai, SWITCH/COND expression ke andar allowed nahi; expression ke andar THROW use hota hai (exception class CX_DYNAMIC_CHECK ya CX_NO_CHECK se inherit honi chahiye). Caller sirf factory call karta hai — creation logic ek jagah centralized. Naya country add karna: naya class banao + factory mein ek line add karo. Existing callers untouched.\n\nCode walkthrough strategy for interview:\n1. Interface dikhao — 'Ye contract hai, sab implementations yahi method provide karein.'\n2. Ek implementation dikhao — 'GST calculator 18% apply karta hai.'\n3. Factory dikhao — 'Factory decide karti hai kaunsa calculator banana hai based on country.'\n4. Usage dikhao — 'Caller ko country pata hai, implementation nahi — Factory handle karta hai.'\n5. Extension point batao — 'Naya country: naya class + factory mein ek line. Koi aur change nahi.'\n\nYe walkthrough 3-4 minute mein complete hoti hai aur interviewer ko full picture milta hai — Design Patterns ka real value clearly visible hota hai.",
     "interviewMeKyaBolnaHai": "Interview Me Bolna Hai:\n'I will walk you through a small but complete example showing three core OOABAP concepts together — interface, concrete implementations, and Factory pattern. First, I define an interface ZIF_TAX_CALCULATOR with one method: calculate, taking an amount and returning the tax. This is the contract — any tax calculator must implement this. Second, I write concrete implementations — ZCL_GST_CALCULATOR for India at 18%, ZCL_VAT_CALCULATOR for Germany at 19%. Both implement the same interface, so calling code works with either without any change. Third, the Factory: ZCL_TAX_FACTORY has a class method CREATE that takes a country code and returns the right calculator as ZIF_TAX_CALCULATOR — always returning the interface type, not the concrete class. If the country is unknown, it raises a custom exception ZCX_UNKNOWN_COUNTRY. The calling program asks for India, gets a GST calculator, calls calculate — no IF-ELSE, no hardcoded logic. Adding Australia means one new class and one line in the factory — nothing else changes. This is the Open/Closed Principle in action.'\n\nHinglish tip: Code example explain karte waqt ek sentence har section ke baad bolna — 'Yeh kyun important hai:' followed by one business benefit. Syntax ke saath business value batana interviewer ko impress karta hai — dono languages mein fluent dikhte ho: technical aur business.",
     "codeExamples": "\" Complete OOABAP + Factory Pattern example\n\" Step 1: Interface (Contract)\nINTERFACE zif_tax_calculator.\n  METHODS calculate\n    IMPORTING iv_amount   TYPE netwr\n    RETURNING VALUE(rv_tax) TYPE netwr.\nENDINTERFACE.\n\n\" Step 2: Concrete implementations\nCLASS zcl_gst_calculator DEFINITION PUBLIC FINAL.\n  PUBLIC SECTION.\n    INTERFACES zif_tax_calculator.\nENDCLASS.\nCLASS zcl_gst_calculator IMPLEMENTATION.\n  METHOD zif_tax_calculator~calculate.\n    rv_tax = iv_amount * '0.18'.  \" India GST 18%\n  ENDMETHOD.\nENDCLASS.\n\n\" Step 3: Factory\nCLASS zcl_tax_factory DEFINITION PUBLIC FINAL.\n  PUBLIC SECTION.\n    CLASS-METHODS create\n      IMPORTING iv_country     TYPE land1\n      RETURNING VALUE(ro_calc) TYPE REF TO zif_tax_calculator\n      RAISING   zcx_unknown_country.\nENDCLASS.\nCLASS zcl_tax_factory IMPLEMENTATION.\n  METHOD create.\n    ro_calc = SWITCH #( iv_country\n      WHEN 'IN' THEN NEW zcl_gst_calculator( )\n      WHEN 'DE' THEN NEW zcl_vat_calculator( )\n      \" THROW (expression) — RAISE EXCEPTION is a statement, not valid inside SWITCH.\n      \" Exception class must inherit from CX_DYNAMIC_CHECK (or CX_NO_CHECK) for THROW.\n      ELSE THROW zcx_unknown_country( iv_country = iv_country ) ).\n  ENDMETHOD.\nENDCLASS.",
     "interviewScriptEnglish": "I will walk you through a small but complete example showing three core OOABAP concepts together — interface, concrete implementations, and Factory pattern. First, I define an interface ZIF_TAX_CALCULATOR with one method: calculate, taking an amount and returning the tax. This is the contract — any tax calculator must implement this. Second, I write concrete implementations — ZCL_GST_CALCULATOR for India at 18%, ZCL_VAT_CALCULATOR for Germany at 19%. Both implement the same interface, so calling code works with either without any change. Third, the Factory: ZCL_TAX_FACTORY has a class method CREATE that takes a country code and returns the right calculator as ZIF_TAX_CALCULATOR — always returning the interface type, not the concrete class. If the country is unknown, it raises a custom exception ZCX_UNKNOWN_COUNTRY. The calling program asks for India, gets a GST calculator, calls calculate — no IF-ELSE, no hardcoded logic. Adding Australia means one new class and one line in the factory — nothing else changes. This is the Open/Closed Principle in action.",
@@ -152,22 +152,22 @@
     "commonMistakesSection": [
       {
         "mistake": "Existing factory class mein complex IF-ELSE add karte jaana instead of new class.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Factory ek god-method ban jaati hai jisko har developer edit karta hai — parallel transports collide karte hain aur ek country ke change se doosre tested country branches mein regression aata hai. Open/Closed Principle toot jaata hai kyunki har naya variant working code modify karwata hai.",
         "correctApproach": "Factory mein logic grow karna. Instead: registration pattern use karo jab too many countries — factory reads from config table."
       },
       {
         "mistake": "Calculator class mein directly logging code add karna — violates Single Responsibility.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Tax logic aur logging ab do alag reasons se change hote hain — log format badla to tax calculation dobara test karni padti hai, aur unit test mein sirf ek number assert karne ke liye log destination (BAL_LOG FMs etc.) stub karna padta hai. Class ka focus aur testability dono gir jaate hain.",
         "correctApproach": "Calculator calculates; logging is a cross-cutting concern handled by Decorator."
       },
       {
         "mistake": "Factory test mein IS INSTANCE OF check karna only — if factory returns wrong subclass that still produces correct result, IS INSTANCE OF test passes but behavior test catches it.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
-        "correctApproach": "Use the correct approach as described in the deep-dive section."
+        "whyWrong": "Type assertion behavior verify nahi karti — agar sahi subclass ke andar galat rate constant ya rounding bug aa jaaye, IS INSTANCE OF test phir bhi green rehta hai aur defect production tak pahunch jaata hai. Green test suite ka false confidence sabse mehenga bug hota hai.",
+        "correctApproach": "Behavior assert karo: factory se mila object lo, uska calculate( ) call karo, aur cl_abap_unit_assert=>assert_equals se har country branch ke liye expected tax value check karo — type check ke saath ya uski jagah."
       },
       {
         "mistake": "Processor class ke andar zcl_tax_factory=>create( ) call karna — tight coupling to factory AND to country selection logic.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Processor ab isolation mein unit-test nahi ho sakta — har test real factory aur real country code drag karta hai, aur mock calculator inject karne ke liye production code modify karna padta hai. Yeh dependency-injection ka exact anti-pattern hai.",
         "correctApproach": "Processor ko country pata nahi hona chahiye — tax calculator interface sufficient hai."
       }
     ],
@@ -295,22 +295,22 @@
     "commonMistakesSection": [
       {
         "mistake": "Sirf theory bolo bina example ke — 'Factory pattern ek creational pattern hai jisme...' — bores interviewer and signals no practical experience.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Interviewer ko clear signal jaata hai ki tumne pattern kabhi real project mein use nahi kiya — textbook definition to fresher bhi ratta maar ke bol deta hai. Experienced-hire round mein yeh credibility loss directly rejection mein convert hota hai.",
         "correctApproach": "Always tie to concrete scenario."
       },
       {
         "mistake": "Vague answer — 'Haan main design patterns use karta hoon' without specifics.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Vague claim turant rapid-fire drill-down invite karta hai — 'kaunsa pattern, kis requirement ke liye, result kya tha?' Jis moment tum specifics nahi de paate, interviewer poori claim ko resume padding maan leta hai aur baaki answers par bhi shak karta hai.",
         "correctApproach": "Interviewer immediately follow-up karega 'kaunsa pattern, kab, result kya tha.' Better to lead with the specific answer."
       },
       {
         "mistake": "Procedural ABAP ko completely dismiss karna — shows inexperience.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Real SAP landscapes stable procedural code se bhare hain — user exits, BDC programs, function modules. Procedural ko trash karna batata hai ki tumne kabhi brownfield system maintain nahi kiya aur shaayad working code ko unnecessarily rewrite karoge — hiring manager ke liye red flag.",
         "correctApproach": "PERFORM aur function modules aaj bhi production mein hain aur kaam karte hain. Interview mein OOABAP ke benefits batao, procedural ki buraiyan gale mat karo."
       },
       {
         "mistake": "Singleton ko favorite bolna agar interviewer 'kab overuse hota hai' follow-up kare — Singleton overuse discussion mein trap ho sakte ho.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Singleton sabse zyada criticize hone wala pattern hai — hidden global state, untestable dependencies, internal session se bandhi lifetime. Isko favorite bolna interviewer ko ready-made trap question de deta hai jise phir tumhe defend karna padega.",
         "correctApproach": "Strategy, Factory, ya Observer safer choices hain with clear, bounded SAP use cases."
       }
     ],
@@ -438,23 +438,23 @@
     "commonMistakesSection": [
       {
         "mistake": "Sochna ki class methods RFC-enabled ho sakti hain agar REMOTE attribute set karo — yeh option exists nahi karta.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Aisa koi attribute hai hi nahi — class methods classic RFC se directly call nahi ho sakti. Jo design remote-enabled methods assume karta hai woh integration testing mein fail hota hai aur last minute par RFC function module wrapper ke around rework karna padta hai.",
         "correctApproach": "Function module ka RFC attribute hota hai; class methods ka nahi."
       },
       {
         "mistake": "Function group ko class ki tarah treat karna — they are architecturally different.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Function group ka global data poore internal session ke liye us group ke SAARE function modules mein shared rehta hai — ek FM ka leftover state agle call ko silently corrupt karta hai. Classes mein har instance ka apna attribute state hota hai, yeh bug class wahan exist hi nahi karti.",
         "correctApproach": "Function group is namespace + shared state. Class is encapsulated object with defined interface. Do not mix the mental models."
       },
       {
         "mistake": "FORM se method mein sirf code copy karna bina parameter refactoring ke — phir method bhi global variables use karti hai.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Method ab bhi global variables read/write karti hai, isliye woh call-order dependent aur untestable hai — do baar call karo ya ABAP Unit se chalao to alag results milte hain. OO migration se sirf syntax badla, koi architectural benefit nahi mila.",
         "correctApproach": "True migration means replacing global data access with explicit parameters or injected dependencies."
       },
       {
         "mistake": "New business logic ke liye function module banana kyunki 'team FORM aur FM comfortable hai.' Comfort zone is not a technical justification — class methods are the standard and team capability should be developed.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
-        "correctApproach": "Use the correct approach as described in the deep-dive section."
+        "whyWrong": "Naye function modules cleanly unit-test nahi hote, interfaces/inheritance use nahi kar sakte, aur legacy stack ko aur bada karte hain — codebase ka procedural share har sprint badhta hai aur eventual OO migration mehengi hoti jaati hai. Clean ABAP aur ATC checks bhi naye FMs ko flag karte hain.",
+        "correctApproach": "Naya business logic global class ke methods mein likho (SE24/ADT mein zcl_* class) with ABAP Unit tests. Function modules sirf wahan banao jahan technically zaroori hain — RFC, update function modules, BAPIs — aur team ko code reviews aur pairing se OO par upskill karo."
       }
     ],
     "wordByWordSamjho": [

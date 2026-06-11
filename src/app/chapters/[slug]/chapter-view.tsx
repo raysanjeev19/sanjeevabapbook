@@ -47,14 +47,14 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
   }, []);
 
   return (
-    <main className="min-h-screen bg-background px-4 py-4 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-background px-4 py-3 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-4xl">
         {/* Nav */}
-        <nav className="mb-6 flex items-center justify-between rounded-xl border border-border bg-surface px-4 py-2.5">
+        <nav className="glass sticky top-3 z-40 mb-6 flex items-center justify-between rounded-xl px-4 py-2.5 shadow-card">
           <div className="flex items-center gap-1.5 text-sm">
             <Link href="/" className="flex items-center gap-2">
               <BrandLogo size={28} />
-              <span className="hidden font-serif font-semibold text-foreground sm:inline">ABAPPrep</span>
+              <span className="hidden font-serif font-semibold text-foreground sm:inline">CodeGurukul</span>
             </Link>
             <ChevronRight size={11} className="text-faint" />
             <span className="max-w-[180px] truncate font-semibold text-foreground">{chapter.title}</span>
@@ -71,53 +71,61 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
         </nav>
 
         {/* Header */}
-        <section className="relative overflow-hidden rounded-2xl border border-border bg-surface p-6 sm:p-8">
+        <section className="animate-fade-up relative overflow-hidden rounded-2xl border border-border bg-surface p-6 shadow-card sm:p-8">
           <div className="absolute left-0 top-0 h-full w-1" style={{ backgroundColor: chapter.color }} />
+          {/* Chapter-tinted ambient wash */}
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{ background: `radial-gradient(36rem 16rem at 85% -20%, ${chapter.color}14, transparent 70%)` }}
+          />
 
-          <Badge variant={difficultyVariant(chapter.difficulty)}>Chapter {chapter.order}</Badge>
-          <h1 className="mt-3 font-serif text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            {chapter.title}
-          </h1>
-          <p className="mt-3 max-w-2xl text-[1rem] leading-7 text-muted">{chapter.description}</p>
+          <div className="relative">
+            <Badge variant={difficultyVariant(chapter.difficulty)}>Chapter {chapter.order}</Badge>
+            <h1 className="mt-3 font-serif text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              {chapter.title}
+            </h1>
+            <p className="mt-3 max-w-2xl text-[1rem] leading-7 text-muted">{chapter.description}</p>
 
-          <div className="mt-4 flex flex-wrap gap-1.5">
-            <Badge variant={difficultyVariant(chapter.difficulty)}>{chapter.difficulty}</Badge>
-            <Badge>{chapter.questions.length} questions</Badge>
-            <Badge>voice interview</Badge>
-          </div>
-
-          {/* Progress */}
-          <div className="mt-5">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted">{completedInChapter} / {chapter.questions.length} completed</span>
-              <span className="font-bold" style={{ color: ink(chapter.color) }}>{chapterProgress}%</span>
+            <div className="mt-4 flex flex-wrap gap-1.5">
+              <Badge variant={difficultyVariant(chapter.difficulty)}>{chapter.difficulty}</Badge>
+              <Badge>{chapter.questions.length} questions</Badge>
+              <Badge>voice interview</Badge>
             </div>
-            <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-2">
-              <div
-                className="h-full rounded-full transition-[width] duration-500"
-                style={{ backgroundColor: chapter.color, width: `${chapterProgress}%` }}
-              />
-            </div>
-          </div>
 
-          <div className="mt-6 grid gap-2 sm:grid-cols-3">
-            <Button asChild className="h-auto justify-start p-3.5 text-[13px]">
-              <Link href={`/questions/${chapter.questions[0]?.id}`}><Search size={16} /> Start Reading</Link>
-            </Button>
-            <Button asChild variant="secondary" className="h-auto justify-start p-3.5 text-[13px]">
-              <Link href={`/interview/${chapter.slug}`}><Mic size={16} /> Mock Interview</Link>
-            </Button>
-            <Button asChild variant="secondary" className="h-auto justify-start p-3.5 text-[13px]">
-              <Link href={`/interview/${chapter.slug}`}><GraduationCap size={16} /> Quiz Mode</Link>
-            </Button>
+            {/* Progress */}
+            <div className="mt-5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted">{completedInChapter} / {chapter.questions.length} completed</span>
+                <span className="font-bold" style={{ color: ink(chapter.color) }}>{chapterProgress}%</span>
+              </div>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-2">
+                <div
+                  className="shimmer h-full rounded-full transition-[width] duration-500"
+                  style={{ backgroundColor: chapter.color, width: `${Math.max(chapterProgress, 2)}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-2 sm:grid-cols-3">
+              <Button asChild className="h-auto justify-start p-3.5 text-[13px]">
+                <Link href={`/questions/${chapter.questions[0]?.id}`}><Search size={16} /> Start Reading</Link>
+              </Button>
+              <Button asChild variant="secondary" className="h-auto justify-start p-3.5 text-[13px]">
+                <Link href={`/interview/${chapter.slug}`}><Mic size={16} /> Mock Interview</Link>
+              </Button>
+              <Button asChild variant="secondary" className="h-auto justify-start p-3.5 text-[13px]">
+                <Link href={`/interview/${chapter.slug}`}><GraduationCap size={16} /> Quiz Mode</Link>
+              </Button>
+            </div>
           </div>
         </section>
 
         {/* Search */}
-        <div className="relative mt-6">
+        <div className="animate-fade-up d-1 relative mt-6">
           <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-faint" />
           <input
             type="text"
+            aria-label="Search questions in this chapter"
             placeholder="Search questions..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -126,15 +134,18 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
         </div>
 
         {/* Questions */}
-        <section className="mt-4 grid gap-2">
+        <section className="mt-4 grid gap-2 pb-4">
           {filteredQuestions.map((question, index) => {
             const isDone = completed.includes(question.id);
             return (
               <Link key={question.id} href={`/questions/${question.id}`}>
-                <Card className="group p-3.5 hover:border-border-strong hover:bg-surface-2">
+                <Card
+                  className="hover-lift animate-fade-up group cursor-pointer p-3.5 hover:border-border-strong"
+                  style={{ animationDelay: `${Math.min(index * 30, 330)}ms` }}
+                >
                   <div className="flex items-center gap-3">
                     <span
-                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold"
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold transition-transform duration-200 group-hover:scale-110"
                       style={
                         isDone
                           ? { backgroundColor: `${chapter.color}22`, color: ink(chapter.color) }
@@ -150,7 +161,7 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
                         <Badge className="px-1.5 py-0.5 text-[9px]">{question.experienceLevel}</Badge>
                       </div>
                     </div>
-                    <ChevronRight className="shrink-0 text-faint transition-colors group-hover:text-muted" size={14} />
+                    <ChevronRight className="shrink-0 text-faint transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-accent" size={14} />
                   </div>
                 </Card>
               </Link>
@@ -163,7 +174,7 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
         )}
 
         {/* Bottom CTA */}
-        <section className="mt-6 rounded-xl border border-border bg-surface-2 p-4">
+        <section className="mb-4 rounded-xl border border-border bg-surface-2 p-4">
           <div className="flex items-center gap-3">
             <CheckCircle2 size={16} style={{ color: ink(chapter.color) }} />
             <p className="text-xs leading-5 text-muted">
@@ -175,7 +186,7 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
 
       {showScrollTop && (
         <button
-          className="animate-fade-in fixed bottom-5 right-5 z-50 flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-muted transition-colors hover:text-foreground"
+          className="animate-fade-in hover-lift fixed bottom-5 right-5 z-50 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-border bg-surface text-muted shadow-card transition-colors hover:text-foreground"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           aria-label="Scroll to top"
         >

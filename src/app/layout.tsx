@@ -16,11 +16,11 @@ const lora = Lora({
 });
 
 export const metadata: Metadata = {
-  title: { default: "ABAPPrep — Learn • Practice • Prepare • Get Hired", template: "%s | ABAPPrep" },
+  title: { default: "CodeGurukul — Learn • Practice • Prepare • Get Hired", template: "%s | CodeGurukul" },
   description:
-    "ABAPPrep — the SAP ABAP interview prep platform. 573+ curated questions, Hinglish + English interview scripts, code walkthroughs, mock interviews, and chapter-wise study paths.",
+    "CodeGurukul — the SAP ABAP interview prep platform. 573+ curated questions, Hinglish + English interview scripts, code walkthroughs, mock interviews, and chapter-wise study paths.",
   openGraph: {
-    title: "ABAPPrep — SAP ABAP Interview Mastery",
+    title: "CodeGurukul — SAP ABAP Interview Mastery",
     description: "573+ curated SAP ABAP questions with Hinglish + English interview scripts, code examples, and AI mock interviews.",
     type: "website",
   },

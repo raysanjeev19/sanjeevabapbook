@@ -9,22 +9,22 @@
     "commonMistakesSection": [
       {
         "mistake": "Multiple transport requests mein OO objects split karna because different developers changed different classes.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Dependent objects tukdon mein import hote hain — interface ek request mein gaya, implementing class doosri mein ruki rahi, to QA mein import RC=8 ya inactive/syntax-error objects milte hain. Aadha-imported object model poora application area tod sakta hai.",
         "correctApproach": "Merge all into one request before QAS transport — even if it means one developer re-assigning their request objects."
       },
       {
         "mistake": "Assuming STMS automatically determines correct import order for dependent transports.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "STMS queue/timestamp order se import karta hai, logical dependency se nahi — implementing class apne naye interface se pehle import ho gayi to activation fail hoti hai aur target system mein objects inactive ya dump-prone reh jaate hain jab tak doosra transport nahi aata.",
         "correctApproach": "STMS imports by timestamp or queue order — not by logical dependency. Always explicitly control sequence for layered OO changes."
       },
       {
         "mistake": "Releasing transport without running ATC because 'the code looks fine.' Code compiling without errors does not mean business logic is correct.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Compile success sirf syntax verify karta hai — priority-1 ATC findings (security, performance, missing where-used impacts) aur behavior bugs QA tak undetected jaate hain. Phir correction transports ki chain banti hai aur release timeline slip hoti hai.",
         "correctApproach": "Unit tests verify behavior, not syntax — run them every time before transport release."
       },
       {
         "mistake": "Attempting partial rollback of only the failed class while leaving updated interfaces in place.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Purani class version naye interface ke against compile nahi hoti — runtime par load errors ya CX_SY_DYN_CALL_ILLEGAL_METHOD type dumps aate hain. Ab system original bug se bhi zyada toota hua hai, aur har polymorphic caller affected hai.",
         "correctApproach": "This creates an inconsistent object model — worse than the original failure. Always rollback complete dependency groups together."
       }
     ],
@@ -152,22 +152,22 @@
     "commonMistakesSection": [
       {
         "mistake": "Factory Method aur simple static method confuse karna.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Interview mein 'Factory Method' bolke ek utility static method dikhana batata hai ki polymorphic creation ka concept clear nahi hai — interviewer ek follow-up ('isme variation point kahan hai?') se expose kar deta hai. Code mein bhi aisi 'factory' koi extension point nahi deti.",
         "correctApproach": "Factory Method is about polymorphic creation — the method decides which concrete class to instantiate. A regular static utility method that always returns the same type is not a Factory Method pattern."
       },
       {
         "mistake": "Confusing DI with Service Locator pattern — where the class asks a registry for its dependency.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Service Locator dependencies ko constructor signature se chhupa deta hai — class andar se registry pull karti hai, to unit test mein registry setup bhoolte hi test mysterious initial-reference errors se fail hota hai. Reader ko bhi code padhke pata nahi chalta class kis par depend karti hai.",
         "correctApproach": "Service Locator hides dependencies and makes testing harder. DI makes dependencies explicit in the constructor signature — any reader of the class immediately knows what it depends on."
       },
       {
         "mistake": "Reciting all five SOLID principles as a textbook answer without connecting to ABAP code.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Paanch definitions ratt ke bolna interviewer ko zero evidence deta hai ki tum ABAP mein SOLID apply kar sakte ho — yeh exactly woh answer hai jo Google se 10 minute mein milta hai. Design-maturity wala evaluation criterion blank reh jaata hai aur senior role ke liye yeh disqualifying hai.",
         "correctApproach": "Interviewers value 'I used this in my project' over 'this principle means...' Connect every principle to a concrete example from your experience."
       },
       {
         "mistake": "Saying 'I use all patterns equally' — this sounds unconvincing.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Koi bhi developer sab patterns equally use nahi karta — yeh claim turant fake lagti hai aur interviewer deliberately obscure pattern (Memento, Flyweight) pooch ke test karega. Ek atak gaye to poori credibility chali jaati hai, jabki honest 'Factory aur Strategy daily, Observer kabhi-kabhi' bilkul safe tha.",
         "correctApproach": "Every developer has patterns they reach for first. Be honest about which patterns you have actually used in production and which you know theoretically."
       }
     ],
@@ -295,22 +295,22 @@
     "commonMistakesSection": [
       {
         "mistake": "Fixing the top-level class in the call stack rather than the actual failing class at the bottom.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Tum perfectly correct entry-point code modify kar rahe ho — wahan naya bug introduce hone ka risk hai, aur asli failing class untouched hai to wahi dump doosre callers se phir aayega. Do problems ban gayi jahan ek thi.",
         "correctApproach": "The top-level class is often just the entry point — it may be perfectly correct. The bug is where execution failed, not where it started."
       },
       {
         "mistake": "Setting breakpoints at the entry point of a long chain and stepping through 200 lines to find the issue.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Ghante single-stepping mein jaate hain aur ek galat F6 (step over) failing call ke andar jaane ke bajaye usko skip kar deta hai — phir poora session repeat. ST22 call stack pehle se exact failing method bata raha tha; woh information ignore karna pure wasted effort hai.",
         "correctApproach": "Instead, set the breakpoint at the suspected failing class directly — identified from ST22 call stack. This reduces debugging time from hours to minutes."
       },
       {
         "mistake": "Assuming one singleton instance exists system-wide in ABAP.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "CLASS-DATA per internal session hota hai — har user/work process ki apni singleton copy hai. Cached config session ke beech badla to alag users alag results dekhte hain, aur 'system-wide counter/lock' jaisa koi design data inconsistency deta hai kyunki coordination exist hi nahi karti.",
         "correctApproach": "Each ABAP work process has its own CLASS-DATA memory — singleton is per-session, not per-system. This is important for configuration caching: if config changes, all active sessions must be invalidated (typically by restarting them or using shared memory objects)."
       },
       {
         "mistake": "Assuming a registered observer is always called.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Notification loop mein pehle observer ka unhandled exception poora loop tod deta hai — baad waale observers kabhi call nahi hote. Critical downstream processing (audit, notification) silently miss ho jaati hai aur registration code dekh ke sab 'correct' lagta hai.",
         "correctApproach": "An exception in the notification loop without proper error handling can silently skip some observers. Always add try-catch per observer in the notification loop and log any observer failures."
       }
     ],
@@ -438,22 +438,22 @@
     "commonMistakesSection": [
       {
         "mistake": "Forcing a pattern onto every requirement.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Do-condition logic ke liye Factory + interface + do classes ka matlab: simple change ke liye ab teen-chaar artifacts touch karne padte hain aur naya team member indirection mein kho jaata hai. Over-engineering maintenance cost badhata hai bina koi flexibility diye jo kabhi use hogi.",
         "correctApproach": "Not every business rule needs a design pattern. Simple IF-ELSEIF logic with two conditions is fine — Factory pattern for two conditions is over-engineering. Apply patterns when the problem has genuine variation, extensibility, or reuse requirements."
       },
       {
         "mistake": "Using generic types in interface method signatures — 'iv_data TYPE string' or 'iv_amount TYPE p'.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Dictionary semantics kho jaate hain — conversion exits, fixed length, decimals, currency reference sab gone. Galat length ka value chupchaap truncate ho jaata hai ya amount galat decimals se interpret hota hai, aur where-used analysis bhi kaam nahi karti kyunki type generic hai.",
         "correctApproach": "Use specific SAP standard types like netwr, matnr, kunnr, bukrs. Generic types require callers to handle conversion and create implicit coupling to the caller's data model."
       },
       {
         "mistake": "Defining class boundaries based on code size rather than responsibility. 'This class is getting long so let's split it' is not a valid OO design reason.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Size-based split ek hi responsibility ko do classes mein scatter kar deta hai — ab har business change dono halves touch karta hai aur unke beech artificial parameter passing aur shared state aata hai. Cohesion girti hai; maintenance pehle se mushkil ho jaati hai, easy nahi.",
         "correctApproach": "Split classes when responsibilities differ, not when code length grows. Long single-responsibility class is better than short multi-responsibility class."
       },
       {
         "mistake": "Designing one generic exception class for all errors in a domain — ZCX_PRICING_ERROR used for every pricing failure without subclasses.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Callers selectively CATCH nahi kar sakte — 'condition missing' (recoverable) aur 'config corrupt' (fatal) dono ek hi handler mein girte hain, to code exception attributes/message text parse karke branch karta hai. Naya error code add hote hi yeh fragile string-matching silently galat branch leta hai.",
         "correctApproach": "This forces callers to inspect exception attributes to determine the actual error type — error-prone and fragile. Specific exception subclasses give callers clean catch blocks with clear semantics."
       }
     ],

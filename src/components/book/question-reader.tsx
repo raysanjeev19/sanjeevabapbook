@@ -160,7 +160,7 @@ export function QuestionReader({ question }: { question: Question }) {
     return slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   }, [question.chapterSlug]);
 
-  /* ── ABAPPrep 9-section structure ── */
+  /* ── CodeGurukul 9-section structure ── */
   const TABS = [
     { key: "easy"         as const, label: "Seedha Samjho",        sublabel: "Simple Hindi mein samjho",  Icon: Lightbulb,     color: "#F59E0B" },
     { key: "deepDive"     as const, label: "Deep Dive",             sublabel: "Technical understanding",   Icon: BookOpen,      color: chapterColor },
@@ -701,7 +701,7 @@ function Tracker({ icon, label, value, color }: { icon: React.ReactNode; label: 
 }
 
 /* ──────────────────────────────────────────────────────────────
-   ABAPPrep 9-section tab content router
+   CodeGurukul 9-section tab content router
    Each tab renders a specialised view of the question's answers.
    New sections (wordByWord, mistakes, revision, tieredFollowups)
    show a clean "Coming soon" placeholder until content lands.

@@ -17,7 +17,7 @@
 | **Total flagged** | ~329 of 5,157 items (~6.4% issue rate) |
 | **Clean** | ~93.6% of content technically sound |
 
-**48 critical fixes already applied** to source files. ~36 critical issues + all medium/minor still pending.
+**All ~84 critical fixes applied** (second pass completed 2026-06-11 via 9 parallel fixer agents — every CRITICAL row below is now fixed, including rows not marked ✅). Medium/minor issues still pending. The ooabap boilerplate `whyWrong`/`correctApproach` placeholders (108 entries, files c–i) were fully rewritten; boilerplate in other chapters (reports-alv, module-pool, rap-bopf, support-debugging) remains pending.
 
 ---
 
@@ -395,10 +395,10 @@ These appear in many files and would benefit from a chapter-wide rewrite:
 48 critical fixes were applied directly to source JSON files via parallel fixer agents. All files validated as well-formed JSON. Items marked ✅ above are done.
 
 **Remaining work:**
-- ~36 critical issues pending (listed as ⚠️ or without ✅)
+- ~~36 critical issues~~ — all fixed 2026-06-11 (second fixer pass)
 - ~144 medium issues pending
 - ~101 minor issues pending
-- Systemic placeholder text rewrites (4 chapters)
+- Systemic placeholder text rewrites: ooabap done; reports-alv, module-pool, rap-bopf, support-debugging pending
 
 ---
 

@@ -9,22 +9,22 @@
     "commonMistakesSection": [
       {
         "mistake": "Multiple inheritance ABAP mein assume karna — Java ya C++ background se aaye developers ye mistake karte hain.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "ABAP mein INHERITING FROM sirf ek superclass accept karta hai — do superclasses dene par syntax error aata hai. Java/C++ wala design ABAP mein directly port karne par class model rework karna padta hai aur interview mein yeh turant galat answer pakda jaata hai.",
         "correctApproach": "ABAP strictly single inheritance, multiple interface implementation."
       },
       {
         "mistake": "REDEFINITION karna bina SUPER-> call kiye jab parent logic bhi chahiye — parent ka critical logic miss ho jaata hai.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Parent method ka initialization ya validation logic silently skip ho jaata hai — subclass partially-processed data pe kaam karta hai aur subtle wrong results deta hai jo sirf subclass ke execution path par reproduce hote hain, debugging ko mushkil banate hue.",
         "correctApproach": "Always consciously decide: kya parent behavior chahiye ya completely replace karna hai."
       },
       {
         "mistake": "Interface reference se concrete-class-only methods directly call karna — compile error aata hai.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Compiler turant error deta hai kyunki interface reference se sirf interface ke components visible hote hain — aur agar CAST se bypass karoge toh galat dynamic type par runtime mein CX_SY_MOVE_CAST_ERROR dump milta hai.",
         "correctApproach": "If needed, CAST to concrete type, but this defeats the purpose of the interface."
       },
       {
         "mistake": "FINAL bhool jaana on singleton class — koi bhi subclass bana ke get_instance override kar sakta hai aur different behavior inject kar sakta hai.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Non-FINAL singleton ko koi bhi subclass karke uska behavior aur state extend kar sakta hai — jis code ne system-wide ek hi shared instance assume kiya tha, woh mixed ya duplicate state dekhne lagta hai (buffer, counters), aur inconsistent results aate hain. FINAL plus CREATE PRIVATE milke hi single-instance guarantee dete hain.",
         "correctApproach": "FINAL singleton classes pe non-negotiable."
       }
     ],
@@ -160,22 +160,22 @@
     "commonMistakesSection": [
       {
         "mistake": "Class diagram mein implementation details likhna (method bodies, SQL queries) — class diagram high-level hai.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Diagram itna dense ho jaata hai ki architecture relationships (inheritance, composition, dependencies) usme doob jaate hain — aur har minor code change par diagram outdated hota hai, toh team use trust karna hi chhod deti hai.",
         "correctApproach": "Details method signature table mein jaate hain. Diagram ka purpose: architecture, not implementation."
       },
       {
         "mistake": "Singleton reason document na karna — reviewer sirf pattern dekh ke 'kyun singleton?' question karta hai.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Design review mein pattern baar-baar question hota hai aur approval delay hota hai; worse, agla developer bina samjhe pattern copy karta hai — global state badhta hai jo unit testing ko mushkil aur parallel processing ko risky banata hai.",
         "correctApproach": "Justification hamesha include karo. Agar justification weak hai toh shayad singleton use hi mat karo."
       },
       {
         "mistake": "TS sirf project start mein likhna phir kabhi update nahi karna — ek stale TS naye developer ko mislead karta hai worse than no TS.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Naya developer outdated TS padh kar galat architecture assume karta hai — code wrong layer mein add hota hai, aur defect analysis ke time document aur actual system ek dusre ko contradict karte hain, jisse investigation time double ho jaata hai.",
         "correctApproach": "Outdated TS ka risk: developer wrong architecture samajh ke code likhta hai."
       },
       {
         "mistake": "TS mein business logic requirements likhna (jo FS ka kaam hai) — TS sirf implementation describe karta hai.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "FS aur TS mein same business rules duplicate ho jaate hain — rule change par ek document update hota hai doosra nahi, aur implementation team conflicting sources follow karke galat logic build kar deti hai.",
         "correctApproach": "Agar business rule change hoti hai — FS update karo, phir TS update karo. Dono separate documents hain."
       }
     ],
@@ -307,22 +307,22 @@
     "commonMistakesSection": [
       {
         "mistake": "Unit test time zero estimate karna — 'code fast likhenge, tests baad mein.' Baad mein kabhi nahi aata.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Delivery date code-complete par commit ho jaati hai — tests ya toh skip hote hain ya date slip hoti hai. Untested OO code production mein jaata hai, aur wahan defect fix karne ka cost test likhne se kai guna zyada hota hai.",
         "correctApproach": "Tests implementation ke saath — delivery se pehle estimate mein include karo."
       },
       {
         "mistake": "Risk factors estimate mein consider na karna — ek fixed number dena bina assumptions listing kiye.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Jab hidden complexity niklti hai (legacy FM integration, missing interfaces, data quality) toh estimate bust hota hai — aur PM ke paas client se renegotiate karne ka koi documented basis nahi hota, jisse developer ki credibility hit hoti hai.",
         "correctApproach": "Always state your assumptions: 'This estimate assumes interfaces are already defined and no legacy FM integration is needed.'"
       },
       {
         "mistake": "Pattern estimate sirf pattern overhead count karna, business logic complexity ignore karna.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Estimate sirf scaffolding (interface, factory, empty strategy classes) cover karta hai — strategy ke andar ka actual pricing/tax logic unestimated reh jaata hai. Task 2 din ka dikhta hai aur 2 hafte leta hai, sprint commitment fail hota hai.",
         "correctApproach": "Strategy class banani simple hai — business logic inside strategy complex ho sakti hai (pricing rules, tax calculations). Always assess business logic complexity separately."
       },
       {
         "mistake": "Single point estimate dena bina buffer ya assumptions ke — PM commits to client, then developer delivers late, everyone frustrated.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Estimates inherently uncertain hote hain — single number PM ke liye hard commitment ban jaata hai, aur pehli hi unknown (authorization issue, missing test data) par date slip hoti hai. Trust erode hota hai aur agli baar estimates unilaterally cut kiye jaate hain.",
         "correctApproach": "Range estimate with clear assumptions = professional approach."
       }
     ],
@@ -450,22 +450,22 @@
     "commonMistakesSection": [
       {
         "mistake": "Interface add karne ke baad methods implement kiye bina activate karna — activation error aata hai.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Activation 'Implementation missing for method ...' error ke saath fail hoti hai aur class inactive reh jaati hai — jo bhi programs ya classes use reference karte hain unme bhi syntax errors cascade ho jaate hain.",
         "correctApproach": "SE24 clearly batata hai kaunse interface methods unimplemented hain — complete karo phir activate karo."
       },
       {
         "mistake": "SE80 completely ignore karna aur directly SE24 ya SE38 mein kaam karna — then you miss the context: how is this class related to others? Where is it used? What package does it belong to? SE80 gives this context instantly.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
-        "correctApproach": "Use the correct approach as described in the deep-dive section."
+        "whyWrong": "Bina package aur where-used context ke developer duplicate objects bana deta hai ya galat package mein develop karta hai — transport assignment galat hota hai aur missing dependencies release ke waqt hi surface hoti hain.",
+        "correctApproach": "SE80 (ya Eclipse ka Project Explorer) ko entry point banao — package hierarchy se navigate karo, where-used list check karo, aur object ko uske surrounding context ke saath samjho. SE24/SE38 sirf focused single-object edits ke liye use karo."
       },
       {
         "mistake": "Global utility classes SE38 mein likhna as local classes — phir doosra program same utility chahiye, aur developer duplicate likhta hai.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "Same logic 4-5 programs mein copy-paste ho jaata hai — ek bug fix har copy mein alag se karna padta hai, aur jo copy miss hui usme production behavior inconsistent rehta hai.",
         "correctApproach": "Reusable logic hamesha SE24 mein global class ke roop mein."
       },
       {
         "mistake": "SAT sirf procedural code analysis ke liye samajhna — SAT OO code ke liye equally powerful hai.",
-        "whyWrong": "Production impact: incorrect results or wasted effort that shows up only in QA/UAT.",
+        "whyWrong": "OO-heavy code ka performance profiling hota hi nahi — loop ke andar object creation ya DB-hitting getter jaise expensive method calls bina analysis ke production pahunch jaate hain, jabki SAT ki method-level hit list mein yeh turant dikh jaate.",
         "correctApproach": "Method-level aggregation mein class aur method name clearly dikhte hain — exactly same analysis as function module profiling."
       }
     ],
