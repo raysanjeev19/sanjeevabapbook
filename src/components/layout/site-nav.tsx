@@ -29,7 +29,7 @@ export function SiteNav({
 
   return (
     <nav className={cn("sticky top-0 z-40 mx-auto w-full px-3 pt-3 sm:px-6 lg:px-8", maxWidth)}>
-      <div className="glass flex items-center justify-between gap-2 rounded-2xl px-3 py-2 shadow-card sm:px-4 sm:py-2.5">
+      <div className="glass ring-gradient flex items-center justify-between gap-2 rounded-2xl px-3 py-2 shadow-card-hover sm:px-4 sm:py-2.5">
         <div className="flex min-w-0 items-center gap-1.5">
           <Link href="/" className="flex shrink-0 items-center gap-2.5 rounded-xl">
             <BrandLogo size={32} />

@@ -54,17 +54,14 @@ export function HomeExperience() {
 
       {/* === HERO === */}
       <section className="relative overflow-hidden">
-        <div className="ambient-top absolute inset-0" />
-        <div className="bg-grid absolute inset-0" />
-        <div className="orb left-[-7rem] top-[-5rem] h-72 w-72" style={{ background: "color-mix(in srgb, var(--accent) 34%, transparent)" }} />
-        <div className="orb orb-2 right-[-5rem] top-16 h-80 w-80" style={{ background: "color-mix(in srgb, var(--accent-3) 28%, transparent)" }} />
-        <div className="orb orb-2 bottom-[-6rem] left-1/3 hidden h-64 w-64 sm:block" style={{ background: "color-mix(in srgb, var(--accent-2) 22%, transparent)", animationDelay: "-10s" }} />
+        <div className="hero-aurora" />
+        <div className="bg-grid absolute inset-0 opacity-70" />
 
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="grid items-center gap-10 py-12 lg:grid-cols-[1.08fr_0.92fr] lg:gap-14 lg:py-20">
             {/* Left — message + CTAs */}
             <div className="text-center lg:text-left">
-              <p className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-border bg-surface/80 px-3.5 py-1.5 text-xs font-medium text-accent shadow-card backdrop-blur-sm">
+              <p className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-border bg-surface/85 px-3.5 py-1.5 text-xs font-semibold text-accent shadow-card backdrop-blur-md">
                 <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-success" />
                 {greeting}
               </p>
@@ -101,7 +98,7 @@ export function HomeExperience() {
             </div>
 
             {/* Right — interview-readiness panel with progress ring */}
-            <div className="ring-gradient animate-scale-in d-2 rounded-3xl border border-border bg-surface/90 p-6 shadow-card-hover backdrop-blur-sm sm:p-7">
+            <div className="ring-gradient animate-scale-in d-2 rounded-3xl border border-border bg-surface/85 p-6 shadow-pop backdrop-blur-xl sm:p-7">
               <div className="flex items-center gap-4">
                 <ProgressRing value={progress} />
                 <div className="min-w-0 flex-1">
