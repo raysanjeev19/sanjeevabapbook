@@ -719,14 +719,14 @@ function TabContent({
 
     case "interviewHi":
       return (
-        <div className={cn("rounded-xl border-l-[3px] bg-surface-2/40 p-5", measureClass)} style={{ borderLeftColor: "#22C55E" }}>
+        <div className={cn("rounded-xl bg-surface-2/40 p-5", measureClass)}>
           <AnswerText text={interviewHinglish} className="reading" style={readingStyle} />
         </div>
       );
 
     case "interviewEn":
       return (
-        <div className={cn("rounded-xl border-l-[3px] bg-surface-2/40 p-5", measureClass)} style={{ borderLeftColor: "#4F46E5" }}>
+        <div className={cn("rounded-xl bg-surface-2/40 p-5", measureClass)}>
           <AnswerText text={interviewEnglish} className="reading" style={readingStyle} />
         </div>
       );
@@ -776,7 +776,7 @@ function TabContent({
       const notes = answers.quickRevisionNotes;
       if (!notes) return <EmptySection color={tabColor} label="Quick Revision Notes" hint="2-minute keyword recap — coming soon." />;
       return (
-        <div className={cn("rounded-xl border-l-[3px] bg-warning-soft p-5", measureClass)} style={{ borderLeftColor: "#F59E0B" }}>
+        <div className={cn("rounded-xl bg-warning-soft p-5", measureClass)}>
           <AnswerText text={notes} className="reading" style={readingStyle} />
         </div>
       );
