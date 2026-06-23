@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
+  ArrowRight,
+  BookOpen,
   Check,
   CheckCircle2,
   ChevronRight,
@@ -63,25 +65,27 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
           />
 
           <div className="relative">
-            <Badge variant={difficultyVariant(chapter.difficulty)}>Chapter {chapter.order}</Badge>
-            <h1 className="mt-3 font-serif text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              {chapter.title}
-            </h1>
-            <p className="mt-3 max-w-2xl text-[1rem] leading-7 text-muted">{chapter.description}</p>
-
-            <div className="mt-4 flex flex-wrap gap-1.5">
-              <Badge variant={difficultyVariant(chapter.difficulty)}>{chapter.difficulty}</Badge>
-              <Badge>{chapter.questions.length} questions</Badge>
-              <Badge>voice interview</Badge>
+            {/* Eyebrow: chapter number + difficulty, compact */}
+            <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em]">
+              <span className="text-faint">Chapter {String(chapter.order).padStart(2, "0")}</span>
+              <span className="h-1 w-1 rounded-full bg-faint" />
+              <span style={{ color: ink(chapter.color) }}>{chapter.difficulty}</span>
             </div>
 
+            <h1 className="mt-2 font-serif text-[1.7rem] font-bold leading-tight tracking-tight text-foreground sm:text-4xl">
+              {chapter.title}
+            </h1>
+            <p className="mt-2 line-clamp-2 max-w-2xl text-sm leading-6 text-muted sm:line-clamp-none sm:text-[0.95rem]">
+              {chapter.description}
+            </p>
+
             {/* Progress */}
-            <div className="mt-5">
+            <div className="mt-4">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-muted">{completedInChapter} / {chapter.questions.length} completed</span>
+                <span className="font-medium text-muted">{completedInChapter} / {chapter.questions.length} questions</span>
                 <span className="font-bold" style={{ color: ink(chapter.color) }}>{chapterProgress}%</span>
               </div>
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-2">
+              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-surface-2">
                 <div
                   className="shimmer h-full rounded-full transition-[width] duration-500"
                   style={{ backgroundColor: chapter.color, width: `${Math.max(chapterProgress, 2)}%` }}
@@ -89,16 +93,22 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
               </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-3">
-              <Button asChild className="h-auto justify-start p-3.5 text-[13px]">
-                <Link href={`/questions/${chapter.questions[0]?.id}`}><Search size={16} /> Start Reading</Link>
+            {/* Actions: one primary + two compact secondary */}
+            <div className="mt-5 space-y-2">
+              <Button asChild className="group h-12 w-full text-[15px]">
+                <Link href={`/questions/${chapter.questions[0]?.id}`}>
+                  <BookOpen size={17} /> Start reading
+                  <ArrowRight size={16} className="transition-transform duration-200 group-hover:translate-x-1" />
+                </Link>
               </Button>
-              <Button asChild variant="secondary" className="h-auto justify-start p-3.5 text-[13px]">
-                <Link href={`/interview/${chapter.slug}`}><Mic size={16} /> Mock Interview</Link>
-              </Button>
-              <Button asChild variant="secondary" className="h-auto justify-start p-3.5 text-[13px]">
-                <Link href={`/interview/${chapter.slug}`}><GraduationCap size={16} /> Quiz Mode</Link>
-              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button asChild variant="secondary" className="h-11 text-[13px]">
+                  <Link href={`/interview/${chapter.slug}`}><Mic size={15} /> Mock Interview</Link>
+                </Button>
+                <Button asChild variant="secondary" className="h-11 text-[13px]">
+                  <Link href={`/interview/${chapter.slug}`}><GraduationCap size={15} /> Quiz Mode</Link>
+                </Button>
+              </div>
             </div>
           </div>
         </section>
