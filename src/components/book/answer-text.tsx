@@ -46,6 +46,29 @@ function parseInline(text: string): React.ReactNode[] {
   return parts;
 }
 
+/**
+ * Split a paragraph into sentences so each renders on its own line.
+ * Breaks after . ? ! followed by whitespace + a capital/quote/Devanagari start,
+ * which skips decimals (7.40) and most lowercase cases. A small abbreviation
+ * guard (e.g., i.e., etc., Mr.) re-joins false breaks.
+ */
+const ABBR_END = /(?:^|\s)(?:e\.g|i\.e|etc|vs|viz|approx|Mr|Mrs|Ms|Dr|Prof|Sr|Jr|St|No|Fig|Inc|Ltd|Co|Pvt)\.$/i;
+
+function splitSentences(text: string): string[] {
+  const rough = text.split(/(?<=[.?!])\s+(?=[A-Z"'“(ऀ-ॿ])/);
+  const out: string[] = [];
+  for (const part of rough) {
+    const p = part.trim();
+    if (!p) continue;
+    if (out.length > 0 && ABBR_END.test(out[out.length - 1])) {
+      out[out.length - 1] += " " + p;
+    } else {
+      out.push(p);
+    }
+  }
+  return out.length > 0 ? out : [text.trim()];
+}
+
 function isHeader(line: string): boolean {
   const trimmed = line.trim();
   /* Short line ending in colon, or ALL CAPS short line */
@@ -213,10 +236,14 @@ export function AnswerText({ text, className, style }: AnswerTextProps) {
           );
         }
 
-        /* para */
+        /* para — justified (even left/right edges); one sentence per line */
         return (
-          <p key={i} className="text-foreground">
-            {parseInline(block.text)}
+          <p key={i} className="text-justify text-foreground hyphens-auto">
+            {splitSentences(block.text).map((sentence, j) => (
+              <span key={j} className="block">
+                {parseInline(sentence)}
+              </span>
+            ))}
           </p>
         );
       })}
