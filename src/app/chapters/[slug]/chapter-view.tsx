@@ -89,7 +89,7 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
               </div>
             </div>
 
-            <div className="mt-6 grid gap-2 sm:grid-cols-3">
+            <div className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-3">
               <Button asChild className="h-auto justify-start p-3.5 text-[13px]">
                 <Link href={`/questions/${chapter.questions[0]?.id}`}><Search size={16} /> Start Reading</Link>
               </Button>
@@ -117,7 +117,7 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
         </div>
 
         {/* Questions */}
-        <section className="mt-4 grid gap-2 pb-4">
+        <section className="mt-4 grid grid-cols-1 gap-2 pb-4">
           {filteredQuestions.map((question, index) => {
             const isDone = completed.includes(question.id);
             return (

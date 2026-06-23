@@ -277,20 +277,20 @@ export function AiInterviewer({ chapter }: { chapter: Chapter }) {
       <div className="mx-auto max-w-6xl">
         {/* Top nav */}
         <nav className="mb-6 flex items-center justify-between gap-2 rounded-xl border border-border bg-surface px-4 py-2.5">
-          <div className="flex items-center gap-1.5 text-sm">
-            <Link href="/" className="flex items-center gap-2">
+          <div className="flex min-w-0 flex-1 items-center gap-1.5 text-sm">
+            <Link href="/" className="flex shrink-0 items-center gap-2">
               <BrandLogo size={26} />
             </Link>
-            <ChevronRight size={11} className="text-faint" />
-            <Link href="/interview" className="text-muted transition-colors hover:text-foreground">
+            <ChevronRight size={11} className="shrink-0 text-faint" />
+            <Link href="/interview" className="hidden shrink-0 text-muted transition-colors hover:text-foreground sm:inline">
               Interview
             </Link>
-            <ChevronRight size={11} className="text-faint" />
-            <span className="max-w-[120px] truncate font-semibold text-foreground sm:max-w-none">
+            <ChevronRight size={11} className="hidden shrink-0 text-faint sm:inline" />
+            <span className="min-w-0 flex-1 truncate font-semibold text-foreground">
               {chapter.title}
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             <Badge variant={difficultyVariant(chapter.difficulty)}>{mode}</Badge>
             <ThemeToggle />
           </div>
@@ -306,12 +306,12 @@ export function AiInterviewer({ chapter }: { chapter: Chapter }) {
           </p>
         </section>
 
-        <div className="mt-6 grid gap-5 lg:grid-cols-[300px_1fr]">
+        <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-[300px_1fr]">
           {/* Sidebar */}
           <aside className="space-y-3">
             <Card className="p-4">
               <h2 className="text-sm font-semibold text-foreground">Interview Mode</h2>
-              <div className="mt-3 grid gap-1.5">
+              <div className="mt-3 grid grid-cols-1 gap-1.5">
                 {modes.map((item) => (
                   <Button
                     key={item}
@@ -465,7 +465,7 @@ export function AiInterviewer({ chapter }: { chapter: Chapter }) {
                       }
                     }}
                   />
-                  <div className="grid gap-1.5">
+                  <div className="grid grid-cols-1 gap-1.5">
                     <Button
                       aria-label={isListening ? "Stop" : "Speak"}
                       variant={isListening ? "danger" : "secondary"}
@@ -495,7 +495,7 @@ export function AiInterviewer({ chapter }: { chapter: Chapter }) {
                   Quiz {quizIndex + 1}
                 </Badge>
                 <h3 className="mt-2 text-sm font-semibold text-foreground">{quizQuestion.prompt}</h3>
-                <div className="mt-3 grid gap-1.5">
+                <div className="mt-3 grid grid-cols-1 gap-1.5">
                   {quizOptions(quizQuestion).map((option, index) => (
                     <Button
                       key={option}

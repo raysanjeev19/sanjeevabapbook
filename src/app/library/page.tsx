@@ -59,7 +59,7 @@ export default function LibraryPage() {
           {continueList.length === 0 ? (
             <EmptyState icon={<Clock size={22} />} text="Nothing yet. Open any question and it'll show up here." />
           ) : (
-            <div className="grid gap-2">
+            <div className="grid grid-cols-1 gap-2">
               {continueList.map((q, i) => (
                 <QuestionRow key={q.id} question={q} done={completed.includes(q.id)} index={i} />
               ))}
@@ -81,7 +81,7 @@ export default function LibraryPage() {
               text="No bookmarks yet. Press B while reading (or tap the bookmark icon) to save a question."
             />
           ) : (
-            <div className="grid gap-2">
+            <div className="grid grid-cols-1 gap-2">
               {bookmarked.map((q, i) => (
                 <QuestionRow key={q.id} question={q} done={completed.includes(q.id)} index={i} />
               ))}

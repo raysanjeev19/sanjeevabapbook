@@ -95,7 +95,7 @@ export default function AllQuestionsPage() {
         </div>
 
         {/* Questions */}
-        <div className="grid gap-2">
+        <div className="grid grid-cols-1 gap-2">
           {filteredQuestions.map((question, index) => {
             const chapter = chapters.find((c) => c.slug === question.chapterSlug);
             const Icon = chapter ? iconMap[chapter.icon as keyof typeof iconMap] ?? BookOpen : BookOpen;

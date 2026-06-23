@@ -37,7 +37,7 @@ export default function InterviewPickerPage() {
 
       <div className="mx-auto max-w-3xl px-4 pb-16 sm:px-6 lg:px-8">
         {/* Chapter grid */}
-        <div className="grid gap-2 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {chapters.map((chapter, i) => {
             const Icon = iconMap[chapter.icon as keyof typeof iconMap] ?? BookOpen;
             const done = completed.filter((id) => chapter.questions.some((q) => q.id === id)).length;

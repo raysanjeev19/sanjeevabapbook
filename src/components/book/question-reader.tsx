@@ -223,21 +223,21 @@ export function QuestionReader({ question }: { question: Question }) {
       <div className="mx-auto max-w-5xl">
         {/* Breadcrumb + actions */}
         <div className="glass ring-gradient mb-6 flex items-center justify-between gap-2 rounded-2xl px-3 py-2 shadow-card-hover sm:px-4 sm:py-2.5">
-          <div className="flex items-center gap-1.5 text-sm">
-            <Link href="/" className="flex items-center gap-2">
+          <div className="flex min-w-0 flex-1 items-center gap-1.5 text-sm">
+            <Link href="/" className="flex shrink-0 items-center gap-2">
               <BrandLogo size={26} />
             </Link>
-            <ChevronRight size={11} className="text-faint" />
+            <ChevronRight size={11} className="shrink-0 text-faint" />
             <Link
               href={`/chapters/${question.chapterSlug}`}
-              className="max-w-[100px] truncate text-muted transition-colors hover:text-foreground sm:max-w-none"
+              className="min-w-0 flex-1 truncate text-muted transition-colors hover:text-foreground sm:max-w-none sm:flex-none"
             >
               {chapterName}
             </Link>
-            <ChevronRight size={11} className="text-faint" />
-            <span className="font-semibold text-foreground">Q{questionIndex + 1}</span>
+            <ChevronRight size={11} className="shrink-0 text-faint" />
+            <span className="shrink-0 font-semibold text-foreground">Q{questionIndex + 1}</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             <Button
               aria-label={recallMode ? "Show answer" : "Hide answer for self-test"}
               variant={recallMode ? "default" : "secondary"}
@@ -456,7 +456,7 @@ export function QuestionReader({ question }: { question: Question }) {
 
             <Card className="p-5">
               <h2 className="text-sm font-semibold text-foreground">AI Mentor Tools</h2>
-              <div className="mt-4 grid gap-2">
+              <div className="mt-4 grid grid-cols-1 gap-2">
                 <AiTool icon={<Bot size={15} />} label="AI Mentor" prompt={question.answers.aiMentorPrompt} color={chapterColor} />
                 <AiTool
                   icon={<WandSparkles size={15} />}
@@ -502,7 +502,7 @@ export function QuestionReader({ question }: { question: Question }) {
         </div>
 
         {/* Prev / Next navigation */}
-        <nav className="mt-6 grid gap-3 sm:grid-cols-2">
+        <nav className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Button
             asChild
             variant="secondary"
@@ -744,7 +744,7 @@ function TabContent({
       return (
         <div className={cn("space-y-2", measureClass)}>
           {words.map((w) => (
-            <div key={w.keyword} className="grid gap-1 rounded-lg border border-border bg-surface-2/40 p-3 sm:grid-cols-[140px_1fr] sm:items-baseline sm:gap-4">
+            <div key={w.keyword} className="grid grid-cols-1 gap-1 rounded-lg border border-border bg-surface-2/40 p-3 sm:grid-cols-[140px_1fr] sm:items-baseline sm:gap-4">
               <code className="font-mono text-sm font-semibold" style={{ color: tabColor }}>{w.keyword}</code>
               <p className="text-sm leading-relaxed text-foreground">{w.meaning}</p>
             </div>
