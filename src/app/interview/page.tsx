@@ -9,7 +9,6 @@ import { Badge, difficultyVariant } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { iconMap } from "@/components/book/icon-map";
 import { SiteNav } from "@/components/layout/site-nav";
-import { SiteFooter } from "@/components/layout/site-footer";
 
 export default function InterviewPickerPage() {
   const completed = useStudyStore((s) => s.completed);
@@ -72,8 +71,6 @@ export default function InterviewPickerPage() {
           })}
         </div>
       </div>
-
-      <SiteFooter />
     </main>
   );
 }

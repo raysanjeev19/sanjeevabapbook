@@ -18,7 +18,6 @@ import type { Chapter } from "@/lib/types";
 import { ink, percent } from "@/lib/utils";
 import { useStudyStore } from "@/store/use-study-store";
 import { SiteNav } from "@/components/layout/site-nav";
-import { SiteFooter } from "@/components/layout/site-footer";
 
 export function ChapterView({ chapter }: { chapter: Chapter }) {
   const completed = useStudyStore((s) => s.completed);
@@ -167,8 +166,6 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
           </div>
         </section>
       </div>
-
-      <SiteFooter />
 
       {showScrollTop && (
         <button

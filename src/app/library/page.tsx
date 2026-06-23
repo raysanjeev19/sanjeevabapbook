@@ -9,7 +9,6 @@ import { Card } from "@/components/ui/card";
 import { ink } from "@/lib/utils";
 import { useStudyStore } from "@/store/use-study-store";
 import { SiteNav } from "@/components/layout/site-nav";
-import { SiteFooter } from "@/components/layout/site-footer";
 import type { Question } from "@/lib/types";
 
 const questionById = new Map(allQuestions.map((q) => [q.id, q]));
@@ -90,8 +89,6 @@ export default function LibraryPage() {
           )}
         </section>
       </div>
-
-      <SiteFooter />
     </main>
   );
 }

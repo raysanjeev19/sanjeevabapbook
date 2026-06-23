@@ -21,7 +21,9 @@ import {
   Languages,
   Lightbulb,
   Lock,
+  Maximize2,
   MessageSquare,
+  Minimize2,
   RotateCcw,
   StickyNote,
   Type,
@@ -54,6 +56,7 @@ export function QuestionReader({ question }: { question: Question }) {
   const setNote = useStudyStore((state) => state.setNote);
   const viewQuestion = useStudyStore((state) => state.viewQuestion);
   const toggleFocusMode = useStudyStore((state) => state.toggleFocusMode);
+  const toggleRecallMode = useStudyStore((state) => state.toggleRecallMode);
   const fontScale = useStudyStore((state) => state.fontScale);
   const readerWidth = useStudyStore((state) => state.readerWidth);
   const readerFont = useStudyStore((state) => state.readerFont);
@@ -82,6 +85,13 @@ export function QuestionReader({ question }: { question: Question }) {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const answerHidden = recallMode && !revealed;
+
+  /* Eye toggle → self-test: hide the answer behind a reveal so you recall first. */
+  const toggleSelfTest = () => {
+    setRevealed(false);
+    toggleRecallMode();
+    toast.success(recallMode ? "Answer shown" : "Self-test on — answer hidden");
+  };
 
   /* Reset the reveal when navigating to a new question (render-time, not an effect). */
   const [lastQuestionId, setLastQuestionId] = useState(question.id);
@@ -237,13 +247,23 @@ export function QuestionReader({ question }: { question: Question }) {
               <span className="kbd">F</span>
             </div>
             <Button
+              aria-label={recallMode ? "Show answer" : "Hide answer for self-test"}
+              variant={recallMode ? "default" : "secondary"}
+              size="icon"
+              onClick={toggleSelfTest}
+              title="Hide answer & self-test (recall)"
+            >
+              {recallMode ? <EyeOff size={18} /> : <Eye size={18} />}
+            </Button>
+            <Button
               aria-label="Toggle focus mode"
               variant={focusMode ? "default" : "secondary"}
               size="icon"
+              className="hidden sm:inline-flex"
               onClick={toggleFocusMode}
               title="Focus mode (F)"
             >
-              {focusMode ? <EyeOff size={18} /> : <Eye size={18} />}
+              {focusMode ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
             </Button>
             <Button
               aria-label="Bookmark question"

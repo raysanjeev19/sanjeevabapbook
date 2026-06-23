@@ -12,9 +12,9 @@ import {
   GraduationCap,
   Layers,
   Mic,
+  Sparkles,
   Star,
   Target,
-  Trophy,
 } from "lucide-react";
 import { chapters, platformStats } from "@/lib/content";
 import { ink, percent } from "@/lib/utils";
@@ -24,7 +24,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { iconMap } from "@/components/book/icon-map";
 import { SiteNav } from "@/components/layout/site-nav";
-import { SiteFooter } from "@/components/layout/site-footer";
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -57,78 +56,62 @@ export function HomeExperience() {
       <section className="relative overflow-hidden">
         <div className="ambient-top absolute inset-0" />
         <div className="bg-grid absolute inset-0" />
-        <div className="orb left-[-6rem] top-[-4rem] h-72 w-72" style={{ background: "color-mix(in srgb, var(--accent) 30%, transparent)" }} />
-        <div className="orb orb-2 right-[-4rem] top-24 h-80 w-80" style={{ background: "color-mix(in srgb, var(--accent-2) 26%, transparent)" }} />
-        <div className="orb orb-2 bottom-[-5rem] left-1/3 h-64 w-64" style={{ background: "color-mix(in srgb, var(--accent-3) 22%, transparent)", animationDelay: "-10s" }} />
+        <div className="orb left-[-7rem] top-[-5rem] h-72 w-72" style={{ background: "color-mix(in srgb, var(--accent) 34%, transparent)" }} />
+        <div className="orb orb-2 right-[-5rem] top-16 h-80 w-80" style={{ background: "color-mix(in srgb, var(--accent-3) 28%, transparent)" }} />
+        <div className="orb orb-2 bottom-[-6rem] left-1/3 hidden h-64 w-64 sm:block" style={{ background: "color-mix(in srgb, var(--accent-2) 22%, transparent)", animationDelay: "-10s" }} />
 
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div className="grid items-center gap-10 py-14 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16 lg:py-20">
-            <div>
+          <div className="grid items-center gap-10 py-12 lg:grid-cols-[1.08fr_0.92fr] lg:gap-14 lg:py-20">
+            {/* Left — message + CTAs */}
+            <div className="text-center lg:text-left">
               <p className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-border bg-surface/80 px-3.5 py-1.5 text-xs font-medium text-accent shadow-card backdrop-blur-sm">
                 <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-success" />
                 {greeting}
               </p>
 
-              <h1 className="animate-fade-up d-1 mt-5 font-serif text-[2.6rem] font-semibold leading-[1.08] tracking-tight text-foreground sm:text-5xl lg:text-[3.6rem]">
-                Crack your SAP ABAP
-                <br />
-                <span className="text-gradient">interview,</span> read like a book.
+              <h1 className="animate-fade-up d-1 mt-5 font-serif text-[2.35rem] font-bold leading-[1.05] tracking-tight text-foreground sm:text-[3.1rem] lg:text-[3.7rem]">
+                Crack your SAP ABAP{" "}
+                <span className="text-gradient">interview</span>,
+                <br className="hidden sm:block" /> read like a book.
               </h1>
 
-              <p className="animate-fade-up d-2 mt-6 max-w-xl text-[1.05rem] leading-8 text-muted">
+              <p className="animate-fade-up d-2 mx-auto mt-5 max-w-xl text-[1.02rem] leading-8 text-muted lg:mx-0">
                 {platformStats.questions}+ curated questions with mentor-style Hinglish explanations,
                 real project scenarios, AI mock interviews, and chapter-wise study paths — laid out
                 calmly so you actually sit down and read.
               </p>
 
-              <div className="animate-fade-up d-3 mt-8 flex flex-col gap-2.5 sm:flex-row">
-                <Button asChild size="default" className="group h-12 px-6 text-[15px]">
+              <div className="animate-fade-up d-3 mt-7 flex flex-col gap-2.5 sm:flex-row sm:justify-center lg:justify-start">
+                <Button asChild className="group h-12 w-full px-6 text-[15px] sm:w-auto">
                   <Link href={`/questions/${continueQuestion}`}>
                     <BookOpen size={17} /> {recent.length > 0 ? "Continue reading" : "Start reading"}
                     <ArrowRight size={16} className="transition-transform duration-200 group-hover:translate-x-1" />
                   </Link>
                 </Button>
-                <Button asChild variant="secondary" className="h-12 px-6 text-[15px]">
+                <Button asChild variant="secondary" className="h-12 w-full px-6 text-[15px] sm:w-auto">
                   <Link href="/questions"><Layers size={17} /> All {platformStats.questions}+ questions</Link>
                 </Button>
               </div>
 
-              <div className="animate-fade-up d-4 mt-9 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-medium text-muted">
+              <div className="animate-fade-up d-4 mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-medium text-muted lg:justify-start">
                 <span className="flex items-center gap-1.5"><BookMarked size={13} className="text-accent" /> {chapters.length} chapters</span>
                 <span className="flex items-center gap-1.5"><Mic size={13} className="text-accent-2" /> Voice AI interviews</span>
-                <span className="flex items-center gap-1.5"><GraduationCap size={13} className="text-accent-3" /> Hinglish + English scripts</span>
+                <span className="flex items-center gap-1.5"><GraduationCap size={13} className="text-accent-3" /> Hinglish + English</span>
               </div>
             </div>
 
-            {/* Progress / level card */}
-            <div className="ring-gradient animate-scale-in d-2 rounded-2xl border border-border bg-surface/90 p-6 shadow-card-hover backdrop-blur-sm">
-              <div className="flex items-center gap-3">
-                <div className="bg-gradient-accent flex h-12 w-12 items-center justify-center rounded-xl text-accent-contrast shadow-card">
-                  <Trophy size={20} />
-                </div>
-                <div className="flex-1">
-                  <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">Level {level}</div>
-                  <div className="font-serif text-lg font-semibold text-foreground">{title}</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-[10px] uppercase tracking-wider text-faint">XP</div>
-                  <div className="text-gradient text-2xl font-bold">{xp}</div>
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <div className="mb-2 flex items-center justify-between text-xs">
-                  <span className="font-medium text-muted">Overall progress</span>
-                  <span className="font-bold text-accent">{progress}%</span>
-                </div>
-                <div className="h-2 overflow-hidden rounded-full bg-surface-2">
-                  <div
-                    className="shimmer bg-gradient-accent h-full rounded-full transition-[width] duration-500"
-                    style={{ width: `${Math.max(progress, 2)}%` }}
-                  />
-                </div>
-                <div className="mt-1.5 text-[11px] text-faint">
-                  {completed.length} / {platformStats.questions} questions completed
+            {/* Right — interview-readiness panel with progress ring */}
+            <div className="ring-gradient animate-scale-in d-2 rounded-3xl border border-border bg-surface/90 p-6 shadow-card-hover backdrop-blur-sm sm:p-7">
+              <div className="flex items-center gap-4">
+                <ProgressRing value={progress} />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">
+                    <Sparkles size={11} className="text-accent" /> Level {level} · {xp} XP
+                  </div>
+                  <div className="mt-0.5 truncate font-serif text-xl font-bold text-foreground">{title}</div>
+                  <div className="mt-1 text-[13px] text-muted">
+                    {completed.length} / {platformStats.questions} questions done
+                  </div>
                 </div>
               </div>
 
@@ -141,10 +124,10 @@ export function HomeExperience() {
 
               <Link
                 href="/interview"
-                className="hover-lift hover-glow group mt-6 flex cursor-pointer items-center gap-3 rounded-xl bg-accent-2-soft p-3.5"
+                className="hover-lift hover-glow group mt-6 flex cursor-pointer items-center gap-3 rounded-2xl bg-accent-2-soft p-3.5"
                 style={{ "--glow-color": "var(--accent-2-soft)" } as React.CSSProperties}
               >
-                <span className="bg-gradient-accent flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-white">
+                <span className="bg-gradient-accent flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white">
                   <Brain size={16} />
                 </span>
                 <div className="flex-1">
@@ -246,9 +229,46 @@ export function HomeExperience() {
         </div>
       </section>
 
-      {/* === FOOTER === */}
-      <SiteFooter />
+      <div className="h-16" />
     </main>
+  );
+}
+
+/** Animated circular progress ring for the hero readiness panel. */
+function ProgressRing({ value }: { value: number }) {
+  const radius = 34;
+  const circumference = 2 * Math.PI * radius;
+  const clamped = Math.min(100, Math.max(0, value));
+  const offset = circumference - (clamped / 100) * circumference;
+  return (
+    <div className="relative flex h-[88px] w-[88px] shrink-0 items-center justify-center">
+      <svg width="88" height="88" viewBox="0 0 88 88" className="-rotate-90">
+        <defs>
+          <linearGradient id="cg-ring" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="var(--accent)" />
+            <stop offset="55%" stopColor="var(--accent-2)" />
+            <stop offset="100%" stopColor="var(--accent-3)" />
+          </linearGradient>
+        </defs>
+        <circle cx="44" cy="44" r={radius} fill="none" stroke="var(--surface-2)" strokeWidth="8" />
+        <circle
+          cx="44"
+          cy="44"
+          r={radius}
+          fill="none"
+          stroke="url(#cg-ring)"
+          strokeWidth="8"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          style={{ transition: "stroke-dashoffset 0.7s cubic-bezier(0.16,1,0.3,1)" }}
+        />
+      </svg>
+      <div className="absolute flex flex-col items-center">
+        <span className="text-gradient text-lg font-bold leading-none">{clamped}%</span>
+        <span className="mt-0.5 text-[8px] font-semibold uppercase tracking-wider text-faint">ready</span>
+      </div>
+    </div>
   );
 }
 

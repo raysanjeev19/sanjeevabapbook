@@ -18,9 +18,18 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
+  applicationName: "CodeGurukul",
   title: { default: "CodeGurukul — Learn • Practice • Prepare • Get Hired", template: "%s | CodeGurukul" },
   description:
     "CodeGurukul — the SAP ABAP interview prep platform. 573+ curated questions, Hinglish + English interview scripts, code walkthroughs, mock interviews, and chapter-wise study paths.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "CodeGurukul",
+  },
+  icons: {
+    apple: "/icons/apple-touch-icon.png",
+  },
   openGraph: {
     title: "CodeGurukul — SAP ABAP Interview Mastery",
     description: "573+ curated SAP ABAP questions with Hinglish + English interview scripts, code examples, and AI mock interviews.",
@@ -35,6 +44,7 @@ export const viewport: Viewport = {
   ],
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
 };
 
 /* Runs before paint so the chosen theme is applied with no flash. */
