@@ -56,16 +56,16 @@
 .dark {
   color-scheme: dark;
 
-  --background: #0b0a1c; /* deep indigo-black */
-  --surface: #15142e; /* card */
-  --surface-2: #1e1d3f; /* slightly raised inset */
+  --background: #0a0a0b; /* neutral near-black — no navy/blue tint */
+  --surface: #161618; /* card — neutral charcoal */
+  --surface-2: #212124; /* slightly raised inset — neutral */
 
-  --foreground: #f3f2fc;
-  --muted: #c5c3e6;
-  --faint: #6f6d99;
+  --foreground: #f4f4f5;
+  --muted: #b6b6bd;
+  --faint: #77777f;
 
-  --border: rgba(243, 242, 252, 0.1);
-  --border-strong: rgba(243, 242, 252, 0.18);
+  --border: rgba(244, 244, 245, 0.1);
+  --border-strong: rgba(244, 244, 245, 0.18);
 
   --accent: #818cf8; /* indigo-400 — AA on dark */
   --accent-soft: rgba(129, 140, 248, 0.14);
@@ -139,8 +139,37 @@ body {
   color: var(--foreground);
   font-family: var(--font-body), "DM Sans", system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
+  overflow-wrap: break-word;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* ============================================================
+   MOBILE SAFETY NET — nothing tears the layout on small screens.
+   Media never exceeds its container; long words/URLs wrap;
+   stray wide blocks scroll instead of pushing the page.
+   ============================================================ */
+img,
+video,
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+h1,
+h2,
+h3,
+h4,
+p,
+li,
+span,
+a,
+button {
+  overflow-wrap: break-word;
+}
+:where(table) {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 ::selection {

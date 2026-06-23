@@ -21,9 +21,7 @@ import {
   Languages,
   Lightbulb,
   Lock,
-  Maximize2,
   MessageSquare,
-  Minimize2,
   RotateCcw,
   StickyNote,
   Type,
@@ -240,12 +238,6 @@ export function QuestionReader({ question }: { question: Question }) {
             <span className="font-semibold text-foreground">Q{questionIndex + 1}</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="mr-1 hidden items-center gap-1.5 text-xs text-faint sm:flex">
-              <span className="kbd">&larr;</span>
-              <span className="kbd">&rarr;</span>
-              <span className="kbd">B</span>
-              <span className="kbd">F</span>
-            </div>
             <Button
               aria-label={recallMode ? "Show answer" : "Hide answer for self-test"}
               variant={recallMode ? "default" : "secondary"}
@@ -254,16 +246,6 @@ export function QuestionReader({ question }: { question: Question }) {
               title="Hide answer & self-test (recall)"
             >
               {recallMode ? <EyeOff size={18} /> : <Eye size={18} />}
-            </Button>
-            <Button
-              aria-label="Toggle focus mode"
-              variant={focusMode ? "default" : "secondary"}
-              size="icon"
-              className="hidden sm:inline-flex"
-              onClick={toggleFocusMode}
-              title="Focus mode (F)"
-            >
-              {focusMode ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
             </Button>
             <Button
               aria-label="Bookmark question"
@@ -457,35 +439,6 @@ export function QuestionReader({ question }: { question: Question }) {
 
           {/* Sidebar */}
           <aside className={cn("space-y-4", focusMode && "hidden")}>
-            {/* Quick tab switcher in sidebar */}
-            {!answerHidden && (
-              <Card className="overflow-hidden">
-                <div className="border-b border-border px-4 py-3">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-muted">Sections</p>
-                </div>
-                <div className="flex flex-col divide-y divide-border">
-                  {TABS.map((tab, i) => {
-                    const active = activeTab === tab.key;
-                    return (
-                      <button
-                        key={tab.key}
-                        onClick={() => goToTab(tab.key)}
-                        className={cn(
-                          "flex cursor-pointer items-center gap-2.5 px-4 py-2.5 text-sm text-left transition-colors",
-                          active ? "bg-surface-2/70 font-semibold text-foreground" : "text-muted hover:bg-surface-2/50 hover:text-foreground",
-                        )}
-                      >
-                        <span className="w-4 shrink-0 text-[10px] font-bold text-faint">{i + 1}</span>
-                        <tab.Icon size={13} style={{ color: active ? ink(tab.color) : undefined }} className={cn(!active && "text-muted")} />
-                        <span style={active ? { color: ink(tab.color) } : undefined}>{tab.label}</span>
-                        {active && <span className="ml-auto h-1.5 w-1.5 rounded-full" style={{ backgroundColor: tab.color }} />}
-                      </button>
-                    );
-                  })}
-                </div>
-              </Card>
-            )}
-
             <Card className="p-5">
               <h2 className="text-sm font-semibold text-foreground">Confidence Tracker</h2>
               <input
