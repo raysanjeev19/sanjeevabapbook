@@ -15,7 +15,6 @@ import {
   Clock,
   Code2,
   Eye,
-  EyeOff,
   Gauge,
   HelpCircle,
   Languages,
@@ -40,7 +39,6 @@ import { Card } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { ReaderControls } from "@/components/book/reader-controls";
 import { AnswerText } from "@/components/book/answer-text";
-import { BrandLogo } from "@/components/layout/brand-logo";
 
 export function QuestionReader({ question }: { question: Question }) {
   const bookmarkIds = useStudyStore((state) => state.bookmarks);
@@ -54,7 +52,6 @@ export function QuestionReader({ question }: { question: Question }) {
   const setNote = useStudyStore((state) => state.setNote);
   const viewQuestion = useStudyStore((state) => state.viewQuestion);
   const toggleFocusMode = useStudyStore((state) => state.toggleFocusMode);
-  const toggleRecallMode = useStudyStore((state) => state.toggleRecallMode);
   const fontScale = useStudyStore((state) => state.fontScale);
   const readerWidth = useStudyStore((state) => state.readerWidth);
   const readerFont = useStudyStore((state) => state.readerFont);
@@ -83,13 +80,6 @@ export function QuestionReader({ question }: { question: Question }) {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const answerHidden = recallMode && !revealed;
-
-  /* Eye toggle → self-test: hide the answer behind a reveal so you recall first. */
-  const toggleSelfTest = () => {
-    setRevealed(false);
-    toggleRecallMode();
-    toast.success(recallMode ? "Answer shown" : "Self-test on — answer hidden");
-  };
 
   /* Reset the reveal when navigating to a new question (render-time, not an effect). */
   const [lastQuestionId, setLastQuestionId] = useState(question.id);
@@ -208,45 +198,23 @@ export function QuestionReader({ question }: { question: Question }) {
   };
 
   return (
-    <main
-      className="min-h-screen bg-background px-4 pb-28 pt-5 sm:px-6 sm:pb-8 lg:px-8"
-      style={{ "--accent": ink(chapterColor), "--accent-contrast": "var(--background)", "--accent-glow": `${chapterColor}33` } as React.CSSProperties}
-    >
-      {/* Top reading progress bar — reflects how far through this page you've read */}
-      <div className="fixed left-0 top-0 z-50 h-[3px] w-full bg-border">
-        <div
-          className="h-full transition-[width] duration-150"
-          style={{ backgroundColor: chapterColor, width: `${scrollProgress}%` }}
-        />
-      </div>
-
-      <div className="mx-auto max-w-5xl">
-        {/* Breadcrumb + actions */}
-        <div className="glass ring-gradient mb-6 flex items-center justify-between gap-2 rounded-2xl px-3 py-2 shadow-card-hover sm:px-4 sm:py-2.5">
-          <div className="flex min-w-0 flex-1 items-center gap-1.5 text-sm">
-            <Link href="/" className="flex shrink-0 items-center gap-2">
-              <BrandLogo size={26} />
-            </Link>
-            <ChevronRight size={11} className="shrink-0 text-faint" />
+    <main className="min-h-screen bg-background pb-28 sm:pb-8">
+      {/* Minimal top nav — back + brand, theme + reading settings (matches the question design) */}
+      <nav className="sticky top-0 z-50 border-b border-border bg-surface/80 backdrop-blur-xl backdrop-saturate-150">
+        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-2 px-4 sm:px-6 lg:px-8">
+          <div className="flex min-w-0 items-center gap-1">
             <Link
               href={`/chapters/${question.chapterSlug}`}
-              className="min-w-0 flex-1 truncate text-muted transition-colors hover:text-foreground sm:max-w-none sm:flex-none"
+              aria-label="Back to chapter"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-2 hover:text-foreground"
             >
-              {chapterName}
+              <ChevronLeft size={20} />
             </Link>
-            <ChevronRight size={11} className="shrink-0 text-faint" />
-            <span className="shrink-0 font-semibold text-foreground">Q{questionIndex + 1}</span>
+            <Link href="/" className="truncate font-serif text-lg font-bold tracking-tight text-accent">
+              CodeGurukul
+            </Link>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <Button
-              aria-label={recallMode ? "Show answer" : "Hide answer for self-test"}
-              variant={recallMode ? "default" : "secondary"}
-              size="icon"
-              onClick={toggleSelfTest}
-              title="Hide answer & self-test (recall)"
-            >
-              {recallMode ? <EyeOff size={18} /> : <Eye size={18} />}
-            </Button>
             <Button
               aria-label="Bookmark question"
               variant={bookmarked ? "default" : "secondary"}
@@ -274,7 +242,19 @@ export function QuestionReader({ question }: { question: Question }) {
             <ThemeToggle />
           </div>
         </div>
+        {/* Reading progress — thin line pinned to the bottom of the nav */}
+        <div className="h-[2px] w-full">
+          <div
+            className="h-full transition-[width] duration-150"
+            style={{ backgroundColor: chapterColor, width: `${scrollProgress}%` }}
+          />
+        </div>
+      </nav>
 
+      <div
+        className="mx-auto max-w-5xl px-4 pt-6 sm:px-6 lg:px-8"
+        style={{ "--accent": ink(chapterColor), "--accent-contrast": "var(--background)", "--accent-glow": `${chapterColor}33` } as React.CSSProperties}
+      >
         {/* Question header */}
         <header
           className="relative overflow-hidden rounded-2xl bg-surface p-6 shadow-card sm:p-9"
@@ -286,6 +266,9 @@ export function QuestionReader({ question }: { question: Question }) {
             style={{ background: `radial-gradient(36rem 16rem at 88% -20%, ${chapterColor}20, transparent 70%)` }}
           />
 
+          <p className="relative mb-2.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-accent">
+            {chapterName}
+          </p>
           <div className="flex flex-wrap gap-2">
             <Badge variant={difficultyVariant(question.difficulty)}>{question.difficulty}</Badge>
             <Badge variant={difficultyVariant(question.experienceLevel)}>{question.experienceLevel}</Badge>
@@ -329,7 +312,7 @@ export function QuestionReader({ question }: { question: Question }) {
                 {/* ── Tab card ── */}
                 <Card id="answer-card" className="scroll-mt-16">
                   {/* Section pills — numbered 9-step reading path, sticky while reading */}
-                  <div className="no-scrollbar sticky top-[3px] z-30 flex gap-1.5 overflow-x-auto rounded-t-xl border-b border-border bg-surface/95 px-3 py-2.5 backdrop-blur-md">
+                  <div className="no-scrollbar sticky top-[66px] z-30 flex gap-1.5 overflow-x-auto rounded-t-xl border-b border-border bg-surface/95 px-3 py-2.5 backdrop-blur-md">
                     {TABS.map((tab, i) => {
                       const active = activeTab === tab.key;
                       return (

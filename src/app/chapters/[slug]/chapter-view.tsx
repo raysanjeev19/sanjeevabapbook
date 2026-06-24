@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import type { Chapter, Difficulty } from "@/lib/types";
 import { percent } from "@/lib/utils";
 import { useStudyStore } from "@/store/use-study-store";
-import { SiteNav } from "@/components/layout/site-nav";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 /* Difficulty → semantic color for the inline question meta row. */
 function diffColor(difficulty: string): string {
@@ -66,7 +66,15 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
 
   return (
     <main className="min-h-screen bg-background">
-      <SiteNav breadcrumb={chapter.title} maxWidth="max-w-3xl" />
+      {/* Minimal top nav — brand + theme, matching the chapter design */}
+      <nav className="sticky top-0 z-40 border-b border-border bg-surface/80 backdrop-blur-xl backdrop-saturate-150">
+        <div className="mx-auto flex h-16 max-w-3xl items-center justify-between px-4 sm:px-6">
+          <Link href="/" className="font-serif text-lg font-bold tracking-tight text-accent">
+            CodeGurukul
+          </Link>
+          <ThemeToggle />
+        </div>
+      </nav>
 
       <div className="mx-auto max-w-3xl px-4 pb-24 pt-6 sm:px-6">
         {/* === Header === */}
