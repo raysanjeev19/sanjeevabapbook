@@ -260,7 +260,6 @@ export function QuestionReader({ question }: { question: Question }) {
           className="relative overflow-hidden rounded-2xl bg-surface p-6 shadow-card sm:p-9"
           style={{ backgroundImage: `linear-gradient(160deg, ${chapterColor}1a, transparent 45%)` }}
         >
-          <div className="absolute left-0 top-0 h-full w-1.5 rounded-r" style={{ backgroundColor: chapterColor }} />
           <div
             className="pointer-events-none absolute inset-0"
             style={{ background: `radial-gradient(36rem 16rem at 88% -20%, ${chapterColor}20, transparent 70%)` }}
