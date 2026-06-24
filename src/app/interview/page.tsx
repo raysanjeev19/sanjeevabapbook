@@ -22,7 +22,7 @@ export default function InterviewPickerPage() {
         <div className="mx-auto max-w-3xl px-4 pt-6 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="animate-fade-up mb-8 pb-2 text-center">
-            <div className="bg-gradient-accent mx-auto mb-4 flex h-16 w-16 animate-scale-in items-center justify-center rounded-2xl text-accent-contrast shadow-pop">
+            <div className="bg-gradient-accent mx-auto mb-4 flex h-16 w-16 animate-scale-in items-center justify-center rounded-2xl text-white shadow-pop">
               <Brain size={28} />
             </div>
             <h1 className="font-serif text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">

@@ -12,7 +12,7 @@ export function BrandLogo({ size = 28, className }: { size?: number; className?:
     <span
       aria-hidden
       className={cn(
-        "inline-flex items-center justify-center rounded-lg bg-accent text-accent-contrast transition-colors",
+        "inline-flex items-center justify-center rounded-lg bg-gradient-accent text-white transition-colors",
         className,
       )}
       style={{ width: size, height: size }}

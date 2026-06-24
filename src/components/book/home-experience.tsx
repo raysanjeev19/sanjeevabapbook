@@ -4,20 +4,19 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   ArrowRight,
+  ArrowUpRight,
   BookMarked,
   BookOpen,
-  Brain,
-  ChevronRight,
   Flame,
   GraduationCap,
   Layers,
   Mic,
-  Sparkles,
   Star,
   Target,
+  WandSparkles,
 } from "lucide-react";
-import { chapters, getChapter, getQuestion, platformStats } from "@/lib/content";
-import { ink, percent } from "@/lib/utils";
+import { chapters, platformStats } from "@/lib/content";
+import { percent } from "@/lib/utils";
 import { useStudyStore, getLevel } from "@/store/use-study-store";
 import { Badge, difficultyVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -44,220 +43,241 @@ export function HomeExperience() {
   const isResuming = recent.length > 0;
   const { level, title, xp } = getLevel(completed.length);
 
-  /* Resolve the actual next question so the resume card can show its title */
-  const nextQuestion = getQuestion(continueId);
-  const nextChapter = nextQuestion ? getChapter(nextQuestion.chapterSlug) : undefined;
-  const nextColor = nextChapter?.color ?? "var(--accent)";
-
   /* Greeting depends on client time — set after mount to avoid hydration mismatch */
   const [greeting, setGreeting] = useState("Welcome back. Ready to read?");
-  useEffect(() => setGreeting(getGreeting()), []);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setGreeting(getGreeting()));
+    return () => cancelAnimationFrame(id);
+  }, []);
 
   return (
     <main className="min-h-screen bg-background">
       {/* === NAV === */}
       <SiteNav tagline />
 
-      {/* === HERO — centered editorial, soft ambient wash (no grid) === */}
-      <section className="relative overflow-hidden">
-        <div className="ambient-top pointer-events-none absolute inset-0" />
-        <div className="orb absolute -top-10 left-1/2 h-[22rem] w-[22rem] -translate-x-1/2" style={{ background: "var(--accent-soft)" }} />
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-16">
+        {/* === HERO — centered editorial === */}
+        <section className="relative overflow-hidden py-12 text-center sm:py-20">
+          <div className="ambient-top pointer-events-none absolute inset-0" />
 
-        <div className="relative mx-auto max-w-3xl px-5 pt-10 text-center sm:px-6 sm:pt-20">
-          <p className="animate-fade-up inline-flex max-w-full items-center gap-2 rounded-full border border-border bg-surface/80 px-3.5 py-1.5 text-[11px] font-semibold text-accent shadow-card backdrop-blur-md sm:text-xs">
-            <span className="pulse-dot h-1.5 w-1.5 shrink-0 rounded-full bg-success" />
-            <span className="truncate">{greeting}</span>
-          </p>
-
-          <h1 className="animate-fade-up d-1 mx-auto mt-5 max-w-3xl font-serif text-[1.95rem] font-bold leading-[1.1] tracking-tight text-foreground sm:mt-6 sm:text-[3rem] sm:leading-[1.05] lg:text-[4rem]">
-            Crack your SAP ABAP <span className="text-gradient">interview</span>, read like a book.
-          </h1>
-
-          <p className="animate-fade-up d-2 mx-auto mt-4 max-w-xl text-[1rem] leading-7 text-muted sm:mt-5 sm:text-[1.05rem] sm:leading-8">
-            {platformStats.questions}+ curated questions with mentor-style{" "}
-            <span className="font-semibold text-foreground">Hinglish</span> explanations, real
-            project scenarios and AI mock interviews — laid out calmly so you actually sit down and
-            read.
-          </p>
-
-          <div className="animate-fade-up d-3 mt-8 flex flex-col items-center justify-center gap-2.5 sm:flex-row">
-            <Button asChild className="group h-12 w-full px-6 text-[15px] sm:w-auto">
-              <Link href={`/questions/${continueId}`}>
-                <BookOpen size={17} /> {isResuming ? "Continue reading" : "Start reading"}
-                <ArrowRight size={16} className="transition-transform duration-200 group-hover:translate-x-1" />
-              </Link>
-            </Button>
-            <Button asChild variant="secondary" className="h-12 w-full px-6 text-[15px] sm:w-auto">
-              <Link href="/questions"><Layers size={17} /> All {platformStats.questions}+ questions</Link>
-            </Button>
-          </div>
-
-          <div className="animate-fade-up d-4 mt-7 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-xs font-medium text-muted">
-            <span className="flex items-center gap-1.5"><BookMarked size={13} className="text-accent" /> {chapters.length} chapters</span>
-            <span className="h-3 w-px bg-border-strong" aria-hidden />
-            <span className="flex items-center gap-1.5"><Mic size={13} className="text-accent-2" /> Voice AI interviews</span>
-            <span className="h-3 w-px bg-border-strong" aria-hidden />
-            <span className="flex items-center gap-1.5"><GraduationCap size={13} className="text-accent-3" /> Hinglish + English</span>
-          </div>
-        </div>
-
-        {/* Continue-reading bar — slim, horizontal, like a reading app */}
-        <div className="relative mx-auto mt-12 max-w-2xl px-4 sm:px-6">
-          <Link
-            href={`/questions/${continueId}`}
-            className="hover-lift hover-glow group flex items-center gap-3.5 rounded-2xl border border-border bg-surface/85 p-3.5 shadow-card backdrop-blur-xl sm:gap-4 sm:p-4"
-            style={{ "--glow-color": "var(--accent-glow)" } as React.CSSProperties}
-          >
-            <span className="bg-gradient-accent flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white shadow-card">
-              <BookOpen size={18} />
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">
-                {isResuming ? "Continue where you left off" : "Start with the basics"}
-                {nextChapter && (
-                  <span className="hidden items-center gap-1 text-muted sm:flex">
-                    <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: nextColor }} aria-hidden />
-                    {nextChapter.title}
-                  </span>
-                )}
-              </div>
-              <p className="mt-0.5 truncate font-serif text-[15px] font-semibold text-foreground">
-                {nextQuestion?.prompt ?? "What is SAP ABAP and where is it used?"}
-              </p>
-            </div>
-            <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-accent">
-              <span className="hidden sm:inline">{isResuming ? "Resume" : "Read"}</span>
-              <ArrowRight size={15} className="transition-transform duration-200 group-hover:translate-x-1" />
-            </span>
-          </Link>
-
-          {/* Readiness strip — slim progress bar + inline stats */}
-          <div className="mt-3 rounded-2xl border border-border bg-surface/70 p-4 backdrop-blur-md">
-            <div className="flex items-center justify-between gap-3 text-xs">
-              <span className="flex min-w-0 items-center gap-1.5 font-semibold text-foreground">
-                <Sparkles size={13} className="shrink-0 text-accent" />
-                <span className="truncate">Level {level} · {title}</span>
-              </span>
-              <span className="shrink-0 font-medium text-muted">{completed.length}/{platformStats.questions} · {xp} XP</span>
-            </div>
-            <div className="shimmer mt-2.5 h-2 w-full overflow-hidden rounded-full bg-surface-2">
-              <div
-                className="bg-gradient-accent h-full rounded-full transition-[width] duration-700"
-                style={{ width: `${Math.max(progress, 2)}%` }}
-              />
-            </div>
-            <div className="mt-3.5 flex items-center justify-between gap-2 text-xs">
-              <span className="flex items-center gap-1.5 font-semibold text-foreground"><Target size={13} className="shrink-0 text-accent" /> {platformStats.questions}+ <span className="font-normal text-muted">Qs</span></span>
-              <span className="flex items-center gap-1.5 font-semibold text-foreground"><Flame size={13} className="shrink-0 text-warning" /> {streak}d <span className="font-normal text-muted">streak</span></span>
-              <span className="flex items-center gap-1.5 font-semibold text-foreground"><Star size={13} className="shrink-0 text-accent-2" /> {bookmarks.length} <span className="font-normal text-muted">saved</span></span>
-            </div>
-
-            <Link
-              href="/interview"
-              className="hover-lift hover-glow group mt-3 flex items-center gap-3 rounded-xl bg-accent-2-soft p-3"
-              style={{ "--glow-color": "var(--accent-2-soft)" } as React.CSSProperties}
-            >
-              <span className="bg-gradient-accent flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-white">
-                <Brain size={16} />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-semibold text-foreground">AI Mock Interview</span>
-                <span className="block truncate text-[11px] text-muted">Voice-powered · real follow-ups</span>
-              </span>
-              <ChevronRight size={16} className="shrink-0 text-faint transition-transform duration-200 group-hover:translate-x-0.5" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* === CHAPTERS === */}
-      <section id="chapters" className="mx-auto max-w-6xl scroll-mt-20 px-4 sm:px-6 lg:px-8">
-        <div className="mb-7 flex items-end justify-between border-t border-border pt-12">
-          <div>
-            <h2 className="font-serif text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Chapters</h2>
-            <p className="mt-1 text-sm text-muted">{chapters.length} chapters · pick a thread and read it through</p>
-          </div>
-          <Button asChild variant="ghost" size="sm" className="group">
-            <Link href="/questions">View all <ArrowRight size={14} className="transition-transform duration-200 group-hover:translate-x-1" /></Link>
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {chapters.map((chapter, i) => {
-            const Icon = iconMap[chapter.icon as keyof typeof iconMap] ?? BookOpen;
-            const done = completed.filter((id) => chapter.questions.some((q) => q.id === id)).length;
-            const prog = percent(done, chapter.questions.length);
-
-            return (
-              <Link key={chapter.slug} href={`/chapters/${chapter.slug}`}>
-                <Card
-                  className={`tint-card hover-lift hover-glow animate-fade-up d-${(i % 3) + 1} group relative h-full cursor-pointer overflow-hidden border-transparent p-4`}
-                  style={{
-                    backgroundImage: `linear-gradient(135deg, ${chapter.color}1a, transparent 55%)`,
-                    "--glow-color": `${chapter.color}38`,
-                  } as React.CSSProperties}
-                >
-                  <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-surface-2/60">
-                    <div className="h-full transition-[width] duration-500" style={{ width: `${prog}%`, backgroundColor: chapter.color }} />
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <span
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-105"
-                      style={{ backgroundColor: `${chapter.color}1f`, color: ink(chapter.color) }}
-                    >
-                      <Icon size={18} />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-1.5">
-                        <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-faint">
-                          Chapter {String(chapter.order).padStart(2, "0")}
-                        </span>
-                        <span className="shrink-0 text-[10px] font-bold" style={{ color: prog > 0 ? ink(chapter.color) : "var(--faint)" }}>
-                          {done}/{chapter.questions.length}
-                        </span>
-                      </div>
-                      <h3 className="mt-0.5 truncate text-sm font-semibold text-foreground">{chapter.title}</h3>
-                      <p className="mt-1 line-clamp-1 text-[12px] leading-5 text-muted">{chapter.description}</p>
-                      <div className="mt-2.5 flex gap-1.5 pb-1">
-                        <Badge variant={difficultyVariant(chapter.difficulty)} className="px-1.5 py-0.5 text-[9px]">{chapter.difficulty}</Badge>
-                        <Badge className="px-1.5 py-0.5 text-[9px]">{chapter.questions.length} Qs</Badge>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* === CTA BANNER === */}
-      <section className="mx-auto max-w-6xl px-4 pt-14 sm:px-6 lg:px-8">
-        <div className="bg-gradient-accent relative overflow-hidden rounded-2xl p-8 text-center shadow-pop sm:p-12">
           <div className="relative">
-            <h2 className="font-serif text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-              Ready to get hired?
-            </h2>
-            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-white/85">
-              Read a chapter, run an AI mock interview, and walk into the panel with answers you can actually speak.
+            <p className="animate-fade-up inline-flex max-w-full items-center gap-2 rounded-full border border-accent/15 bg-accent-soft px-4 py-1.5 text-[11px] font-semibold text-accent sm:text-xs">
+              <span className="pulse-dot h-1.5 w-1.5 shrink-0 rounded-full bg-success" />
+              <span className="truncate">{greeting}</span>
             </p>
-            <div className="mt-6 flex flex-col items-center justify-center gap-2.5 sm:flex-row">
-              <Button asChild variant="secondary" className="group h-11 border-0 px-6">
+
+            <h1 className="animate-fade-up d-1 mx-auto mt-7 max-w-4xl font-serif text-[2rem] font-bold leading-[1.08] tracking-tight text-foreground sm:text-5xl lg:text-[3.5rem]">
+              Crack your <span className="text-gradient">SAP ABAP interview</span>, read like a book.
+            </h1>
+
+            <p className="animate-fade-up d-2 mx-auto mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg sm:leading-8">
+              {platformStats.questions}+ curated questions with mentor-style{" "}
+              <span className="font-semibold text-foreground">Hinglish</span> explanations, real
+              project scenarios and AI mock interviews — laid out calmly so you actually sit down and
+              read.
+            </p>
+
+            <div className="animate-fade-up d-3 mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Button asChild className="group h-12 w-full px-8 text-[15px] sm:w-auto">
                 <Link href={`/questions/${continueId}`}>
-                  <BookOpen size={16} /> Start reading
-                  <ArrowRight size={15} className="transition-transform duration-200 group-hover:translate-x-1" />
+                  <BookOpen size={17} /> {isResuming ? "Continue reading" : "Start reading"}
+                  <ArrowRight size={16} className="transition-transform duration-200 group-hover:translate-x-1" />
                 </Link>
               </Button>
-              <Button asChild className="h-11 border border-white/30 bg-white/10 px-6 text-white shadow-none hover:bg-white/20 hover:shadow-none">
-                <Link href="/interview"><Mic size={16} /> Try AI interview</Link>
+              <Button asChild variant="secondary" className="h-12 w-full px-8 text-[15px] sm:w-auto">
+                <Link href="/questions"><Layers size={17} /> All {platformStats.questions}+ questions</Link>
               </Button>
             </div>
+
+            <div className="animate-fade-up d-4 mt-10 flex flex-wrap items-center justify-center gap-x-12 gap-y-4 border-t border-border pt-8 text-sm font-medium text-muted">
+              <span className="flex items-center gap-2"><BookMarked size={15} className="text-accent" /> {chapters.length} chapters</span>
+              <span className="flex items-center gap-2"><Mic size={15} className="text-accent" /> Voice AI interviews</span>
+              <span className="flex items-center gap-2"><GraduationCap size={15} className="text-accent" /> Hinglish + English</span>
+            </div>
+          </div>
+        </section>
+
+        {/* === PROGRESS + AI MOCK SPLIT === */}
+        <section className="grid grid-cols-1 gap-5 pb-16 lg:grid-cols-12">
+          {/* Progress dashboard */}
+          <Card className="animate-fade-up p-6 sm:p-7 lg:col-span-8">
+            <div className="mb-7 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-faint">Current Progress</div>
+                <h3 className="mt-1 font-serif text-lg font-semibold text-foreground">Level {level} · {title}</h3>
+              </div>
+              <div className="sm:text-right">
+                <span className="font-serif text-xl font-semibold text-accent">{completed.length} / {platformStats.questions}</span>
+                <span className="ml-1.5 text-sm text-muted">· {xp} XP</span>
+              </div>
+            </div>
+
+            <div className="shimmer mb-7 h-3 w-full overflow-hidden rounded-full bg-surface-2">
+              <div
+                className="h-full rounded-full bg-success transition-[width] duration-700"
+                style={{ width: `${Math.max(progress, 3)}%`, boxShadow: "0 0 8px rgba(16,185,129,0.4)" }}
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <Stat label="Curated Qs" value={`${platformStats.questions}+`} icon={<Target size={14} />} />
+              <Stat label="Streak" value={`${streak}d`} valueClass="text-warning" icon={<Flame size={14} className="text-warning" />} />
+              <Stat label="Saved" value={`${bookmarks.length}`} icon={<Star size={14} />} />
+            </div>
+          </Card>
+
+          {/* AI mock interview card */}
+          <Link href="/interview" className="group lg:col-span-4">
+            <div className="bg-gradient-accent relative flex h-full flex-col justify-between overflow-hidden rounded-2xl p-6 text-white shadow-card sm:p-7">
+              <div className="relative z-10">
+                <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-white/20">
+                  <WandSparkles size={22} />
+                </div>
+                <h3 className="font-serif text-xl font-semibold">AI Mock Interview</h3>
+                <p className="mt-2 text-sm leading-6 text-white/80">
+                  Voice-powered experience with realistic follow-up questions to test your depth.
+                </p>
+              </div>
+              <div className="relative z-10 mt-8 flex items-center gap-2 font-semibold transition-all group-hover:gap-3.5">
+                Try now <ArrowRight size={17} />
+              </div>
+              <div className="pointer-events-none absolute -bottom-8 -right-8 h-32 w-32 rounded-full bg-white/10" />
+              <div className="pointer-events-none absolute right-4 top-4 h-16 w-16 rounded-full bg-white/10" />
+            </div>
+          </Link>
+        </section>
+
+        {/* === CHAPTERS === */}
+        <section id="chapters" className="scroll-mt-20 pb-16">
+          <div className="mb-9 flex items-end justify-between">
+            <div>
+              <h2 className="font-serif text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Chapters</h2>
+              <p className="mt-1.5 text-sm text-muted">{chapters.length} chapters · pick a thread and read it through</p>
+            </div>
+            <Button asChild variant="ghost" size="sm" className="group">
+              <Link href="/questions">View all <ArrowUpRight size={15} className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" /></Link>
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {chapters.map((chapter, i) => {
+              const Icon = iconMap[chapter.icon as keyof typeof iconMap] ?? BookOpen;
+              const done = completed.filter((id) => chapter.questions.some((q) => q.id === id)).length;
+
+              return (
+                <Link key={chapter.slug} href={`/chapters/${chapter.slug}`}>
+                  <Card
+                    className={`hover-lift animate-fade-up d-${(i % 3) + 1} group flex h-full cursor-pointer flex-col p-6`}
+                  >
+                    <div className="mb-4 flex items-center justify-between">
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-faint">
+                        Chapter {String(chapter.order).padStart(2, "0")}
+                      </span>
+                      <span className="text-[11px] font-semibold text-faint">{done}/{chapter.questions.length}</span>
+                    </div>
+
+                    <div className="mb-4 flex items-start gap-4">
+                      <span
+                        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-colors duration-200 group-hover:bg-accent group-hover:text-white"
+                        style={{ backgroundColor: "var(--accent-soft)", color: "var(--accent)" }}
+                      >
+                        <Icon size={20} />
+                      </span>
+                      <h3 className="mt-1 font-serif text-lg font-semibold leading-tight text-foreground">{chapter.title}</h3>
+                    </div>
+
+                    <p className="mb-6 line-clamp-2 flex-grow text-sm leading-6 text-muted">{chapter.description}</p>
+
+                    <div className="flex items-center justify-between border-t border-border pt-4">
+                      <Badge variant={difficultyVariant(chapter.difficulty)}>{chapter.difficulty}</Badge>
+                      <span className="text-sm font-bold text-foreground">{chapter.questions.length} Qs</span>
+                    </div>
+                  </Card>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* === CTA BANNER === */}
+        <section className="pb-16">
+          <div className="bg-gradient-accent relative overflow-hidden rounded-3xl p-10 text-center text-white shadow-pop sm:p-16">
+            <div className="pointer-events-none absolute inset-0 opacity-25">
+              <div className="absolute right-0 top-0 h-96 w-96 -translate-y-1/2 translate-x-1/2 rounded-full bg-white blur-[120px]" />
+              <div className="absolute bottom-0 left-0 h-96 w-96 -translate-x-1/2 translate-y-1/2 rounded-full bg-[#d2bbff] blur-[120px]" />
+            </div>
+            <div className="relative mx-auto max-w-2xl">
+              <h2 className="font-serif text-3xl font-bold tracking-tight sm:text-4xl">Ready to get hired?</h2>
+              <p className="mx-auto mt-4 max-w-md text-base leading-7 text-white/85">
+                Read a chapter, run an AI mock interview, and walk into the panel with answers you can actually speak.
+              </p>
+              <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <Button asChild variant="secondary" className="group h-12 border-0 px-8 text-[15px]">
+                  <Link href={`/questions/${continueId}`}>
+                    <BookOpen size={16} /> Start reading
+                    <ArrowRight size={15} className="transition-transform duration-200 group-hover:translate-x-1" />
+                  </Link>
+                </Button>
+                <Button asChild className="h-12 border border-white/25 bg-white/10 px-8 text-[15px] text-white shadow-none hover:bg-white/20 hover:shadow-none">
+                  <Link href="/interview"><Mic size={16} /> Try AI interview</Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      {/* === FOOTER === */}
+      <footer className="border-t border-border bg-background">
+        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-16">
+          <div className="flex flex-col justify-between gap-10 md:flex-row">
+            <div className="max-w-sm">
+              <div className="flex items-center gap-2 font-serif text-lg font-bold text-accent">
+                <BookOpen size={20} /> CodeGurukul
+              </div>
+              <p className="mt-4 text-sm leading-6 text-muted">
+                Mastering SAP ABAP through digital sophistication. A focused learning environment for modern developers.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
+              <FooterCol title="Platform" links={[["Explore", "/questions"], ["Interview", "/interview"], ["Saved", "/library"]]} />
+              <FooterCol title="Support" links={[["Help Center", "/"], ["Contact", "/"]]} />
+              <FooterCol title="Company" links={[["About Us", "/"], ["Privacy Policy", "/"], ["Terms of Service", "/"]]} />
+            </div>
+          </div>
+          <div className="mt-12 border-t border-border pt-8 text-xs text-faint">
+            © {new Date().getFullYear()} CodeGurukul. Mastering SAP ABAP through digital sophistication.
           </div>
         </div>
-      </section>
+      </footer>
 
-      <div className="h-16" />
+      <div className="h-16 sm:hidden" />
     </main>
+  );
+}
+
+function Stat({ label, value, valueClass, icon }: { label: string; value: string; valueClass?: string; icon: React.ReactNode }) {
+  return (
+    <div className="rounded-xl bg-surface-2/60 p-4 text-center">
+      <div className="mb-1 flex items-center justify-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted">
+        <span className="text-faint">{icon}</span> {label}
+      </div>
+      <div className={`font-serif text-lg font-semibold text-foreground ${valueClass ?? ""}`}>{value}</div>
+    </div>
+  );
+}
+
+function FooterCol({ title, links }: { title: string; links: [string, string][] }) {
+  return (
+    <div>
+      <h4 className="mb-4 text-sm font-bold text-foreground">{title}</h4>
+      <ul className="space-y-2.5 text-sm text-muted">
+        {links.map(([label, href]) => (
+          <li key={label}>
+            <Link href={href} className="transition-colors hover:text-accent">{label}</Link>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

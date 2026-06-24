@@ -571,7 +571,7 @@ export function QuestionReader({ question }: { question: Question }) {
             }}
             className={cn(
               "flex h-11 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg text-[13px] font-semibold transition-colors",
-              isDone ? "bg-success-soft text-success" : "bg-accent text-accent-contrast",
+              isDone ? "bg-success-soft text-success" : "bg-gradient-accent text-white",
             )}
           >
             <Check size={16} /> {isDone ? "Completed" : "Mark complete"}

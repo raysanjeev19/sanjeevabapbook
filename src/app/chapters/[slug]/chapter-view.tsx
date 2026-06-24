@@ -3,23 +3,39 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
-  ArrowLeft,
-  ArrowRight,
-  BookOpen,
+  ArrowUp,
   Check,
-  CheckCircle2,
   ChevronRight,
+  ClipboardCheck,
+  Clock,
   GraduationCap,
-  Mic,
+  Play,
   Search,
+  SignalHigh,
+  Sparkles,
 } from "lucide-react";
-import { Badge, difficultyVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import type { Chapter } from "@/lib/types";
-import { ink, percent } from "@/lib/utils";
+import type { Chapter, Difficulty } from "@/lib/types";
+import { percent } from "@/lib/utils";
 import { useStudyStore } from "@/store/use-study-store";
 import { SiteNav } from "@/components/layout/site-nav";
+
+/* Difficulty → semantic color for the inline question meta row. */
+function diffColor(difficulty: string): string {
+  const n = difficulty.toLowerCase();
+  if (n === "beginner") return "var(--success)";
+  if (n === "intermediate") return "var(--warning)";
+  if (n === "expert") return "var(--error)";
+  return "var(--accent)";
+}
+
+function chapterDiffClasses(difficulty: Difficulty): string {
+  const n = difficulty.toLowerCase();
+  if (n === "beginner") return "bg-success-soft text-success";
+  if (n === "intermediate") return "bg-warning-soft text-warning";
+  if (n === "expert") return "bg-error-soft text-error";
+  return "bg-accent-soft text-accent";
+}
 
 export function ChapterView({ chapter }: { chapter: Chapter }) {
   const completed = useStudyStore((s) => s.completed);
@@ -46,144 +62,142 @@ export function ChapterView({ chapter }: { chapter: Chapter }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const firstQuestionId = chapter.questions[0]?.id;
+
   return (
     <main className="min-h-screen bg-background">
-      {/* Nav */}
-      <SiteNav breadcrumb={chapter.title} maxWidth="max-w-4xl" />
+      <SiteNav breadcrumb={chapter.title} maxWidth="max-w-3xl" />
 
-      <div className="mx-auto mt-6 max-w-4xl px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <section
-          className="animate-fade-up relative overflow-hidden rounded-2xl bg-surface p-6 shadow-card sm:p-8"
-          style={{ backgroundImage: `linear-gradient(160deg, ${chapter.color}1c, transparent 45%)` }}
-        >
-          <div className="absolute left-0 top-0 h-full w-1.5 rounded-r" style={{ backgroundColor: chapter.color }} />
-          {/* Chapter-tinted ambient wash */}
-          <div
-            className="pointer-events-none absolute inset-0"
-            style={{ background: `radial-gradient(36rem 16rem at 85% -20%, ${chapter.color}22, transparent 70%)` }}
-          />
+      <div className="mx-auto max-w-3xl px-4 pb-24 pt-6 sm:px-6">
+        {/* === Header === */}
+        <header className="animate-fade-up">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <span className="rounded-full bg-accent-soft px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-accent">
+              Chapter {String(chapter.order).padStart(2, "0")}
+            </span>
+            <span className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wider ${chapterDiffClasses(chapter.difficulty)}`}>
+              {chapter.difficulty}
+            </span>
+          </div>
+          <h1 className="font-serif text-[1.85rem] font-bold leading-tight tracking-tight text-foreground sm:text-4xl">
+            {chapter.title}
+          </h1>
+          <p className="mt-3 text-[0.95rem] leading-relaxed text-muted">{chapter.description}</p>
 
-          <div className="relative">
-            {/* Eyebrow: chapter number + difficulty, compact */}
-            <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em]">
-              <span className="text-faint">Chapter {String(chapter.order).padStart(2, "0")}</span>
-              <span className="h-1 w-1 rounded-full bg-faint" />
-              <span style={{ color: ink(chapter.color) }}>{chapter.difficulty}</span>
+          {/* Progress card */}
+          <div className="mt-6 rounded-xl border border-border bg-surface p-4 shadow-card">
+            <div className="mb-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ClipboardCheck size={18} className="text-accent" />
+                <span className="text-sm font-medium text-foreground">{completedInChapter} / {chapter.questions.length} questions</span>
+              </div>
+              <span className="text-sm font-medium text-muted">{chapterProgress}%</span>
             </div>
-
-            <h1 className="mt-2 font-serif text-[1.7rem] font-bold leading-tight tracking-tight text-foreground sm:text-4xl">
-              {chapter.title}
-            </h1>
-            <p className="mt-2 line-clamp-2 max-w-2xl text-sm leading-6 text-muted sm:line-clamp-none sm:text-[0.95rem]">
-              {chapter.description}
-            </p>
-
-            {/* Progress */}
-            <div className="mt-4">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-muted">{completedInChapter} / {chapter.questions.length} questions</span>
-                <span className="font-bold" style={{ color: ink(chapter.color) }}>{chapterProgress}%</span>
-              </div>
-              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-surface-2">
-                <div
-                  className="shimmer h-full rounded-full transition-[width] duration-500"
-                  style={{ backgroundColor: chapter.color, width: `${Math.max(chapterProgress, 2)}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Actions: one primary + two compact secondary */}
-            <div className="mt-5 space-y-2">
-              <Button asChild className="group h-12 w-full text-[15px]">
-                <Link href={`/questions/${chapter.questions[0]?.id}`}>
-                  <BookOpen size={17} /> Start reading
-                  <ArrowRight size={16} className="transition-transform duration-200 group-hover:translate-x-1" />
-                </Link>
-              </Button>
-              <div className="grid grid-cols-2 gap-2">
-                <Button asChild variant="secondary" className="h-11 text-[13px]">
-                  <Link href={`/interview/${chapter.slug}`}><Mic size={15} /> Mock Interview</Link>
-                </Button>
-                <Button asChild variant="secondary" className="h-11 text-[13px]">
-                  <Link href={`/interview/${chapter.slug}`}><GraduationCap size={15} /> Quiz Mode</Link>
-                </Button>
-              </div>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-success-soft">
+              <div className="shimmer h-full rounded-full bg-success transition-[width] duration-700" style={{ width: `${chapterProgress}%` }} />
             </div>
           </div>
-        </section>
 
-        {/* Search */}
+          {/* Action cluster */}
+          <div className="mt-6 space-y-3">
+            <Button asChild className="h-13 w-full text-[15px]">
+              <Link href={firstQuestionId ? `/questions/${firstQuestionId}` : "#"}>
+                <Play size={17} /> Start reading
+              </Link>
+            </Button>
+            <div className="grid grid-cols-2 gap-3">
+              <Button asChild variant="secondary" className="h-12 text-[13px]">
+                <Link href={`/interview/${chapter.slug}`}><GraduationCap size={15} /> Mock Interview</Link>
+              </Button>
+              <Button asChild variant="secondary" className="h-12 text-[13px]">
+                <Link href={`/interview/${chapter.slug}`}><ClipboardCheck size={15} /> Quiz Mode</Link>
+              </Button>
+            </div>
+          </div>
+        </header>
+
+        {/* === Search === */}
         <div className="animate-fade-up d-1 relative mt-6">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-faint" />
+          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-faint" />
           <input
             type="text"
             aria-label="Search questions in this chapter"
             placeholder="Search questions..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-xl border border-border py-2.5 pl-10 pr-4 text-sm text-foreground outline-none"
+            className="w-full rounded-xl border border-border bg-surface py-4 pl-12 pr-16 text-[15px] text-foreground outline-none transition-all focus:border-accent"
           />
+          <span className="kbd absolute right-4 top-1/2 -translate-y-1/2">⌘K</span>
         </div>
 
-        {/* Questions */}
-        <section className="mt-4 grid grid-cols-1 gap-2 pb-4">
-          {filteredQuestions.map((question, index) => {
-            const isDone = completed.includes(question.id);
-            return (
-              <Link key={question.id} href={`/questions/${question.id}`}>
-                <Card
-                  className="hover-lift animate-fade-up group cursor-pointer p-3.5 hover:border-border-strong"
+        {/* === Questions list === */}
+        <section className="mt-8">
+          <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-faint">
+            {searchQuery.trim() ? `${filteredQuestions.length} result${filteredQuestions.length === 1 ? "" : "s"}` : "Questions"}
+          </h2>
+
+          <div className="space-y-3">
+            {filteredQuestions.map((question, index) => {
+              const isDone = completed.includes(question.id);
+              const color = diffColor(question.difficulty);
+              return (
+                <Link
+                  key={question.id}
+                  href={`/questions/${question.id}`}
+                  className="hover-lift animate-fade-up group block rounded-xl border border-border bg-surface p-5 shadow-card"
                   style={{ animationDelay: `${Math.min(index * 30, 330)}ms` }}
                 >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold transition-transform duration-200 group-hover:scale-110"
-                      style={
-                        isDone
-                          ? { backgroundColor: `${chapter.color}22`, color: ink(chapter.color) }
-                          : { backgroundColor: "var(--surface-2)", color: "var(--faint)" }
-                      }
-                    >
-                      {isDone ? <Check size={14} /> : index + 1}
-                    </span>
+                  <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0 flex-1">
-                      <h2 className="truncate text-sm font-semibold text-foreground">{question.prompt}</h2>
-                      <div className="mt-1 flex gap-1">
-                        <Badge className="px-1.5 py-0.5 text-[9px]" variant={difficultyVariant(question.difficulty)}>{question.difficulty}</Badge>
-                        <Badge className="px-1.5 py-0.5 text-[9px]">{question.experienceLevel}</Badge>
+                      <div className="mb-2 flex items-center gap-2">
+                        <span className="text-[12px] font-semibold text-accent">{String(index + 1).padStart(2, "0")}</span>
+                        <span className="h-1 w-1 rounded-full bg-border-strong" />
+                        <span className="text-[12px] font-semibold text-muted">{question.experienceLevel}</span>
+                        {isDone && <Check size={13} className="text-success" />}
                       </div>
+                      <h3 className="font-serif text-lg font-semibold leading-snug text-foreground transition-colors group-hover:text-accent">
+                        {question.prompt}
+                      </h3>
                     </div>
-                    <ChevronRight className="shrink-0 text-faint transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-accent" size={14} />
+                    <ChevronRight size={20} className="mt-0.5 shrink-0 text-faint transition-colors group-hover:text-accent" />
                   </div>
-                </Card>
-              </Link>
-            );
-          })}
+                  <div className="mt-4 flex items-center gap-4 border-t border-border pt-4">
+                    <span className="flex items-center gap-1 text-[12px] font-semibold" style={{ color }}>
+                      <SignalHigh size={14} /> {question.difficulty}
+                    </span>
+                    <span className="flex items-center gap-1 text-[12px] font-semibold text-muted">
+                      <Clock size={14} /> 2 min
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+
+          {filteredQuestions.length === 0 && (
+            <div className="mt-10 text-center text-sm text-muted">No questions match &quot;{searchQuery}&quot;</div>
+          )}
         </section>
 
-        {filteredQuestions.length === 0 && (
-          <div className="mt-10 text-center text-sm text-muted">No questions match &quot;{searchQuery}&quot;</div>
-        )}
-
-        {/* Bottom CTA */}
-        <section className="mb-4 rounded-xl border border-border bg-surface-2 p-4">
-          <div className="flex items-center gap-3">
-            <CheckCircle2 size={16} style={{ color: ink(chapter.color) }} />
-            <p className="text-xs leading-5 text-muted">
-              Complete all questions, then run the AI Interview for follow-ups, traps, and scoring.
-            </p>
-          </div>
+        {/* === Footer task === */}
+        <section className="mt-12 rounded-2xl border border-accent/20 bg-accent-soft p-6 text-center">
+          <Sparkles size={32} className="mx-auto mb-3 text-accent" />
+          <p className="text-[0.95rem] leading-relaxed text-foreground">
+            Complete all questions, then run the AI Interview for follow-ups, traps, and scoring.
+          </p>
+          <Button asChild className="mt-4">
+            <Link href={`/interview/${chapter.slug}`}>Launch Interview</Link>
+          </Button>
         </section>
       </div>
 
       {showScrollTop && (
         <button
-          className="animate-fade-in hover-lift fixed bottom-5 right-5 z-50 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-border bg-surface text-muted shadow-card transition-colors hover:text-foreground"
+          className="animate-fade-in hover-lift fixed bottom-20 right-5 z-40 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-border bg-surface text-muted shadow-card transition-colors hover:text-foreground sm:bottom-5"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           aria-label="Scroll to top"
         >
-          <ArrowLeft size={15} className="rotate-90" />
+          <ArrowUp size={16} />
         </button>
       )}
     </main>

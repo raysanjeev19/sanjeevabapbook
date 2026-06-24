@@ -5,91 +5,93 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ============================================================
-   CODEGURUKUL — PREMIUM LEARNING PALETTE
-   Primary indigo #4F46E5 (learning/trust) → violet → fuchsia
-   gradient family. Success #22C55E (progress), warning #F59E0B
-   (interview tips), error #EF4444 (mistakes).
-   Light: indigo-tinted off-white. Dark: deep indigo-black.
+   CODEGURUKUL — SCHOLASTIC MODERN PALETTE
+   "Digital sophistication for education." Primary violet #630ED4
+   on a calm paper surface. Success #10B981 (progress), warning
+   #F59E0B (interview tips), error #EF4444 (mistakes).
+   Light: canvas-gray page behind near-white paper cards.
+   Dark: deep ink-violet #1D1A24 with light-violet #D2BBFF accents.
    ============================================================ */
 
 :root,
 .light {
   color-scheme: light;
 
-  --background: #eef0f8; /* soft indigo-grey — easy on the eyes, never stark white */
-  --surface: #fbfbfe; /* card — warm off-white */
-  --surface-2: #e7e9f4; /* inset (code, inputs) */
+  --background: #eef0f8; /* canvas-gray — cool page behind paper cards */
+  --surface: #fdfdfd; /* paper-surface — warm near-white card */
+  --surface-2: #f3ebfa; /* surface-container — inset (code, inputs, stats) */
 
-  --foreground: #16143c; /* deep indigo ink */
-  --muted: #4b4970;
-  --faint: #9594b8;
+  --foreground: #1d1a24; /* on-surface — near-black ink */
+  --muted: #64748b; /* muted-ink — secondary descriptions */
+  --faint: #8b8398; /* outline — faint eyebrows / labels */
 
-  --border: rgba(22, 20, 60, 0.07);
-  --border-strong: rgba(22, 20, 60, 0.15);
+  --border: rgba(123, 116, 135, 0.2); /* outline-variant, low alpha */
+  --border-strong: rgba(123, 116, 135, 0.42);
 
-  --accent: #4f46e5; /* primary — indigo-600 */
-  --accent-soft: rgba(79, 70, 229, 0.1);
+  --accent: #630ed4; /* primary — modern violet */
+  --accent-soft: rgba(99, 14, 212, 0.08);
   --accent-contrast: #ffffff;
-  --accent-glow: rgba(79, 70, 229, 0.25);
+  --accent-glow: rgba(99, 14, 212, 0.22);
 
-  --accent-2: #9333ea; /* purple — gradient partner */
-  --accent-2-soft: rgba(147, 51, 234, 0.1);
-  --accent-3: #d946ef; /* fuchsia — gradient partner */
-  --accent-3-soft: rgba(217, 70, 239, 0.1);
+  --accent-2: #7c3aed; /* primary-container — violet partner */
+  --accent-2-soft: rgba(124, 58, 237, 0.1);
+  --accent-3: #732ee4; /* surface-tint — violet partner */
+  --accent-3-soft: rgba(115, 46, 228, 0.1);
 
-  --gradient-accent: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #c026d3 100%);
+  --gradient-accent: linear-gradient(135deg, #630ed4 0%, #7c3aed 100%);
 
   /* Semantic status colors — used across both themes */
-  --success: #22c55e;
-  --success-soft: rgba(34, 197, 94, 0.12);
+  --success: #10b981;
+  --success-soft: rgba(16, 185, 129, 0.12);
   --warning: #f59e0b;
   --warning-soft: rgba(245, 158, 11, 0.12);
   --error: #ef4444;
   --error-soft: rgba(239, 68, 68, 0.12);
 
-  /* Soft layered elevation — calm, never harsh */
-  --elev-1: 0 1px 2px rgba(22, 20, 60, 0.04), 0 2px 8px rgba(22, 20, 60, 0.04);
-  --elev-2: 0 2px 4px rgba(22, 20, 60, 0.05), 0 8px 24px rgba(22, 20, 60, 0.08);
-  --elev-3: 0 4px 12px rgba(22, 20, 60, 0.08), 0 12px 32px rgba(22, 20, 60, 0.12);
+  /* Soft "paper sheet" elevation — cool, diffused, never harsh */
+  --elev-1: 0 1px 2px rgba(86, 94, 116, 0.05), 0 2px 8px rgba(86, 94, 116, 0.06);
+  --elev-2: 0 4px 12px rgba(86, 94, 116, 0.08), 0 8px 24px rgba(86, 94, 116, 0.09);
+  --elev-3: 0 8px 24px rgba(86, 94, 116, 0.12), 0 18px 40px rgba(86, 94, 116, 0.14);
 }
 
 .dark {
   color-scheme: dark;
 
-  --background: #0a0a0b; /* neutral near-black — no navy/blue tint */
-  --surface: #161618; /* card — neutral charcoal */
-  --surface-2: #212124; /* slightly raised inset — neutral */
+  --background: #1d1a24; /* ink-violet — deep, calm reading canvas */
+  --surface: #241f2b; /* surface-container — card / panel */
+  --surface-2: #332f39; /* surface-variant — raised inset */
 
-  --foreground: #f4f4f5;
-  --muted: #b6b6bd;
-  --faint: #77777f;
+  --foreground: #f6eefc; /* inverse-on-surface */
+  --muted: #94a3b8; /* muted-ink dark */
+  --faint: #8b8398; /* outline */
 
-  --border: rgba(244, 244, 245, 0.1);
-  --border-strong: rgba(244, 244, 245, 0.18);
+  --border: rgba(150, 142, 165, 0.18);
+  --border-strong: rgba(150, 142, 165, 0.34);
 
-  --accent: #818cf8; /* indigo-400 — AA on dark */
-  --accent-soft: rgba(129, 140, 248, 0.14);
-  --accent-contrast: #ffffff;
-  --accent-glow: rgba(129, 140, 248, 0.3);
+  --accent: #d2bbff; /* primary-fixed-dim — light violet reads on dark */
+  --accent-soft: rgba(210, 187, 255, 0.14);
+  --accent-contrast: #1d1a24; /* dark ink on light-violet chips */
+  --accent-glow: rgba(99, 14, 212, 0.45);
 
-  --accent-2: #a78bfa; /* violet-400 */
-  --accent-2-soft: rgba(167, 139, 250, 0.14);
-  --accent-3: #e879f9; /* fuchsia-400 */
-  --accent-3-soft: rgba(232, 121, 249, 0.14);
+  --accent-2: #d2bbff; /* keep the violet family uniform on dark */
+  --accent-2-soft: rgba(210, 187, 255, 0.14);
+  --accent-3: #c0a3ff;
+  --accent-3-soft: rgba(192, 163, 255, 0.14);
 
-  --gradient-accent: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+  /* Solid brand violet fill — primary buttons keep white text in both modes */
+  --gradient-accent: linear-gradient(135deg, #630ed4 0%, #7c3aed 100%);
 
-  --success: #4ade80;
-  --success-soft: rgba(74, 222, 128, 0.14);
-  --warning: #fbbf24;
-  --warning-soft: rgba(251, 191, 36, 0.14);
+  --success: #10b981;
+  --success-soft: rgba(16, 185, 129, 0.16);
+  --warning: #f59e0b;
+  --warning-soft: rgba(245, 158, 11, 0.16);
   --error: #f87171;
-  --error-soft: rgba(248, 113, 113, 0.14);
+  --error-soft: rgba(248, 113, 113, 0.16);
 
   /* Elevation reads as depth on dark, not glow */
-  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.22);
-  --elev-2: 0 2px 4px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
-  --elev-3: 0 4px 12px rgba(0, 0, 0, 0.35), 0 12px 32px rgba(0, 0, 0, 0.45);
+  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.28);
+  --elev-2: 0 2px 4px rgba(0, 0, 0, 0.34), 0 8px 24px rgba(0, 0, 0, 0.4);
+  --elev-3: 0 4px 12px rgba(0, 0, 0, 0.4), 0 12px 32px rgba(0, 0, 0, 0.5);
 }
 
 @theme inline {
@@ -314,14 +316,10 @@ button {
   animation-delay: -6s;
 }
 
-/* Animated gradient headline text */
+/* Highlighted headline word — solid brand violet (Scholastic Modern: no
+   aggressive gradients; the accent does the work). */
 .text-gradient {
-  background: linear-gradient(110deg, var(--accent), var(--accent-2) 40%, var(--accent-3) 70%, var(--accent) 100%);
-  background-size: 220% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: gradient-pan 7s linear infinite;
+  color: var(--accent);
 }
 
 /* Gradient fill for buttons / chips */
