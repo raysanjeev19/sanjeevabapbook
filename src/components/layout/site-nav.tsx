@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookMarked, ChevronRight, Compass, Mic } from "lucide-react";
+import { BookMarked, ChevronRight, Cloud, Compass, Mic } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { BrandLogo } from "@/components/layout/brand-logo";
@@ -12,6 +12,7 @@ const LINKS = [
   { href: "/questions", label: "Explore", Icon: Compass },
   { href: "/library", label: "Saved", Icon: BookMarked },
   { href: "/interview", label: "Interview", Icon: Mic },
+  { href: "/btp", label: "BTP", Icon: Cloud },
 ];
 
 export function SiteNav({

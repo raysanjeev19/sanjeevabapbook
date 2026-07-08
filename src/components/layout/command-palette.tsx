@@ -1,10 +1,11 @@
 "use client";
 
 import * as Dialog from "@radix-ui/react-dialog";
-import { BookOpen, CornerDownLeft, FileText, Search } from "lucide-react";
+import { BookOpen, Cloud, CornerDownLeft, FileText, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { allQuestions, chapters } from "@/lib/content";
+import { btpSections, getAllBtpQuestions } from "@/lib/btp-content";
 import { cn } from "@/lib/utils";
 
 type Item = {
@@ -12,7 +13,7 @@ type Item = {
   label: string;
   sub: string;
   href: string;
-  kind: "chapter" | "question";
+  kind: "chapter" | "question" | "btp-section" | "btp-question";
   color?: string;
 };
 
@@ -37,11 +38,34 @@ const questionItems: Item[] = allQuestions.map((q) => {
   };
 });
 
+const btpSectionItems: Item[] = btpSections.map((s) => ({
+  id: `btp-section-${s.slug}`,
+  label: s.title,
+  sub: `SAP BTP · ${s.difficulty}`,
+  href: `/btp/${s.slug}`,
+  kind: "btp-section",
+  color: s.color,
+}));
+
+const btpQuestionItems: Item[] = getAllBtpQuestions().map((q) => ({
+  id: `btp-question-${q.id}`,
+  label: q.prompt,
+  sub: `${q.sectionTitle} · ${q.topic}`,
+  href: `/btp/${q.sectionSlug}`,
+  kind: "btp-question",
+}));
+
 const haystacks = new Map<string, string>();
 allQuestions.forEach((q) => {
   haystacks.set(`question-${q.id}`, `${q.prompt} ${q.tags.join(" ")}`.toLowerCase());
 });
 chapters.forEach((c) => haystacks.set(`chapter-${c.slug}`, `${c.title} ${c.description}`.toLowerCase()));
+btpSections.forEach((s) =>
+  haystacks.set(`btp-section-${s.slug}`, `${s.title} ${s.description} ${s.topics.join(" ")}`.toLowerCase()),
+);
+getAllBtpQuestions().forEach((q) =>
+  haystacks.set(`btp-question-${q.id}`, `${q.prompt} ${q.topic} ${q.tags.join(" ")} ${q.sectionTitle}`.toLowerCase()),
+);
 
 export function CommandPalette() {
   const router = useRouter();
@@ -83,10 +107,12 @@ export function CommandPalette() {
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return chapterItems;
+    if (!q) return [...chapterItems, ...btpSectionItems];
     const matchedChapters = chapterItems.filter((i) => haystacks.get(i.id)?.includes(q));
+    const matchedBtpSections = btpSectionItems.filter((i) => haystacks.get(i.id)?.includes(q));
     const matchedQuestions = questionItems.filter((i) => haystacks.get(i.id)?.includes(q));
-    return [...matchedChapters, ...matchedQuestions].slice(0, 40);
+    const matchedBtpQuestions = btpQuestionItems.filter((i) => haystacks.get(i.id)?.includes(q));
+    return [...matchedChapters, ...matchedBtpSections, ...matchedQuestions, ...matchedBtpQuestions].slice(0, 40);
   }, [query]);
 
   function go(item: Item | undefined) {
@@ -159,7 +185,11 @@ export function CommandPalette() {
                   className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
                   style={{ backgroundColor: `${item.color ?? "#0e7c72"}1f`, color: item.color ?? "var(--accent)" }}
                 >
-                  {item.kind === "chapter" ? <BookOpen size={15} /> : <FileText size={15} />}
+                  {item.kind === "chapter" || item.kind === "btp-section" ? (
+                    item.kind === "btp-section" ? <Cloud size={15} /> : <BookOpen size={15} />
+                  ) : (
+                    <FileText size={15} />
+                  )}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-medium text-foreground">{item.label}</span>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { BookMarked, Compass, Home, Mic } from "lucide-react";
+import { BookMarked, Cloud, Compass, Home, Mic } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const TABS = [
@@ -11,6 +11,7 @@ const TABS = [
   { href: "/questions", label: "Explore", Icon: Compass, match: (p: string) => p === "/questions" },
   { href: "/library", label: "Saved", Icon: BookMarked, match: (p: string) => p.startsWith("/library") },
   { href: "/interview", label: "Interview", Icon: Mic, match: (p: string) => p.startsWith("/interview") },
+  { href: "/btp", label: "BTP", Icon: Cloud, match: (p: string) => p.startsWith("/btp") },
 ];
 
 /**
