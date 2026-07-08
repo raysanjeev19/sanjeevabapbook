@@ -365,7 +365,7 @@ export const abapEnvironmentQuestions: BtpQuestion[] = [
     followupQuestions: [
       "What's the difference between a validation and a determination?",
       "What is a custom action, and how is it different from standard CRUD?",
-      "What are the three save-behavior variants in RAP (managed, unmanaged, unmanaged with unmanaged save)?",
+      "What are the three save-behavior variants in RAP (managed, managed with unmanaged save, fully unmanaged)?",
     ],
     commonMistakes: [
       "Thinking a CDS view alone is sufficient to build real business logic.",
@@ -428,38 +428,38 @@ export const abapEnvironmentQuestions: BtpQuestion[] = [
     tags: ["rap", "managed", "unmanaged"],
     estimatedMinutes: 3,
     expectedAnswer:
-      "RAP is SAP's modern framework for building cloud-ready business apps in ABAP, combining CDS data modeling with a Behavior Definition; its save variants are 'managed' (RAP handles persistence automatically), 'unmanaged' (you write all save logic yourself), and 'unmanaged with unmanaged save' via a wrapped classic BAPI/function module.",
+      "RAP is SAP's modern framework for building cloud-ready business apps in ABAP, combining CDS data modeling with a Behavior Definition; its save variants are 'managed' (RAP generates persistence entirely), 'managed with unmanaged save' (the data model/CRUD interface stays managed but you supply custom save logic — the standard pattern for wrapping a legacy BAPI/function module), and fully 'unmanaged' (you implement everything yourself, including data read).",
     detailedAnswer:
-      "In the managed scenario, RAP generates the actual database persistence (INSERT/UPDATE/DELETE) for you based on the CDS/Behavior Definition — you only implement business logic like validations and actions, and RAP handles saving. In the unmanaged scenario, you write the entire save implementation yourself in ABAP (useful when persistence logic is genuinely complex or needs to integrate with legacy structures) — RAP still gives you the OData/UI integration, but you own the database operations completely. A common real-world hybrid is wrapping an existing classic BAPI or function module as the actual save implementation behind an unmanaged Business Object — useful for exposing existing on-prem business logic through a modern RAP-based UI without rewriting it from scratch.",
+      "In the managed scenario, RAP generates the actual database persistence (INSERT/UPDATE/DELETE) for you based on the CDS/Behavior Definition — you only implement business logic like validations and actions, and RAP handles saving. In the managed-with-unmanaged-save scenario, the data model and CRUD interface stay fully managed (framework-generated), but you plug in your own save implementation — this is the standard, real-world pattern for wrapping an existing classic BAPI or function module as the actual persistence logic behind a modern RAP-based UI, without rewriting well-tested legacy logic from scratch. In the fully unmanaged scenario, you implement everything yourself in ABAP, including how data is even read — used when persistence and retrieval logic is genuinely too complex or custom to fit the managed model at all.",
     hindiExplanation:
-      "Managed scenario mein, RAP CDS/Behavior Definition ke aadhar pe actual database persistence (INSERT/UPDATE/DELETE) khud generate kar deta hai — tum sirf business logic implement karte ho jaise validations aur actions, saving RAP handle karta hai. Unmanaged scenario mein, tum poora save implementation khud ABAP mein likhte ho (useful jab persistence logic genuinely complex ho ya legacy structures se integrate karna ho) — RAP phir bhi OData/UI integration deta hai, lekin database operations tum khud control karte ho. Ek common real-world hybrid hai existing classic BAPI ya function module ko actual save implementation ki tarah wrap karna ek unmanaged Business Object ke peeche — existing on-prem business logic ko modern RAP-based UI ke through expose karne ke liye, use scratch se rewrite kiye bina.",
+      "Managed scenario mein, RAP CDS/Behavior Definition ke aadhar pe actual database persistence (INSERT/UPDATE/DELETE) khud generate kar deta hai — tum sirf business logic implement karte ho jaise validations aur actions, saving RAP handle karta hai. Managed-with-unmanaged-save scenario mein, data model aur CRUD interface poori tarah managed (framework-generated) rehta hai, lekin tum apna khud ka save implementation plug karte ho — yahi standard, real-world pattern hai existing classic BAPI ya function module ko actual persistence logic ki tarah wrap karne ka, ek modern RAP-based UI ke peeche, bina well-tested legacy logic ko scratch se rewrite kiye. Fully unmanaged scenario mein, tum sab kuch khud ABAP mein implement karte ho, data read tak — use tab hota hai jab persistence aur retrieval logic genuinely itni complex/custom ho ki managed model mein fit hi na ho.",
     interviewExplanation:
-      "I'd name and explain all three: 'In managed RAP, the framework generates the actual database persistence for you — you just implement business logic. In unmanaged, you write the entire save yourself, useful for complex or legacy-integrated persistence. A common hybrid is wrapping an existing BAPI as the save implementation behind an unmanaged Business Object — exposing legacy logic through a modern RAP UI without rewriting it.'",
+      "I'd name and explain all three: 'In managed RAP, the framework generates the actual database persistence for you — you just implement business logic. In managed-with-unmanaged-save, the CRUD interface stays managed but you supply your own save logic — this is the standard way to wrap an existing BAPI as the save implementation, exposing legacy logic through a modern RAP UI without rewriting it. In fully unmanaged, you implement everything yourself, including how data is read — used for genuinely complex, custom persistence needs.'",
     diagramNote:
-      "Three boxes: 'Managed: RAP generates persistence' vs 'Unmanaged: you write all save logic' vs 'Unmanaged + wrapped BAPI: existing legacy logic reused as save implementation'.",
+      "Three boxes: 'Managed: RAP generates persistence' vs 'Managed with unmanaged save: managed CRUD interface + custom save logic (wrapped BAPI)' vs 'Fully unmanaged: you implement everything, including read'.",
     diagramMermaid: `flowchart LR
     A["Managed"] --> A2["RAP generates persistence automatically"]
-    B["Unmanaged"] --> B2["You write all save logic yourself"]
-    C["Unmanaged + wrapped BAPI"] --> C2["Existing legacy logic reused as save impl"]`,
+    B["Managed with unmanaged save"] --> B2["Managed CRUD interface + custom save logic (wrapped BAPI)"]
+    C["Fully unmanaged"] --> C2["You implement everything, including read"]`,
     realProjectExample:
-      "A new order-entry app used managed RAP for simplicity, while a legacy approval workflow reused an existing decades-old BAPI wrapped as an unmanaged Business Object's save implementation, avoiding a costly rewrite of well-tested business logic.",
+      "A new order-entry app used managed RAP for simplicity, while a legacy approval workflow reused an existing decades-old BAPI wrapped as the custom save implementation behind a managed-with-unmanaged-save Business Object, avoiding a costly rewrite of well-tested business logic.",
     interviewTip:
-      "Naming the wrapped-BAPI hybrid pattern specifically shows awareness of real migration scenarios, not just textbook 'managed vs unmanaged' theory.",
+      "Naming the managed-with-unmanaged-save pattern specifically — and correctly identifying it (not 'unmanaged') as the one used for wrapping a legacy BAPI — shows awareness of real migration scenarios, not just textbook 'managed vs unmanaged' theory.",
     followupQuestions: [
-      "When would you choose unmanaged over managed RAP?",
+      "When would you choose managed with unmanaged save, or fully unmanaged, over plain managed RAP?",
       "What does 'RAP generates persistence' actually mean technically?",
       "Can you mix managed and unmanaged entities within the same application?",
     ],
     commonMistakes: [
-      "Only knowing 'managed vs unmanaged' and missing the wrapped-BAPI hybrid pattern.",
+      "Only knowing 'managed vs unmanaged' and missing the managed-with-unmanaged-save hybrid pattern.",
       "Assuming managed RAP is always the better/default choice regardless of context.",
     ],
     importantPoints: [
       "Managed: RAP auto-generates persistence, you write business logic.",
-      "Unmanaged: you write the entire save yourself.",
-      "Unmanaged + wrapped BAPI: reuse existing legacy save logic behind a modern RAP UI.",
+      "Managed with unmanaged save: CRUD interface stays managed, you supply custom save logic — the standard way to wrap a legacy BAPI.",
+      "Fully unmanaged: you implement everything yourself, including data read.",
     ],
-    revisionNotes: "RAP save variants: managed (auto persistence), unmanaged (you write it), unmanaged+wrapped BAPI (reuse legacy save logic).",
+    revisionNotes: "RAP save variants: managed (auto persistence), managed with unmanaged save (managed CRUD + custom save logic, e.g. wrapped BAPI), fully unmanaged (you implement everything, including read).",
   },
   {
     id: "abap-env-q12",
@@ -669,47 +669,47 @@ export const abapEnvironmentQuestions: BtpQuestion[] = [
   {
     id: "abap-env-q17",
     topic: "Packages",
-    prompt: "What is a Software Component's transport layer, and why does it matter for release management?",
+    prompt: "What determines a Software Component's promotion route through the system landscape, and why does it matter for release management?",
     difficulty: "Intermediate",
     experienceLevel: "0-2 Years",
-    tags: ["packages", "transport-layer"],
+    tags: ["packages", "promotion-pipeline"],
     estimatedMinutes: 2,
     expectedAnswer:
-      "A transport layer groups Software Components that move through the same system landscape sequence (Dev → QA → Prod); it matters because it determines which systems a change can even be transported to, keeping unrelated applications' releases independent of each other.",
+      "Each Software Component follows its own promotion route through the pipeline (dev → test → prod instances), configured via the ABAP Environment lifecycle / CI-CD tooling rather than a classic CTS transport layer object; it matters because it determines which systems a change can even be promoted to, keeping unrelated applications' releases independent of each other.",
     detailedAnswer:
-      "In a large organization with multiple applications on ABAP Environment, not every application necessarily shares the exact same Dev/QA/Prod landscape or release cadence. A transport layer defines the specific sequence of systems a Software Component's transports flow through, so two unrelated applications (each with their own Software Component, possibly their own transport layer) can be released independently without one blocking or interfering with the other's release schedule — this is a deliberate isolation mechanism at the release-management level, not just a naming/organizational convenience.",
+      "In a large organization with multiple applications on ABAP Environment, not every application necessarily shares the exact same dev/test/prod landscape or release cadence. Unlike classic on-premise/S/4HANA systems, ABAP Environment (Steampunk) cloud systems don't expose a classic transport-domain 'transport layer' object the way STMS does — landscape routing is instead governed by the ABAP Environment's own system/pipeline configuration, typically wired through the ABAP Environment lifecycle and a CI/CD pipeline (often gCTS-based promotion) connecting dev, test, and prod instances. So two unrelated applications (each with their own Software Component, possibly its own pipeline configuration) can be promoted and released independently without one blocking or interfering with the other's release schedule — this is a deliberate isolation mechanism at the release-management level, not just a naming/organizational convenience.",
     hindiExplanation:
-      "Ek badi organization mein jaha multiple applications ABAP Environment pe hain, har application zaroori nahi ki exact same Dev/QA/Prod landscape ya release cadence share kare. Transport layer define karta hai specific sequence of systems jispe ek Software Component ke transports flow karte hain, taaki do unrelated applications (har ek apne Software Component ke saath, shayad apna transport layer bhi) independently release ho sakein bina ek doosre ko block ya interfere kiye.",
+      "Ek badi organization mein jaha multiple applications ABAP Environment pe hain, har application zaroori nahi ki exact same dev/test/prod landscape ya release cadence share kare. Classic on-premise/S4 systems ke ulta, ABAP Environment (Steampunk) cloud systems classic transport-domain 'transport layer' object expose nahi karte jaise STMS mein hota hai — landscape routing iske bajaye ABAP Environment ke apne system/pipeline configuration se govern hoti hai, typically ABAP Environment lifecycle aur ek CI/CD pipeline (aksar gCTS-based promotion) ke through wired, jo dev, test, aur prod instances ko connect karti hai. Isliye do unrelated applications (har ek apne Software Component ke saath, shayad apni pipeline configuration bhi) independently promote/release ho sakte hain bina ek doosre ko block ya interfere kiye.",
     interviewExplanation:
-      "I'd frame it as release independence: 'A transport layer defines the specific system sequence a Software Component's changes flow through. In a large org, this lets unrelated applications release independently — one team's release schedule doesn't block or interfere with another's, since they're on different transport layers.'",
+      "I'd frame it as release independence via pipeline configuration: 'ABAP Environment cloud systems don't have a classic CTS transport layer object — each Software Component's promotion route through dev, test, and prod instances is configured via the ABAP Environment lifecycle / CI-CD tooling instead. In a large org, this lets unrelated applications release independently — one team's release schedule doesn't block or interfere with another's, since they're on different pipeline configurations.'",
     diagramNote:
-      "Two independent transport layers: 'App A: Transport Layer 1 (Dev1→QA1→Prod1)' and 'App B: Transport Layer 2 (Dev2→QA2→Prod2)' — releasing independently.",
+      "Two independent pipeline configurations: 'App A: Dev1 → Test1 → Prod1 (via ABAP Environment lifecycle/CI-CD)' and 'App B: Dev2 → Test2 → Prod2' — releasing independently, with no classic CTS transport layer object involved.",
     diagramMermaid: `flowchart LR
-    subgraph L1["Transport Layer 1"]
-        A1["Dev1"] --> A2["QA1"] --> A3["Prod1"]
+    subgraph L1["Pipeline 1 (CI/CD)"]
+        A1["Dev1"] --> A2["Test1"] --> A3["Prod1"]
     end
-    subgraph L2["Transport Layer 2"]
-        B1["Dev2"] --> B2["QA2"] --> B3["Prod2"]
+    subgraph L2["Pipeline 2 (CI/CD)"]
+        B1["Dev2"] --> B2["Test2"] --> B3["Prod2"]
     end`,
     realProjectExample:
-      "Two independent product teams sharing the same ABAP Environment tenant were each assigned their own Software Component and transport layer, letting one team release weekly while the other released monthly, with zero scheduling conflict.",
+      "Two independent product teams sharing the same ABAP Environment tenant were each assigned their own Software Component and CI/CD pipeline configuration, letting one team release weekly while the other released monthly, with zero scheduling conflict.",
     interviewTip:
-      "If asked why not just put everything in one Software Component, the release-independence argument is the concrete justification for splitting them along transport layer boundaries.",
+      "If asked why not just put everything in one Software Component, the release-independence argument is the concrete justification — just be careful not to call it a classic CTS 'transport layer', since ABAP Environment cloud systems route promotion through pipeline configuration instead.",
     followupQuestions: [
-      "How is a transport layer actually assigned to a Software Component?",
-      "Can two Software Components share the same transport layer?",
-      "What happens if you need to move a component to a different transport layer later?",
+      "How is a Software Component's promotion route actually configured in ABAP Environment?",
+      "Can two Software Components share the same pipeline configuration?",
+      "What happens if you need to move a component to a different pipeline later?",
     ],
     commonMistakes: [
-      "Treating transport layers as purely cosmetic/organizational with no real release-management purpose.",
-      "Putting unrelated applications in the same Software Component/transport layer, coupling their release schedules.",
+      "Assuming ABAP Environment cloud systems use a classic CTS transport layer object like on-prem/S4 systems.",
+      "Putting unrelated applications in the same Software Component/pipeline, coupling their release schedules.",
     ],
     importantPoints: [
-      "Transport layer = the specific system sequence a Software Component's changes flow through.",
+      "ABAP Environment doesn't expose a classic CTS transport layer object — promotion routing is via the ABAP Environment lifecycle/CI-CD instead.",
       "Enables independent release schedules for unrelated applications.",
       "A deliberate release-management isolation mechanism, not just naming.",
     ],
-    revisionNotes: "Transport layer = defines system sequence for a Software Component's releases — isolates unrelated apps' release schedules from each other.",
+    revisionNotes: "Promotion route = each Software Component's dev→test→prod path, configured via ABAP Environment lifecycle/CI-CD (not a classic CTS transport layer) — isolates unrelated apps' release schedules from each other.",
   },
   {
     id: "abap-env-q18",

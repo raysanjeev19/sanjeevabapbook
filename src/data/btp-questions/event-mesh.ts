@@ -13,11 +13,11 @@ export const eventMeshQuestions: BtpQuestion[] = [
     expectedAnswer:
       "A queue holds messages for exactly one competing set of consumers — each message is delivered to and processed by only one consumer instance, even with multiple subscribers; a topic broadcasts each message to every subscriber independently, so many different subscribers each get their own copy.",
     detailedAnswer:
-      "Queues implement point-to-point, competing-consumer semantics — if you have three instances of a worker service reading from the same queue, each message goes to exactly one of them (great for load-balancing work across instances). Topics implement publish-subscribe/fan-out semantics — every subscriber gets its own independent copy of every message, appropriate when multiple, different downstream systems each need to react to the same event independently (an order-placed event might need to trigger both an email notification and an inventory update, each as a separate, independent subscriber). Choosing between them is really a choice about whether messages should be load-balanced across one logical consumer (queue) or broadcast to many different, independent consumers (topic).",
+      "Queues implement point-to-point, competing-consumer semantics — if you have three instances of a worker service reading from the same queue, each message goes to exactly one of them (great for load-balancing work across instances). Topics implement publish-subscribe/fan-out semantics — every subscriber gets its own independent copy of every message, appropriate when multiple, different downstream systems each need to react to the same event independently (an order-placed event might need to trigger both an email notification and an inventory update, each as a separate, independent subscriber). Choosing between them is really a choice about whether messages should be load-balanced across one logical consumer (queue) or broadcast to many different, independent consumers (topic). On the wire, clients connect to Event Mesh using AMQP 1.0 (the actual messaging protocol, not a proprietary SAP one) to publish/consume from queues and topics directly, or alternatively receive messages via webhook push subscriptions, where Event Mesh itself POSTs each message to a subscriber's HTTP endpoint instead of the subscriber having to poll or hold an open AMQP connection. Every queue and topic name is also namespace-scoped (e.g. `myNamespace/orders/created`) — the same short name in two different namespaces is a completely different resource, which matters when reading Event Mesh docs/configuration or debugging a 'message not arriving' issue.",
     hindiExplanation:
-      "Queues point-to-point, competing-consumer semantics implement karti hain — agar tumhare paas ek worker service ke teen instances hain jo same queue se read kar rahe hain, har message unme se exactly ek ko jaata hai (instances ke beech work load-balance karne ke liye achha). Topics publish-subscribe/fan-out semantics implement karte hain — har subscriber ko har message ki apni independent copy milti hai, jab multiple, alag downstream systems ko ek hi event pe independently react karna ho (order-placed event ek email notification aur inventory update dono trigger kar sakta hai, har ek alag, independent subscriber ki tarah).",
+      "Queues point-to-point, competing-consumer semantics implement karti hain — agar tumhare paas ek worker service ke teen instances hain jo same queue se read kar rahe hain, har message unme se exactly ek ko jaata hai (instances ke beech work load-balance karne ke liye achha). Topics publish-subscribe/fan-out semantics implement karte hain — har subscriber ko har message ki apni independent copy milti hai, jab multiple, alag downstream systems ko ek hi event pe independently react karna ho (order-placed event ek email notification aur inventory update dono trigger kar sakta hai, har ek alag, independent subscriber ki tarah). Wire pe, clients Event Mesh se AMQP 1.0 protocol (ye actual standard messaging protocol hai, koi SAP-proprietary cheez nahi) use karke connect hote hain queues/topics publish/consume karne ke liye, ya phir webhook push subscriptions use kar sakte hain, jaha Event Mesh khud har message subscriber ke HTTP endpoint pe POST kar deta hai — poll karne ya open AMQP connection rakhne ki zaroorat nahi. Har queue/topic ka naam bhi namespace-scoped hota hai (jaise `myNamespace/orders/created`) — same short name do alag namespaces mein do bilkul alag resources hain.",
     interviewExplanation:
-      "I'd give the concrete distinction: 'A queue is competing-consumer — with multiple consumer instances, each message goes to exactly one of them, good for load-balancing work. A topic is publish-subscribe — every subscriber gets its own independent copy of every message, good when multiple different systems each need to react to the same event independently.'",
+      "I'd give the concrete distinction, then ground it in the actual product: 'A queue is competing-consumer — with multiple consumer instances, each message goes to exactly one of them, good for load-balancing work. A topic is publish-subscribe — every subscriber gets its own independent copy of every message, good when multiple different systems each need to react to the same event independently. Under the hood, Event Mesh speaks AMQP 1.0 as its wire protocol, and also supports webhook push subscriptions for HTTP-based consumers. Every queue/topic name is namespace-scoped, so the same name in two namespaces is a different resource entirely.'",
     diagramNote:
       "Queue: 'Message → one of 3 competing consumer instances (each message to exactly one)'. Topic: 'Message → Subscriber A (own copy) + Subscriber B (own copy) + Subscriber C (own copy)'.",
     diagramMermaid: `flowchart LR
@@ -35,6 +35,7 @@ export const eventMeshQuestions: BtpQuestion[] = [
       "What happens if no consumer is currently reading from a queue?",
       "Can a topic have zero subscribers, and what happens to messages if so?",
       "Which would you use for a 'notify multiple systems of an event' scenario?",
+      "What wire protocol does Event Mesh use, and what's the alternative to an open AMQP connection?",
     ],
     commonMistakes: [
       "Thinking multiple consumers on a queue each get every message (that's topic behavior).",
@@ -44,8 +45,10 @@ export const eventMeshQuestions: BtpQuestion[] = [
       "Queue = competing consumers, each message to exactly one consumer (load-balancing).",
       "Topic = publish-subscribe, every subscriber gets its own independent copy (broadcast).",
       "Choice depends on whether you want to split work or broadcast to independent reactors.",
+      "Wire protocol is AMQP 1.0; webhook push subscriptions are the alternative to holding an AMQP connection.",
+      "Queue/topic names are namespace-scoped — the same name in a different namespace is a different resource.",
     ],
-    revisionNotes: "Queue = competing consumers (message to one). Topic = pub-sub (every subscriber gets a copy). Queue splits work; topic broadcasts.",
+    revisionNotes: "Queue = competing consumers (message to one). Topic = pub-sub (every subscriber gets a copy). Queue splits work; topic broadcasts. Wire protocol = AMQP 1.0, plus webhook push subscriptions as an HTTP alternative; names are namespace-scoped.",
   },
   {
     id: "em-q2",
@@ -140,7 +143,7 @@ export const eventMeshQuestions: BtpQuestion[] = [
     tags: ["retry", "reliability"],
     estimatedMinutes: 2,
     expectedAnswer:
-      "If a consumer fails to acknowledge successful processing (throws an error, crashes, or times out), the message broker redelivers the message for another attempt, typically with a configurable retry count and backoff delay, before eventually routing it to a Dead Letter Queue if retries are exhausted.",
+      "If a consumer fails to acknowledge successful processing (throws an error, crashes, or times out), the message broker redelivers the message for another attempt, typically with a configurable retry count and backoff delay, before eventually routing it to a Dead Message Queue if retries are exhausted.",
     detailedAnswer:
       "Messaging systems generally only remove a message from a queue once the consumer explicitly acknowledges successful processing; if that acknowledgment never comes (an exception is thrown, the consumer crashes mid-processing, or a processing timeout is exceeded), the broker considers the message unprocessed and redelivers it — either immediately or after a backoff delay, depending on configuration. This retry behavior handles transient failures gracefully (a downstream database being briefly unavailable, a momentary network blip) without manual intervention, but it also means consumer processing logic should generally be idempotent — safe to run more than once on the same message — since a message might be redelivered even after partially succeeding, if the acknowledgment itself was lost.",
     hindiExplanation:
@@ -148,13 +151,13 @@ export const eventMeshQuestions: BtpQuestion[] = [
     interviewExplanation:
       "I'd explain the acknowledgment-based mechanism: 'The broker only removes a message once the consumer acknowledges successful processing. If that never comes — an error, a crash, a timeout — the broker redelivers it, typically with configurable retry count and backoff. This means consumer logic should be idempotent, since a message could be redelivered even after partial success, if the acknowledgment itself got lost.'",
     diagramNote:
-      "Flow: 'Message delivered to consumer' → 'Consumer fails (error/crash/timeout)' → 'No acknowledgment' → 'Broker redelivers (with backoff)' → repeats until retries exhausted → 'Dead Letter Queue'.",
+      "Flow: 'Message delivered to consumer' → 'Consumer fails (error/crash/timeout)' → 'No acknowledgment' → 'Broker redelivers (with backoff)' → repeats until retries exhausted → 'Dead Message Queue'.",
     diagramMermaid: `flowchart TD
     A["Message delivered to consumer"] --> B["Consumer fails<br/>error/crash/timeout"]
     B --> C["No acknowledgment"]
     C --> D["Broker redelivers<br/>with backoff"]
     D --> A
-    D -.-> E["Retries exhausted →<br/>Dead Letter Queue"]`,
+    D -.-> E["Retries exhausted →<br/>Dead Message Queue"]`,
     realProjectExample:
       "A consumer that briefly lost its database connection had its in-flight messages automatically redelivered and successfully processed once the connection recovered, without any manual intervention — but this only worked correctly because the processing logic was written to be idempotent.",
     interviewTip:
@@ -171,51 +174,51 @@ export const eventMeshQuestions: BtpQuestion[] = [
     importantPoints: [
       "Unacknowledged messages get redelivered (configurable retry count + backoff).",
       "Consumer logic should be idempotent, since redelivery can happen even after partial success.",
-      "Exhausted retries typically route the message to a Dead Letter Queue.",
+      "Exhausted retries typically route the message to a Dead Message Queue.",
     ],
-    revisionNotes: "Failed/unacknowledged message → broker redelivers (retry count + backoff) → consumer logic must be idempotent → exhausted retries go to Dead Letter Queue.",
+    revisionNotes: "Failed/unacknowledged message → broker redelivers (retry count + backoff) → consumer logic must be idempotent → exhausted retries go to Dead Message Queue.",
   },
   {
     id: "em-q5",
-    topic: "Dead Letter Queue",
-    prompt: "What is a Dead Letter Queue, and why is monitoring it important?",
+    topic: "Dead Message Queue",
+    prompt: "What is a Dead Message Queue, and why is monitoring it important?",
     difficulty: "Intermediate",
     experienceLevel: "0-2 Years",
-    tags: ["dead-letter-queue", "monitoring"],
+    tags: ["dead-message-queue", "monitoring"],
     estimatedMinutes: 2,
     expectedAnswer:
-      "A Dead Letter Queue (DLQ) holds messages that failed processing after exhausting all retry attempts, preventing them from being silently lost or endlessly retried; monitoring it is important because messages piling up there represent real business events that were never successfully processed — a silent failure if nobody's watching.",
+      "A Dead Message Queue (DMQ — SAP Event Mesh's term for what's generically called a Dead Letter Queue/DLQ) holds messages that failed processing after exhausting all retry attempts, preventing them from being silently lost or endlessly retried; monitoring it is important because messages piling up there represent real business events that were never successfully processed — a silent failure if nobody's watching.",
     detailedAnswer:
-      "Without a DLQ, a message that a consumer can never successfully process (due to a bug, malformed data, or a persistent downstream outage) would either be retried forever, consuming resources and potentially blocking other messages behind it, or be dropped silently, losing that business event entirely. A DLQ gives failed messages a final resting place after retries are exhausted, letting the main processing pipeline continue unblocked while preserving the failed message for investigation. Critically, a DLQ with no monitoring or alerting is nearly as bad as having no DLQ at all — messages accumulating there represent real, unprocessed business events (an order that was never fulfilled, a notification never sent) that need human attention, not just cold storage nobody ever checks.",
+      "Without a DMQ, a message that a consumer can never successfully process (due to a bug, malformed data, or a persistent downstream outage) would either be retried forever, consuming resources and potentially blocking other messages behind it, or be dropped silently, losing that business event entirely. A DMQ gives failed messages a final resting place after retries are exhausted, letting the main processing pipeline continue unblocked while preserving the failed message for investigation. Critically, a DMQ with no monitoring or alerting is nearly as bad as having no DMQ at all — messages accumulating there represent real, unprocessed business events (an order that was never fulfilled, a notification never sent) that need human attention, not just cold storage nobody ever checks.",
     hindiExplanation:
-      "DLQ ke bina, ek message jise consumer kabhi successfully process nahi kar sakta (bug, malformed data, ya persistent downstream outage ki wajah se) ya toh hamesha ke liye retry hota rahega, resources consume karte hue aur potentially doosre messages ko block karte hue, ya silently drop ho jaayega, us business event ko poori tarah lose karte hue. DLQ failed messages ko ek final resting place deta hai retries exhaust hone ke baad, main processing pipeline ko unblocked chalne deta hai jabki failed message ko investigation ke liye preserve karta hai. Critically, monitoring/alerting ke bina DLQ almost utna hi bura hai jitna koi DLQ na hona — waha accumulate ho rahe messages real, unprocessed business events represent karte hain jinhe human attention chahiye.",
+      "DMQ ke bina, ek message jise consumer kabhi successfully process nahi kar sakta (bug, malformed data, ya persistent downstream outage ki wajah se) ya toh hamesha ke liye retry hota rahega, resources consume karte hue aur potentially doosre messages ko block karte hue, ya silently drop ho jaayega, us business event ko poori tarah lose karte hue. DMQ failed messages ko ek final resting place deta hai retries exhaust hone ke baad, main processing pipeline ko unblocked chalne deta hai jabki failed message ko investigation ke liye preserve karta hai. Critically, monitoring/alerting ke bina DMQ almost utna hi bura hai jitna koi DMQ na hona — waha accumulate ho rahe messages real, unprocessed business events represent karte hain jinhe human attention chahiye.",
     interviewExplanation:
-      "I'd explain both the purpose and the operational responsibility: 'A DLQ catches messages that exhausted all retries, preventing infinite retry loops or silent data loss, and lets the main pipeline continue unblocked. But a DLQ nobody monitors is almost as bad as not having one — messages piling up there are real business events that never got processed, and someone needs to be alerted to investigate, not just let it silently accumulate.'",
+      "I'd explain both the purpose and the operational responsibility: 'A DMQ catches messages that exhausted all retries, preventing infinite retry loops or silent data loss, and lets the main pipeline continue unblocked. But a DMQ nobody monitors is almost as bad as not having one — messages piling up there are real business events that never got processed, and someone needs to be alerted to investigate, not just let it silently accumulate.'",
     diagramNote:
-      "'Message fails all retries' → 'Routed to Dead Letter Queue' → branches: 'Monitored (alert fires, human investigates)' vs 'Unmonitored (silent accumulation — nearly as bad as no DLQ)'.",
+      "'Message fails all retries' → 'Routed to Dead Message Queue' → branches: 'Monitored (alert fires, human investigates)' vs 'Unmonitored (silent accumulation — nearly as bad as no DMQ)'.",
     diagramMermaid: `flowchart TD
-    A["Message fails all retries"] --> B["Routed to Dead Letter Queue"]
+    A["Message fails all retries"] --> B["Routed to Dead Message Queue"]
     B --> C["Monitored: alert fires,<br/>human investigates"]
-    B --> D["Unmonitored: silent accumulation<br/>— nearly as bad as no DLQ"]`,
+    B --> D["Unmonitored: silent accumulation<br/>— nearly as bad as no DMQ"]`,
     realProjectExample:
-      "A malformed message from an upstream system silently accumulated in a Dead Letter Queue for two weeks with no alerting configured, representing two weeks of unprocessed order-cancellation events before anyone noticed — after which a monitoring alert on DLQ depth was added immediately.",
+      "A malformed message from an upstream system silently accumulated in a Dead Message Queue for two weeks with no alerting configured, representing two weeks of unprocessed order-cancellation events before anyone noticed — after which a monitoring alert on DMQ depth was added immediately.",
     interviewTip:
-      "If asked 'is having a DLQ enough for reliability', the correct answer is no — explicitly mention that monitoring/alerting on it is just as essential as the DLQ's existence itself.",
+      "If asked 'is having a DMQ enough for reliability', the correct answer is no — explicitly mention that monitoring/alerting on it is just as essential as the DMQ's existence itself.",
     followupQuestions: [
-      "What would you alert on specifically — DLQ depth, or something else?",
-      "How would you investigate and reprocess a message stuck in a DLQ?",
-      "What's a common root cause of messages ending up in a DLQ?",
+      "What would you alert on specifically — DMQ depth, or something else?",
+      "How would you investigate and reprocess a message stuck in a DMQ?",
+      "What's a common root cause of messages ending up in a DMQ?",
     ],
     commonMistakes: [
-      "Treating a DLQ's existence alone as sufficient for reliability, without monitoring it.",
-      "Not connecting DLQ accumulation to real, unprocessed business impact.",
+      "Treating a DMQ's existence alone as sufficient for reliability, without monitoring it.",
+      "Not connecting DMQ accumulation to real, unprocessed business impact.",
     ],
     importantPoints: [
-      "DLQ = final destination for messages that exhausted all retries.",
+      "DMQ = final destination for messages that exhausted all retries.",
       "Prevents infinite retry loops and silent message loss.",
-      "Monitoring/alerting on DLQ depth is essential — an unmonitored DLQ is nearly as bad as none.",
+      "Monitoring/alerting on DMQ depth is essential — an unmonitored DMQ is nearly as bad as none.",
     ],
-    revisionNotes: "DLQ = catches messages after retries exhausted, prevents silent loss/infinite retry. Must be monitored/alerted on — unmonitored DLQ ≈ no DLQ.",
+    revisionNotes: "DMQ = catches messages after retries exhausted, prevents silent loss/infinite retry. Must be monitored/alerted on — unmonitored DMQ ≈ no DMQ.",
   },
   {
     id: "em-q6",
@@ -390,15 +393,15 @@ export const eventMeshQuestions: BtpQuestion[] = [
     tags: ["publish-subscribe", "reliability"],
     estimatedMinutes: 2,
     expectedAnswer:
-      "By design, the publisher generally doesn't and shouldn't know — that's the whole point of the decoupling; instead, each subscriber is responsible for its own reliability (retries, Dead Letter Queue, monitoring), and if genuine end-to-end confirmation is business-critical, that's modeled as an explicit separate mechanism (like the subscriber publishing its own completion event) rather than the publisher somehow reaching back to check on subscribers.",
+      "By design, the publisher generally doesn't and shouldn't know — that's the whole point of the decoupling; instead, each subscriber is responsible for its own reliability (retries, Dead Message Queue, monitoring), and if genuine end-to-end confirmation is business-critical, that's modeled as an explicit separate mechanism (like the subscriber publishing its own completion event) rather than the publisher somehow reaching back to check on subscribers.",
     detailedAnswer:
-      "This is a common misunderstanding to correct: pub-sub's core value proposition is precisely that the publisher doesn't need to know or care about subscriber outcomes — reintroducing that dependency (the publisher checking whether each subscriber succeeded) would undo the decoupling benefit entirely, effectively turning it back into a synchronous dependency chain. Each subscriber is independently responsible for its own reliability — retry logic, a Dead Letter Queue for failures, its own monitoring/alerting. If there's a genuine business need for end-to-end confirmation (like 'I need to know the fraud check genuinely completed before releasing the order'), that's modeled as its own explicit mechanism — the fraud-check subscriber publishing its own 'fraud-check-completed' event that something else waits for — not the original publisher somehow monitoring subscriber-side success.",
+      "This is a common misunderstanding to correct: pub-sub's core value proposition is precisely that the publisher doesn't need to know or care about subscriber outcomes — reintroducing that dependency (the publisher checking whether each subscriber succeeded) would undo the decoupling benefit entirely, effectively turning it back into a synchronous dependency chain. Each subscriber is independently responsible for its own reliability — retry logic, a Dead Message Queue for failures, its own monitoring/alerting. If there's a genuine business need for end-to-end confirmation (like 'I need to know the fraud check genuinely completed before releasing the order'), that's modeled as its own explicit mechanism — the fraud-check subscriber publishing its own 'fraud-check-completed' event that something else waits for — not the original publisher somehow monitoring subscriber-side success.",
     hindiExplanation:
-      "Ye ek common misunderstanding hai jo correct karni chahiye: pub-sub ki core value proposition precisely yahi hai ki publisher ko subscriber outcomes janne/care karne ki zaroorat nahi — us dependency ko reintroduce karna (publisher check kare ki har subscriber succeed hua ya nahi) decoupling fayde ko poori tarah undo kar dega. Har subscriber independently apni reliability ke liye responsible hai — retry logic, failures ke liye ek Dead Letter Queue, apna monitoring/alerting. Agar genuine business need hai end-to-end confirmation ki, wo apna explicit mechanism ki tarah model hota hai — jaise fraud-check subscriber apna 'fraud-check-completed' event publish kare jise kuch aur wait kare.",
+      "Ye ek common misunderstanding hai jo correct karni chahiye: pub-sub ki core value proposition precisely yahi hai ki publisher ko subscriber outcomes janne/care karne ki zaroorat nahi — us dependency ko reintroduce karna (publisher check kare ki har subscriber succeed hua ya nahi) decoupling fayde ko poori tarah undo kar dega. Har subscriber independently apni reliability ke liye responsible hai — retry logic, failures ke liye ek Dead Message Queue, apna monitoring/alerting. Agar genuine business need hai end-to-end confirmation ki, wo apna explicit mechanism ki tarah model hota hai — jaise fraud-check subscriber apna 'fraud-check-completed' event publish kare jise kuch aur wait kare.",
     interviewExplanation:
-      "I'd correct the premise: 'By design, the publisher generally doesn't and shouldn't know — that's the whole point of decoupling. Reintroducing that dependency would undo the benefit entirely. Each subscriber owns its own reliability — retries, its own DLQ, its own monitoring. If genuine end-to-end confirmation is business-critical, I'd model that as its own explicit mechanism — the subscriber publishing a completion event something else waits for — not the original publisher somehow monitoring subscriber success.'",
+      "I'd correct the premise: 'By design, the publisher generally doesn't and shouldn't know — that's the whole point of decoupling. Reintroducing that dependency would undo the benefit entirely. Each subscriber owns its own reliability — retries, its own DMQ, its own monitoring. If genuine end-to-end confirmation is business-critical, I'd model that as its own explicit mechanism — the subscriber publishing a completion event something else waits for — not the original publisher somehow monitoring subscriber success.'",
     diagramNote:
-      "'Publisher emits event' — does NOT track subscriber outcomes (would undo decoupling) → 'Each subscriber owns its own reliability (retry/DLQ/monitoring)' → if genuine confirmation needed: 'Subscriber publishes its own completion event as an explicit separate mechanism'.",
+      "'Publisher emits event' — does NOT track subscriber outcomes (would undo decoupling) → 'Each subscriber owns its own reliability (retry/DMQ/monitoring)' → if genuine confirmation needed: 'Subscriber publishes its own completion event as an explicit separate mechanism'.",
     diagramMermaid: `flowchart TD
     A["Publisher emits event"] -.->|"does NOT track outcomes"| B["Would undo decoupling"]
     A --> C["Each subscriber owns<br/>its own reliability"]
@@ -418,7 +421,7 @@ export const eventMeshQuestions: BtpQuestion[] = [
     ],
     importantPoints: [
       "The publisher generally doesn't and shouldn't know about subscriber-side outcomes — that's the point of decoupling.",
-      "Each subscriber independently owns its own reliability (retries, DLQ, monitoring).",
+      "Each subscriber independently owns its own reliability (retries, DMQ, monitoring).",
       "Genuine end-to-end confirmation needs are modeled as an explicit, separate completion-event mechanism.",
     ],
     revisionNotes: "Publisher shouldn't track subscriber success — that would undo pub-sub's decoupling. Each subscriber owns its own reliability; genuine confirmation needs get modeled as an explicit completion-event mechanism.",
@@ -533,7 +536,7 @@ export const eventMeshQuestions: BtpQuestion[] = [
     followupQuestions: [
       "Would you cap the maximum backoff delay, or let it grow indefinitely?",
       "What's 'jitter' in the context of backoff strategies, and why might you add it?",
-      "How would you decide the retry count limit before routing to a Dead Letter Queue?",
+      "How would you decide the retry count limit before routing to a Dead Message Queue?",
     ],
     commonMistakes: [
       "Defaulting to fixed-delay retries for downstream outages, potentially worsening an already-struggling system.",
@@ -555,21 +558,21 @@ export const eventMeshQuestions: BtpQuestion[] = [
     tags: ["retry", "error-classification"],
     estimatedMinutes: 2,
     expectedAnswer:
-      "No — transient errors (network timeouts, temporary unavailability, rate limiting) are worth retrying since the same attempt might succeed later, but permanent/deterministic errors (malformed data that will never parse, a genuinely invalid business state) will fail identically no matter how many times you retry, so retrying them just wastes time and resources before an inevitable Dead Letter Queue routing.",
+      "No — transient errors (network timeouts, temporary unavailability, rate limiting) are worth retrying since the same attempt might succeed later, but permanent/deterministic errors (malformed data that will never parse, a genuinely invalid business state) will fail identically no matter how many times you retry, so retrying them just wastes time and resources before an inevitable Dead Message Queue routing.",
     detailedAnswer:
-      "Blindly retrying every failure the same way ignores an important distinction: some failures are transient (a momentary network blip, a downstream service briefly overloaded, a rate limit that will reset shortly) where the exact same request genuinely might succeed on a later attempt — these are worth retrying. Others are permanent/deterministic (a message with malformed JSON that will never suddenly become valid JSON, a business rule violation that isn't going to resolve itself, referencing a record that was deleted and won't come back) — retrying these identically will fail every single time, wasting retry attempts, delaying the inevitable Dead Letter Queue routing, and potentially masking the real problem behind generic 'still retrying' noise instead of surfacing it immediately for investigation. A well-designed consumer classifies errors and routes permanent failures to the DLQ immediately rather than exhausting retries pointlessly first.",
+      "Blindly retrying every failure the same way ignores an important distinction: some failures are transient (a momentary network blip, a downstream service briefly overloaded, a rate limit that will reset shortly) where the exact same request genuinely might succeed on a later attempt — these are worth retrying. Others are permanent/deterministic (a message with malformed JSON that will never suddenly become valid JSON, a business rule violation that isn't going to resolve itself, referencing a record that was deleted and won't come back) — retrying these identically will fail every single time, wasting retry attempts, delaying the inevitable Dead Message Queue routing, and potentially masking the real problem behind generic 'still retrying' noise instead of surfacing it immediately for investigation. A well-designed consumer classifies errors and routes permanent failures to the DMQ immediately rather than exhausting retries pointlessly first.",
     hindiExplanation:
       "Har failure ko blindly same tarike se retry karna ek important distinction ignore karta hai: kuch failures transient hote hain (ek momentary network blip, ek downstream service jo briefly overloaded hai, ek rate limit jo shortly reset hoga) jaha exact same request genuinely ek baad ke attempt pe succeed ho sakti hai — ye retry karne layak hain. Doosre permanent/deterministic hote hain (malformed JSON wala message jo kabhi suddenly valid JSON nahi banega, ek business rule violation jo khud resolve nahi hone wala) — inhe identically retry karna har baar fail hoga, retry attempts waste karta hue.",
     interviewExplanation:
-      "I'd explain the classification and why it matters: 'No — transient errors, like network timeouts or temporary overload, are worth retrying since the same request might succeed later. Permanent errors, like malformed data that'll never parse or a deleted record reference, will fail identically every time — retrying them just wastes attempts and delays the inevitable DLQ routing, potentially masking the real problem in generic retry noise. A well-designed consumer classifies errors and routes permanent failures to the DLQ immediately rather than exhausting retries pointlessly.'",
+      "I'd explain the classification and why it matters: 'No — transient errors, like network timeouts or temporary overload, are worth retrying since the same request might succeed later. Permanent errors, like malformed data that'll never parse or a deleted record reference, will fail identically every time — retrying them just wastes attempts and delays the inevitable DMQ routing, potentially masking the real problem in generic retry noise. A well-designed consumer classifies errors and routes permanent failures to the DMQ immediately rather than exhausting retries pointlessly.'",
     diagramNote:
-      "'Transient error (network blip, temp overload)' → worth retrying, might succeed later vs 'Permanent error (malformed data, deleted record)' → will fail identically every time, route to DLQ immediately instead of wasting retries.",
+      "'Transient error (network blip, temp overload)' → worth retrying, might succeed later vs 'Permanent error (malformed data, deleted record)' → will fail identically every time, route to DMQ immediately instead of wasting retries.",
     diagramMermaid: `flowchart TD
     A["Error occurs"] --> B{"Transient or<br/>permanent?"}
     B -->|"Transient"| C["Retry — might<br/>succeed later"]
-    B -->|"Permanent"| D["Route to DLQ<br/>immediately, don't waste retries"]`,
+    B -->|"Permanent"| D["Route to DMQ<br/>immediately, don't waste retries"]`,
     realProjectExample:
-      "A consumer that blindly retried every error type, including permanently malformed messages, wasted significant processing time retrying messages that could never possibly succeed before finally routing to the DLQ — adding error classification let permanent failures skip straight to the DLQ, freeing up retry capacity for genuinely transient issues.",
+      "A consumer that blindly retried every error type, including permanently malformed messages, wasted significant processing time retrying messages that could never possibly succeed before finally routing to the DMQ — adding error classification let permanent failures skip straight to the DMQ, freeing up retry capacity for genuinely transient issues.",
     interviewTip:
       "If asked how you'd design retry logic, explicitly distinguishing transient from permanent errors (rather than treating all failures identically) shows a more thoughtful, production-grade approach to reliability design.",
     followupQuestions: [
@@ -579,57 +582,57 @@ export const eventMeshQuestions: BtpQuestion[] = [
     ],
     commonMistakes: [
       "Retrying every error identically without distinguishing transient from permanent failures.",
-      "Wasting retry attempts and delaying DLQ routing for errors that will never resolve through retrying.",
+      "Wasting retry attempts and delaying DMQ routing for errors that will never resolve through retrying.",
     ],
     importantPoints: [
       "Transient errors (network issues, temporary overload) are genuinely worth retrying.",
       "Permanent/deterministic errors will fail identically no matter how many retries occur.",
-      "Well-designed consumers classify errors and route permanent failures to the DLQ immediately.",
+      "Well-designed consumers classify errors and route permanent failures to the DMQ immediately.",
     ],
-    revisionNotes: "Classify errors: transient (network/overload — worth retrying) vs permanent (malformed data/deleted record — will always fail, route to DLQ immediately instead of wasting retries).",
+    revisionNotes: "Classify errors: transient (network/overload — worth retrying) vs permanent (malformed data/deleted record — will always fail, route to DMQ immediately instead of wasting retries).",
   },
   {
     id: "em-q15",
-    topic: "Dead Letter Queue",
-    prompt: "How would you safely reprocess messages from a Dead Letter Queue after fixing the underlying bug that caused them to fail?",
+    topic: "Dead Message Queue",
+    prompt: "How would you safely reprocess messages from a Dead Message Queue after fixing the underlying bug that caused them to fail?",
     difficulty: "Advanced",
     experienceLevel: "2-5 Years",
-    tags: ["dead-letter-queue", "reprocessing"],
+    tags: ["dead-message-queue", "reprocessing"],
     estimatedMinutes: 2,
     expectedAnswer:
-      "Verify the fix actually resolves the failure mode against a sample of the DLQ messages first, then replay them back into the original processing path (often the original queue/topic) in a controlled, monitored, and ideally rate-limited manner, watching closely for any new failures rather than assuming the fix works for every message.",
+      "Verify the fix actually resolves the failure mode against a sample of the DMQ messages first, then replay them back into the original processing path (often the original queue/topic) in a controlled, monitored, and ideally rate-limited manner, watching closely for any new failures rather than assuming the fix works for every message.",
     detailedAnswer:
-      "Blindly replaying every DLQ message immediately after a fix risks re-triggering the same failure at scale if the fix was incomplete, or if some messages failed for a genuinely different reason than the one just fixed. A safer approach: first test the fix against a small sample of representative DLQ messages to confirm it actually resolves their specific failure, then replay the remainder back into the original processing path in a controlled, rate-limited, monitored way — watching for new failures as reprocessing proceeds, rather than dumping everything back in at once and hoping for the best. Messages that still fail even after the fix should be investigated as a potentially distinct root cause, not assumed to be resolved by the same fix that worked for others.",
+      "Blindly replaying every DMQ message immediately after a fix risks re-triggering the same failure at scale if the fix was incomplete, or if some messages failed for a genuinely different reason than the one just fixed. A safer approach: first test the fix against a small sample of representative DMQ messages to confirm it actually resolves their specific failure, then replay the remainder back into the original processing path in a controlled, rate-limited, monitored way — watching for new failures as reprocessing proceeds, rather than dumping everything back in at once and hoping for the best. Messages that still fail even after the fix should be investigated as a potentially distinct root cause, not assumed to be resolved by the same fix that worked for others.",
     hindiExplanation:
-      "Har DLQ message ko fix ke turant baad blindly replay karna risk rakhta hai same failure ko scale pe re-trigger karne ka agar fix incomplete tha, ya kuch messages genuinely ek different reason se fail hue the jo abhi fix nahi hua. Ek safer approach: pehle fix ko ek chhoti sample of representative DLQ messages ke against test karo ye confirm karne ke liye ki wo actually unki specific failure resolve karta hai, fir remainder ko wapas original processing path mein replay karo ek controlled, rate-limited, monitored tarike se.",
+      "Har DMQ message ko fix ke turant baad blindly replay karna risk rakhta hai same failure ko scale pe re-trigger karne ka agar fix incomplete tha, ya kuch messages genuinely ek different reason se fail hue the jo abhi fix nahi hua. Ek safer approach: pehle fix ko ek chhoti sample of representative DMQ messages ke against test karo ye confirm karne ke liye ki wo actually unki specific failure resolve karta hai, fir remainder ko wapas original processing path mein replay karo ek controlled, rate-limited, monitored tarike se.",
     interviewExplanation:
-      "I'd describe a cautious, staged approach: 'Blindly replaying everything immediately risks re-triggering the same failure at scale if the fix is incomplete. I'd first test the fix against a small sample of representative DLQ messages to confirm it actually resolves their failure, then replay the rest into the original path in a controlled, rate-limited, monitored way — watching for new failures rather than dumping everything back at once. Messages that still fail after the fix need investigating as a potentially distinct root cause.'",
+      "I'd describe a cautious, staged approach: 'Blindly replaying everything immediately risks re-triggering the same failure at scale if the fix is incomplete. I'd first test the fix against a small sample of representative DMQ messages to confirm it actually resolves their failure, then replay the rest into the original path in a controlled, rate-limited, monitored way — watching for new failures rather than dumping everything back at once. Messages that still fail after the fix need investigating as a potentially distinct root cause.'",
     diagramNote:
-      "'Fix deployed' → 'Test fix against small sample of DLQ messages first' → confirmed working → 'Replay remainder in controlled, rate-limited, monitored batches' → watch for new failures throughout.",
+      "'Fix deployed' → 'Test fix against small sample of DMQ messages first' → confirmed working → 'Replay remainder in controlled, rate-limited, monitored batches' → watch for new failures throughout.",
     diagramMermaid: `flowchart TD
-    A["Fix deployed"] --> B["Test against small sample<br/>of DLQ messages first"]
+    A["Fix deployed"] --> B["Test against small sample<br/>of DMQ messages first"]
     B --> C["Confirmed working"]
     C --> D["Replay remainder:<br/>controlled, rate-limited, monitored"]
     D --> E["Watch for new failures<br/>throughout reprocessing"]`,
     realProjectExample:
-      "After fixing a bug causing malformed-date parsing failures, the team first replayed a sample of ten affected DLQ messages successfully before replaying the remaining several hundred in small rate-limited batches with close monitoring, catching a handful of messages that failed for an entirely unrelated reason and needed separate investigation.",
+      "After fixing a bug causing malformed-date parsing failures, the team first replayed a sample of ten affected DMQ messages successfully before replaying the remaining several hundred in small rate-limited batches with close monitoring, catching a handful of messages that failed for an entirely unrelated reason and needed separate investigation.",
     interviewTip:
-      "If asked how you'd reprocess a large DLQ backlog after a fix, describing this sample-first, controlled-and-monitored replay approach (rather than 'just replay everything') shows production-grade operational caution.",
+      "If asked how you'd reprocess a large DMQ backlog after a fix, describing this sample-first, controlled-and-monitored replay approach (rather than 'just replay everything') shows production-grade operational caution.",
     followupQuestions: [
       "How would you rate-limit the replay to avoid overwhelming the downstream system a second time?",
       "What would you do with messages that still fail even after the fix?",
       "How would you decide the sample size for initial fix verification?",
     ],
     commonMistakes: [
-      "Blindly replaying an entire DLQ backlog immediately after a fix without first verifying it against a sample.",
-      "Assuming every DLQ message failed for the same root cause the fix addresses.",
+      "Blindly replaying an entire DMQ backlog immediately after a fix without first verifying it against a sample.",
+      "Assuming every DMQ message failed for the same root cause the fix addresses.",
     ],
     importantPoints: [
-      "Verify a fix against a small sample of DLQ messages before full-scale replay.",
+      "Verify a fix against a small sample of DMQ messages before full-scale replay.",
       "Replay the remainder in a controlled, rate-limited, monitored manner.",
       "Investigate messages that still fail after the fix as a potentially distinct root cause.",
     ],
-    revisionNotes: "DLQ reprocessing after a fix: test against a small sample first, then replay the rest in controlled, rate-limited, monitored batches — don't assume every message shares the same root cause.",
+    revisionNotes: "DMQ reprocessing after a fix: test against a small sample first, then replay the rest in controlled, rate-limited, monitored batches — don't assume every message shares the same root cause.",
   },
 ];
 
@@ -683,16 +686,16 @@ export const eventMeshMcqs: BtpMcq[] = [
   },
   {
     id: "em-mcq5",
-    topic: "Dead Letter Queue",
-    prompt: "Why is monitoring a Dead Letter Queue important, not just having one?",
+    topic: "Dead Message Queue",
+    prompt: "Why is monitoring a Dead Message Queue important, not just having one?",
     options: [
-      "It isn't important, DLQs are self-managing",
-      "Unmonitored DLQ accumulation represents real, unprocessed business events going unnoticed",
-      "DLQs automatically delete old messages",
+      "It isn't important, DMQs are self-managing",
+      "Unmonitored DMQ accumulation represents real, unprocessed business events going unnoticed",
+      "DMQs automatically delete old messages",
       "Monitoring is only needed in production, not other environments",
     ],
     correctIndex: 1,
-    explanation: "Messages accumulating in a DLQ represent real business events that failed processing — without monitoring/alerting, this failure goes unnoticed, nearly as bad as having no DLQ.",
+    explanation: "Messages accumulating in a DMQ represent real business events that failed processing — without monitoring/alerting, this failure goes unnoticed, nearly as bad as having no DMQ.",
   },
   {
     id: "em-mcq6",
@@ -741,7 +744,7 @@ export const eventMeshMcqs: BtpMcq[] = [
       "It retries faster overall",
       "It reduces load on a struggling downstream system precisely when it needs relief most",
       "It guarantees zero message loss",
-      "It eliminates the need for a Dead Letter Queue",
+      "It eliminates the need for a Dead Message Queue",
     ],
     correctIndex: 1,
     explanation: "Exponential backoff increases the delay between attempts as failures continue, reducing load on a struggling system, unlike fixed-delay retries which hit it at a constant rate throughout an outage.",
@@ -752,11 +755,11 @@ export const eventMeshMcqs: BtpMcq[] = [
     prompt: "Should a permanently malformed message be retried the same way as a transient network error?",
     options: [
       "Yes, all errors should be retried identically",
-      "No — permanent errors will fail identically every time; they should route to the DLQ rather than waste retry attempts",
+      "No — permanent errors will fail identically every time; they should route to the DMQ rather than waste retry attempts",
       "Only if the message is under 1KB",
       "Only during business hours",
     ],
     correctIndex: 1,
-    explanation: "Transient errors are worth retrying since the same attempt might succeed later; permanent/deterministic errors will fail every time, so retrying them wastes time before an inevitable DLQ routing.",
+    explanation: "Transient errors are worth retrying since the same attempt might succeed later; permanent/deterministic errors will fail every time, so retrying them wastes time before an inevitable DMQ routing.",
   },
 ];

@@ -20,7 +20,7 @@ import {
   useBtpStudyStore,
 } from "@/store/use-btp-study-store";
 
-export function BtpDashboard() {
+export function BtpDashboard({ showFullLink = true }: { showFullLink?: boolean }) {
   const completed = useBtpStudyStore((s) => s.completed);
   const bookmarks = useBtpStudyStore((s) => s.bookmarks);
   const confidence = useBtpStudyStore((s) => s.confidence);
@@ -87,9 +87,16 @@ export function BtpDashboard() {
     <div className="animate-fade-up mb-10">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="font-serif text-xl font-semibold tracking-tight text-foreground">Your Dashboard</h2>
-        {allMcqs.length > 0 && mcqAttempts > 0 && (
-          <span className="text-[11px] text-muted">MCQ accuracy: {mcqAccuracy}%</span>
-        )}
+        <div className="flex items-center gap-3">
+          {allMcqs.length > 0 && mcqAttempts > 0 && (
+            <span className="text-[11px] text-muted">MCQ accuracy: {mcqAccuracy}%</span>
+          )}
+          {showFullLink && (
+            <Link href="/btp/dashboard" className="text-[11px] font-semibold text-accent hover:underline">
+              Full dashboard &rarr;
+            </Link>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">

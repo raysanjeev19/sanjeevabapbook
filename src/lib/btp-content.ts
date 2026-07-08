@@ -306,7 +306,7 @@ export const btpSections: BtpSection[] = [
     color: "#2DD4BF",
     difficulty: "Advanced",
     targetQuestionCount: 15,
-    topics: ["Queues", "Topics", "Publish Subscribe", "Events", "Retry", "Dead Letter Queue"],
+    topics: ["Queues", "Topics", "Publish Subscribe", "Events", "Retry", "Dead Message Queue"],
   },
   {
     slug: "html5-apps",
@@ -323,12 +323,12 @@ export const btpSections: BtpSection[] = [
     slug: "launchpad-service",
     order: 12,
     title: "Launchpad Service",
-    description: "Tiles, catalogs, groups, and intent-based navigation for the Fiori launchpad.",
+    description: "Spaces, Pages, and Content Manager (today's model) alongside the legacy Catalog/Group model and intent-based navigation for the Fiori launchpad.",
     icon: "LayoutGrid",
     color: "#818CF8",
     difficulty: "Beginner",
     targetQuestionCount: 15,
-    topics: ["Tiles", "Catalog", "Groups", "Roles", "Navigation", "Intent"],
+    topics: ["Tiles", "Spaces & Pages", "Catalog", "Groups", "Roles", "Navigation", "Intent"],
   },
   {
     slug: "sap-build",

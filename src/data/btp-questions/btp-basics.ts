@@ -144,17 +144,18 @@ export const btpBasicsQuestions: BtpQuestion[] = [
     tags: ["evolution", "history"],
     estimatedMinutes: 3,
     expectedAnswer:
-      "It started as SAP HANA Cloud Platform (HCP, ~2012, mainly Neo environment), was renamed SAP Cloud Platform (SCP) around 2017 when Cloud Foundry support was added, and was renamed again to SAP Business Technology Platform (BTP) in 2021 when SAP folded Data & Analytics and AI portfolios into the same umbrella.",
+      "It launched in 2012 as SAP NetWeaver Cloud (mainly the Neo environment), was rebranded SAP HANA Cloud Platform (HCP) in 2013, was renamed SAP Cloud Platform (SCP) around 2017 when Cloud Foundry support was added, and was renamed again to SAP Business Technology Platform (BTP) in 2021 when SAP folded Data & Analytics and AI portfolios into the same umbrella.",
     detailedAnswer:
-      "The naming history matters because it tracks a scope expansion: HANA Cloud Platform focused on the HANA database and Neo-based app development. SAP Cloud Platform broadened this to multi-cloud (Cloud Foundry on AWS/Azure/GCP) and added more services. In 2021, SAP merged SCP with its separate Analytics Cloud and Leonardo/AI portfolios under one brand — SAP BTP — to sell 'one platform' instead of multiple disconnected cloud products. Kyma (Kubernetes runtime) was added as a third environment alongside Neo and Cloud Foundry.",
+      "The naming history matters because it tracks a scope expansion: the platform launched in 2012 as SAP NetWeaver Cloud, focused on the Neo environment and Java-based app development; it was rebranded SAP HANA Cloud Platform (HCP) in 2013 to emphasize its tie to the HANA database. SAP Cloud Platform broadened this to multi-cloud (Cloud Foundry on AWS/Azure/GCP) and added more services. In 2021, SAP merged SCP with its separate Analytics Cloud and Leonardo/AI portfolios under one brand — SAP BTP — to sell 'one platform' instead of multiple disconnected cloud products. Kyma (Kubernetes runtime) was added as a third environment alongside Neo and Cloud Foundry.",
     hindiExplanation:
-      "BTP ka naam teen baar badal chuka hai, aur ye history interview mein kaafi poochhi jaati hai kyunki isse pata chalta hai ki platform ka scope kaise badha. Sabse pehle, 2012 ke aas-paas, iska naam tha SAP HANA Cloud Platform (HCP) — us waqt sirf HANA database aur Neo environment tha, mainly Java-based apps ke liye. Phir 2017 mein naam badal kar SAP Cloud Platform (SCP) ho gaya, jab Cloud Foundry support add hua — matlab ab platform AWS, Azure, GCP jaise multiple hyperscalers pe bhi chal sakta tha, sirf SAP ke data centers tak limited nahi raha. Fir 2021 mein SAP ne isse SAP Analytics Cloud aur AI/Leonardo portfolio ke saath jodkar naya naam diya — SAP Business Technology Platform (BTP) — taaki sab kuch ek hi brand ke neeche bik sake. Isi dauraan Kyma (Kubernetes-based runtime) bhi teesre environment ke roop mein add hua, Neo aur Cloud Foundry ke saath.",
+      "BTP ka naam chaar baar badal chuka hai, aur ye history interview mein kaafi poochhi jaati hai kyunki isse pata chalta hai ki platform ka scope kaise badha. Sabse pehle, 2012 mein, iska naam tha SAP NetWeaver Cloud — us waqt sirf Neo environment tha, mainly Java-based apps ke liye. 2013 mein ise rebrand karke SAP HANA Cloud Platform (HCP) naam diya gaya, HANA database se uska connection emphasize karne ke liye. Phir 2017 mein naam badal kar SAP Cloud Platform (SCP) ho gaya, jab Cloud Foundry support add hua — matlab ab platform AWS, Azure, GCP jaise multiple hyperscalers pe bhi chal sakta tha, sirf SAP ke data centers tak limited nahi raha. Fir 2021 mein SAP ne isse SAP Analytics Cloud aur AI/Leonardo portfolio ke saath jodkar naya naam diya — SAP Business Technology Platform (BTP) — taaki sab kuch ek hi brand ke neeche bik sake. Isi dauraan Kyma (Kubernetes-based runtime) bhi teesre environment ke roop mein add hua, Neo aur Cloud Foundry ke saath.",
     interviewExplanation:
-      "I'd walk through it chronologically: 'It started as SAP HANA Cloud Platform around 2012, focused on the HANA database and the Neo environment. In 2017 it was renamed SAP Cloud Platform when Cloud Foundry support — and multi-cloud support on AWS, Azure, and GCP — was added. Then in 2021, SAP renamed it again to SAP Business Technology Platform, folding in Analytics Cloud and the AI portfolio under one unified brand, and also added Kyma as a third runtime environment.'",
+      "I'd walk through it chronologically: 'It launched in 2012 as SAP NetWeaver Cloud, focused on the Neo environment. In 2013 it was rebranded SAP HANA Cloud Platform to emphasize the HANA database tie-in. In 2017 it was renamed SAP Cloud Platform when Cloud Foundry support — and multi-cloud support on AWS, Azure, and GCP — was added. Then in 2021, SAP renamed it again to SAP Business Technology Platform, folding in Analytics Cloud and the AI portfolio under one unified brand, and also added Kyma as a third runtime environment.'",
     diagramNote:
-      "Timeline arrow: 2012 'HANA Cloud Platform (Neo)' → 2017 'SAP Cloud Platform (+Cloud Foundry)' → 2021 'SAP BTP (+Analytics, +AI, +Kyma)'.",
+      "Timeline arrow: 2012 'SAP NetWeaver Cloud (Neo only)' → 2013 'rebranded SAP HANA Cloud Platform (HCP)' → 2017 'SAP Cloud Platform (+Cloud Foundry)' → 2021 'SAP BTP (+Analytics, +AI, +Kyma)'.",
     diagramMermaid: `flowchart LR
-    A["2012<br/>HANA Cloud Platform<br/>Neo only"] --> B["2017<br/>SAP Cloud Platform<br/>+Cloud Foundry"]
+    A["2012<br/>SAP NetWeaver Cloud<br/>Neo only"] --> A2["2013<br/>rebranded SAP HANA<br/>Cloud Platform (HCP)"]
+    A2 --> B["2017<br/>SAP Cloud Platform<br/>+Cloud Foundry"]
     B --> C["2021<br/>SAP BTP<br/>+Analytics, AI, Kyma"]`,
     realProjectExample:
       "Legacy Neo-based apps built under the old HCP branding are a common migration project today — clients ask to move them to Cloud Foundry or Kyma as part of BTP modernization.",
@@ -170,11 +171,11 @@ export const btpBasicsQuestions: BtpQuestion[] = [
       "Not knowing Neo predates Cloud Foundry support.",
     ],
     importantPoints: [
-      "HCP → SCP → BTP is a rename + scope expansion, not a rebuild.",
+      "NetWeaver Cloud (2012) → HCP (2013) → SCP → BTP is a rename + scope expansion, not a rebuild.",
       "Neo is the oldest, most limited environment; avoid it for new projects.",
       "BTP name reflects unification of app dev, data, analytics, and AI.",
     ],
-    revisionNotes: "HCP (2012, Neo) → SCP (2017, +CF) → BTP (2021, +Analytics/AI/Kyma).",
+    revisionNotes: "NetWeaver Cloud (2012, Neo) → rebranded HCP (2013) → SCP (2017, +CF) → BTP (2021, +Analytics/AI/Kyma).",
   },
   {
     id: "btp-basics-q5",

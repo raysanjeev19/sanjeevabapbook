@@ -1,11 +1,11 @@
 "use client";
 
 import * as Dialog from "@radix-ui/react-dialog";
-import { BookOpen, Cloud, CornerDownLeft, FileText, Search } from "lucide-react";
+import { BookOpen, Cloud, CornerDownLeft, FileText, FlaskConical, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { allQuestions, chapters } from "@/lib/content";
-import { btpSections, getAllBtpQuestions } from "@/lib/btp-content";
+import { btpSections, getAllBtpLabs, getAllBtpQuestions } from "@/lib/btp-content";
 import { cn } from "@/lib/utils";
 
 type Item = {
@@ -13,7 +13,7 @@ type Item = {
   label: string;
   sub: string;
   href: string;
-  kind: "chapter" | "question" | "btp-section" | "btp-question";
+  kind: "chapter" | "question" | "btp-section" | "btp-question" | "btp-lab";
   color?: string;
 };
 
@@ -55,6 +55,14 @@ const btpQuestionItems: Item[] = getAllBtpQuestions().map((q) => ({
   kind: "btp-question",
 }));
 
+const btpLabItems: Item[] = getAllBtpLabs().map((l) => ({
+  id: `btp-lab-${l.id}`,
+  label: l.title,
+  sub: "Hands-on Lab",
+  href: "/btp/labs",
+  kind: "btp-lab",
+}));
+
 const haystacks = new Map<string, string>();
 allQuestions.forEach((q) => {
   haystacks.set(`question-${q.id}`, `${q.prompt} ${q.tags.join(" ")}`.toLowerCase());
@@ -64,7 +72,19 @@ btpSections.forEach((s) =>
   haystacks.set(`btp-section-${s.slug}`, `${s.title} ${s.description} ${s.topics.join(" ")}`.toLowerCase()),
 );
 getAllBtpQuestions().forEach((q) =>
-  haystacks.set(`btp-question-${q.id}`, `${q.prompt} ${q.topic} ${q.tags.join(" ")} ${q.sectionTitle}`.toLowerCase()),
+  haystacks.set(
+    `btp-question-${q.id}`,
+    // Includes answer/command/error text so search covers more than just the question title.
+    `${q.prompt} ${q.topic} ${q.tags.join(" ")} ${q.sectionTitle} ${q.expectedAnswer} ${q.detailedAnswer} ${q.revisionNotes} ${q.interviewTip}`.toLowerCase(),
+  ),
+);
+getAllBtpLabs().forEach((l) =>
+  haystacks.set(
+    `btp-lab-${l.id}`,
+    `${l.title} ${l.objective} ${l.steps.map((s) => `${s.instruction} ${s.command ?? ""}`).join(" ")} ${l.commonErrors
+      .map((e) => `${e.error} ${e.solution}`)
+      .join(" ")}`.toLowerCase(),
+  ),
 );
 
 export function CommandPalette() {
@@ -112,7 +132,8 @@ export function CommandPalette() {
     const matchedBtpSections = btpSectionItems.filter((i) => haystacks.get(i.id)?.includes(q));
     const matchedQuestions = questionItems.filter((i) => haystacks.get(i.id)?.includes(q));
     const matchedBtpQuestions = btpQuestionItems.filter((i) => haystacks.get(i.id)?.includes(q));
-    return [...matchedChapters, ...matchedBtpSections, ...matchedQuestions, ...matchedBtpQuestions].slice(0, 40);
+    const matchedBtpLabs = btpLabItems.filter((i) => haystacks.get(i.id)?.includes(q));
+    return [...matchedChapters, ...matchedBtpSections, ...matchedQuestions, ...matchedBtpQuestions, ...matchedBtpLabs].slice(0, 40);
   }, [query]);
 
   function go(item: Item | undefined) {
@@ -187,6 +208,8 @@ export function CommandPalette() {
                 >
                   {item.kind === "chapter" || item.kind === "btp-section" ? (
                     item.kind === "btp-section" ? <Cloud size={15} /> : <BookOpen size={15} />
+                  ) : item.kind === "btp-lab" ? (
+                    <FlaskConical size={15} />
                   ) : (
                     <FileText size={15} />
                   )}

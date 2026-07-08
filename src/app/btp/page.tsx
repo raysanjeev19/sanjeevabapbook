@@ -1,14 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowDown, Cloud, FlaskConical, Layers3, ListChecks, Target } from "lucide-react";
-import { btpSections, btpStageOrder, btpTotalQuestions, getAllBtpLabs } from "@/lib/btp-content";
-import { ink } from "@/lib/utils";
+import { ArrowDown, BrainCircuit, Cloud, FlaskConical, Layers3, ListChecks, Lock, Mic, Shuffle, Sparkles, Target } from "lucide-react";
+import { btpSections, btpStageOrder, btpTotalQuestions, getAllBtpQuestions, getAllBtpLabs } from "@/lib/btp-content";
+import { ink, percent } from "@/lib/utils";
 import { Badge, difficultyVariant } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { btpIconMap } from "@/components/btp/icon-map";
 import { BtpDashboard } from "@/components/btp/dashboard";
 import { SiteNav } from "@/components/layout/site-nav";
+import { useBtpStudyStore } from "@/store/use-btp-study-store";
+
+/** % of a stage's authored questions that must be completed before the next stage is shown as "unlocked". Soft gate only — every node stays clickable, this just signals recommended order. */
+const UNLOCK_THRESHOLD = 40;
 
 const stats = [
   { label: "Sections", value: btpSections.length, Icon: Layers3 },
@@ -16,7 +20,23 @@ const stats = [
   { label: "Target Questions", value: btpTotalQuestions(), Icon: Target },
 ];
 
+const QUICK_ACTIONS = [
+  { href: "/btp/interview", label: "Mock Interview", Icon: Mic },
+  { href: "/btp/quiz", label: "Daily Quiz", Icon: BrainCircuit },
+  { href: "/btp/flashcards", label: "Flashcards", Icon: Sparkles },
+  { href: "/btp/random", label: "Random Question", Icon: Shuffle },
+];
+
 export default function BtpLandingPage() {
+  const completed = useBtpStudyStore((s) => s.completed);
+  const allQuestions = getAllBtpQuestions();
+
+  const stageProgress = btpStageOrder.map((stage) => {
+    const stageQuestions = allQuestions.filter((q) => q.difficulty === stage);
+    const done = stageQuestions.filter((q) => q.id in completed).length;
+    return { stage, pct: stageQuestions.length ? percent(done, stageQuestions.length) : 0 };
+  });
+
   return (
     <main className="min-h-screen bg-background">
       <SiteNav breadcrumb="BTP" maxWidth="max-w-5xl" />
@@ -40,6 +60,18 @@ export default function BtpLandingPage() {
             >
               <FlaskConical size={13} className="text-accent" /> {getAllBtpLabs().length} Hands-on Labs
             </Link>
+
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-1.5">
+              {QUICK_ACTIONS.map(({ href, label, Icon }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="hover-lift flex items-center gap-1.5 rounded-full bg-gradient-accent px-3 py-1.5 text-xs font-semibold text-white"
+                >
+                  <Icon size={13} /> {label}
+                </Link>
+              ))}
+            </div>
           </div>
 
           <BtpDashboard />
@@ -64,12 +96,23 @@ export default function BtpLandingPage() {
           <div className="flex flex-col items-stretch gap-2">
             {btpStageOrder.map((stage, i) => {
               const sections = btpSections.filter((s) => s.difficulty === stage);
+              const prevPct = i === 0 ? 100 : stageProgress[i - 1].pct;
+              const unlocked = i === 0 || prevPct >= UNLOCK_THRESHOLD;
               return (
                 <div key={stage}>
-                  <Card className="p-4">
+                  <Card className={`p-4 ${unlocked ? "" : "opacity-70"}`}>
                     <div className="mb-3 flex items-center gap-2">
                       <Badge variant={difficultyVariant(stage)}>{stage}</Badge>
                       <span className="text-xs text-muted">{sections.length} sections</span>
+                      {!unlocked && (
+                        <span className="ml-auto flex items-center gap-1 text-[10px] font-medium text-faint">
+                          <Lock size={11} /> Finish {UNLOCK_THRESHOLD}% of {btpStageOrder[i - 1]} to unlock
+                          ({prevPct}%)
+                        </span>
+                      )}
+                      {unlocked && stageProgress[i].pct > 0 && (
+                        <span className="ml-auto text-[10px] font-semibold text-accent">{stageProgress[i].pct}% done</span>
+                      )}
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {sections.map((section) => {
@@ -78,9 +121,11 @@ export default function BtpLandingPage() {
                           <Link
                             key={section.slug}
                             href={`/btp/${section.slug}`}
-                            className="hover-lift group flex items-center gap-1.5 rounded-lg border border-border bg-surface-2 px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors duration-200 hover:border-border-strong"
+                            className={`hover-lift group flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium transition-colors duration-200 hover:border-border-strong ${
+                              unlocked ? "bg-surface-2 text-foreground" : "bg-surface-2/60 text-muted"
+                            }`}
                           >
-                            <Icon size={13} style={{ color: ink(section.color) }} />
+                            {unlocked ? <Icon size={13} style={{ color: ink(section.color) }} /> : <Lock size={12} className="text-faint" />}
                             {section.title}
                           </Link>
                         );

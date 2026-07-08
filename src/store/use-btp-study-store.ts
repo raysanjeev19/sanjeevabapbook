@@ -18,6 +18,8 @@ type BtpStudyState = {
   mcqResults: Record<string, { attempts: number; correct: number }>;
   /** ISO date (YYYY-MM-DD) strings on which the learner completed at least one question. */
   activityDates: string[];
+  /** Daily Quiz result per ISO date, so the streak/history and "already done today" state are derivable. */
+  dailyQuizScores: Record<string, { score: number; total: number }>;
   dailyGoal: number;
   weeklyGoal: number;
 
@@ -27,11 +29,12 @@ type BtpStudyState = {
   setNote: (questionId: string, body: string) => void;
   setConfidence: (questionId: string, level: ConfidenceLevel) => void;
   recordMcqResult: (mcqId: string, correct: boolean) => void;
+  recordDailyQuizScore: (date: string, score: number, total: number) => void;
   setDailyGoal: (n: number) => void;
   setWeeklyGoal: (n: number) => void;
 };
 
-function todayIso() {
+export function todayIso() {
   return new Date().toISOString().slice(0, 10);
 }
 
@@ -44,6 +47,7 @@ export const useBtpStudyStore = create<BtpStudyState>()(
       confidence: {},
       mcqResults: {},
       activityDates: [],
+      dailyQuizScores: {},
       dailyGoal: 5,
       weeklyGoal: 25,
 
@@ -93,6 +97,12 @@ export const useBtpStudyStore = create<BtpStudyState>()(
               : [...state.activityDates, today],
           };
         }),
+
+      recordDailyQuizScore: (date, score, total) =>
+        set((state) => ({
+          dailyQuizScores: { ...state.dailyQuizScores, [date]: { score, total } },
+          activityDates: state.activityDates.includes(date) ? state.activityDates : [...state.activityDates, date],
+        })),
 
       setDailyGoal: (n) => set({ dailyGoal: Math.max(1, n) }),
       setWeeklyGoal: (n) => set({ weeklyGoal: Math.max(1, n) }),

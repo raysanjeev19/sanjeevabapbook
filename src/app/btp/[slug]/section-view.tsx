@@ -4,29 +4,22 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   AlertTriangle,
-  Bookmark,
   BookOpen,
-  Check,
   CheckCircle2,
-  ChevronDown,
-  Clock,
   Cloud,
   FlaskConical,
   GripVertical,
-  Lightbulb,
   ListChecks,
   Mic,
   Rocket,
   Sparkles,
   Target,
-  XCircle,
 } from "lucide-react";
 import type {
   BtpAssignment,
   BtpCodingQuestion,
   BtpDragOrder,
   BtpFillBlank,
-  BtpMcq,
   BtpMiniProject,
   BtpQuestion,
   BtpSection,
@@ -45,9 +38,9 @@ import { ink } from "@/lib/utils";
 import { Badge, difficultyVariant } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { btpIconMap } from "@/components/btp/icon-map";
-import { MermaidDiagram } from "@/components/btp/mermaid-diagram";
+import { QuestionCard, ListField } from "@/components/btp/question-card";
+import { McqQuiz } from "@/components/btp/mcq-quiz";
 import { SiteNav } from "@/components/layout/site-nav";
-import { type ConfidenceLevel, useBtpStudyStore } from "@/store/use-btp-study-store";
 
 const MODES = [
   { key: "learn", label: "Learn", Icon: BookOpen },
@@ -280,177 +273,6 @@ export function BtpSectionView({ section }: { section: BtpSection }) {
         )}
       </div>
     </main>
-  );
-}
-
-function QuestionCard({
-  index,
-  question,
-  defaultOpen = false,
-}: {
-  index: number;
-  question: BtpQuestion;
-  defaultOpen?: boolean;
-}) {
-  const [open, setOpen] = useState(defaultOpen);
-  const [revealed, setRevealed] = useState(false);
-
-  const isBookmarked = useBtpStudyStore((s) => s.bookmarks.includes(question.id));
-  const isCompleted = useBtpStudyStore((s) => question.id in s.completed);
-  const myConfidence = useBtpStudyStore((s) => s.confidence[question.id]);
-  const toggleBookmark = useBtpStudyStore((s) => s.toggleBookmark);
-  const markComplete = useBtpStudyStore((s) => s.markComplete);
-  const setConfidence = useBtpStudyStore((s) => s.setConfidence);
-
-  function rate(level: ConfidenceLevel) {
-    setConfidence(question.id, level);
-    markComplete(question.id);
-  }
-
-  return (
-    <Card className="overflow-hidden">
-      <div className="flex w-full items-start gap-3 p-3.5 text-left">
-        <button onClick={() => setOpen((o) => !o)} className="flex min-w-0 flex-1 items-start gap-3 text-left">
-          <span className="mt-0.5 shrink-0 text-xs font-semibold text-faint">{index}.</span>
-          <div className="min-w-0 flex-1">
-            <p className="text-[13px] font-semibold text-foreground">{question.prompt}</p>
-            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-              <Badge variant={difficultyVariant(question.difficulty)} className="px-1.5 py-0.5 text-[9px]">
-                {question.difficulty}
-              </Badge>
-              <span className="text-[10px] text-muted">{question.experienceLevel}</span>
-              <span className="flex items-center gap-0.5 text-[10px] text-muted">
-                <Clock size={10} /> {question.estimatedMinutes} min
-              </span>
-              {isCompleted && (
-                <span className="flex items-center gap-0.5 text-[10px] font-semibold text-success">
-                  <CheckCircle2 size={11} /> Done
-                </span>
-              )}
-            </div>
-          </div>
-        </button>
-        <button
-          onClick={() => toggleBookmark(question.id)}
-          aria-label="Bookmark"
-          className="shrink-0 p-0.5 text-faint hover:text-accent"
-        >
-          <Bookmark size={15} className={isBookmarked ? "fill-accent text-accent" : ""} />
-        </button>
-        <ChevronDown
-          onClick={() => setOpen((o) => !o)}
-          size={16}
-          className={`mt-0.5 shrink-0 cursor-pointer text-faint transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-        />
-      </div>
-
-      {open && (
-        <div className="animate-fade-up space-y-3 border-t border-border p-4 pt-3.5">
-          {!revealed ? (
-            <button
-              onClick={() => setRevealed(true)}
-              className="hover-lift w-full rounded-lg border border-dashed border-border bg-surface-2 py-3 text-center text-xs font-semibold text-accent"
-            >
-              Reveal Answer (Practice Mode)
-            </button>
-          ) : (
-            <>
-              <Field label="Expected Answer" text={question.expectedAnswer} />
-              <Field label="Detailed Answer (English)" text={question.detailedAnswer} />
-              <Field label="Hinglish Explanation" text={question.hindiExplanation} />
-              <Field label="How To Say It In The Interview" text={question.interviewExplanation} />
-              <div>
-                <h3 className="mb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">Diagram</h3>
-                {question.diagramMermaid ? (
-                  <MermaidDiagram definition={question.diagramMermaid} className="mb-1.5" />
-                ) : null}
-                <p className={`text-xs leading-5 ${question.diagramMermaid ? "italic text-muted" : "text-foreground"}`}>
-                  {question.diagramNote}
-                </p>
-              </div>
-              <Field label="Real Project Example" text={question.realProjectExample} />
-
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <ListField icon={Check} label="Important Points" items={question.importantPoints} tone="success" />
-                <ListField icon={XCircle} label="Common Mistakes" items={question.commonMistakes} tone="error" />
-              </div>
-
-              <ListField icon={Lightbulb} label="Follow-up Questions" items={question.followupQuestions} tone="accent" />
-
-              <div className="flex items-start gap-2 rounded-lg border border-accent/25 bg-accent-soft p-2.5">
-                <Sparkles size={14} className="mt-0.5 shrink-0 text-accent" />
-                <p className="text-xs leading-5 text-foreground">
-                  <span className="font-semibold">Interview Tip: </span>
-                  {question.interviewTip}
-                </p>
-              </div>
-
-              <p className="border-t border-border pt-2.5 text-[11px] font-medium text-muted">
-                <span className="font-semibold text-foreground">Revision: </span>
-                {question.revisionNotes}
-              </p>
-
-              <div className="flex items-center gap-2 border-t border-border pt-3">
-                <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">
-                  How well did you know this?
-                </span>
-                <div className="flex gap-1.5">
-                  {(["low", "medium", "high"] as const).map((level) => (
-                    <button
-                      key={level}
-                      onClick={() => rate(level)}
-                      className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold capitalize transition-colors duration-150 ${
-                        myConfidence === level
-                          ? "border-accent/40 bg-accent-soft text-accent"
-                          : "border-border text-muted hover:border-border-strong"
-                      }`}
-                    >
-                      {level}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      )}
-    </Card>
-  );
-}
-
-function Field({ label, text, muted }: { label: string; text: string; muted?: boolean }) {
-  return (
-    <div>
-      <h3 className="mb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">{label}</h3>
-      <p className={`text-xs leading-5 ${muted ? "italic text-muted" : "text-foreground"}`}>{text}</p>
-    </div>
-  );
-}
-
-function ListField({
-  icon: Icon,
-  label,
-  items,
-  tone,
-}: {
-  icon: typeof Check;
-  label: string;
-  items: string[];
-  tone: "success" | "error" | "accent";
-}) {
-  const toneClass = tone === "success" ? "text-success" : tone === "error" ? "text-error" : "text-accent";
-  return (
-    <div>
-      <h3 className="mb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">{label}</h3>
-      <ul className="space-y-1">
-        {items.map((item) => (
-          <li key={item} className="flex items-start gap-1.5 text-xs leading-5 text-foreground">
-            <Icon size={12} className={`mt-0.5 shrink-0 ${toneClass}`} />
-            {item}
-          </li>
-        ))}
-      </ul>
-    </div>
   );
 }
 
@@ -709,95 +531,6 @@ function MiniProjectCard({ project }: { project: BtpMiniProject }) {
       {project.bonusChallenges.length > 0 && (
         <div className="mt-2.5">
           <ListField icon={Sparkles} label="Bonus Challenges" items={project.bonusChallenges} tone="success" />
-        </div>
-      )}
-    </Card>
-  );
-}
-
-function McqQuiz({ mcqs }: { mcqs: BtpMcq[] }) {
-  const [index, setIndex] = useState(0);
-  const [selected, setSelected] = useState<number | null>(null);
-  const [score, setScore] = useState(0);
-  const [done, setDone] = useState(false);
-  const recordMcqResult = useBtpStudyStore((s) => s.recordMcqResult);
-  const mcq = mcqs[index];
-
-  function choose(i: number) {
-    if (selected !== null) return;
-    setSelected(i);
-    const isCorrect = i === mcq.correctIndex;
-    if (isCorrect) setScore((s) => s + 1);
-    recordMcqResult(mcq.id, isCorrect);
-  }
-
-  function next() {
-    if (index + 1 >= mcqs.length) {
-      setDone(true);
-      return;
-    }
-    setIndex((i) => i + 1);
-    setSelected(null);
-  }
-
-  function restart() {
-    setIndex(0);
-    setSelected(null);
-    setScore(0);
-    setDone(false);
-  }
-
-  if (done) {
-    return (
-      <Card className="animate-fade-up p-5 text-center">
-        <Sparkles size={22} className="mx-auto mb-2 text-accent" />
-        <h2 className="text-sm font-semibold text-foreground">
-          Quiz complete — {score}/{mcqs.length}
-        </h2>
-        <button onClick={restart} className="hover-lift mt-3 rounded-lg border border-border bg-surface-2 px-4 py-2 text-xs font-semibold text-foreground">
-          Retake Quiz
-        </button>
-      </Card>
-    );
-  }
-
-  return (
-    <Card className="p-4">
-      <div className="mb-3 flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.08em] text-faint">
-        <span>MCQ {index + 1} / {mcqs.length}</span>
-        <span>Score: {score}</span>
-      </div>
-      <p className="mb-3 text-[13px] font-semibold text-foreground">{mcq.prompt}</p>
-      <div className="space-y-1.5">
-        {mcq.options.map((opt, i) => {
-          const isCorrect = i === mcq.correctIndex;
-          const isSelected = i === selected;
-          let stateClass = "border-border hover:border-border-strong";
-          if (selected !== null) {
-            if (isCorrect) stateClass = "border-success/40 bg-success-soft";
-            else if (isSelected) stateClass = "border-error/40 bg-error-soft";
-          }
-          return (
-            <button
-              key={opt}
-              onClick={() => choose(i)}
-              disabled={selected !== null}
-              className={`flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left text-xs font-medium text-foreground transition-colors duration-150 ${stateClass}`}
-            >
-              {opt}
-              {selected !== null && isCorrect && <CheckCircle2 size={14} className="shrink-0 text-success" />}
-              {selected !== null && isSelected && !isCorrect && <AlertTriangle size={14} className="shrink-0 text-error" />}
-            </button>
-          );
-        })}
-      </div>
-
-      {selected !== null && (
-        <div className="animate-fade-up mt-3 space-y-2.5">
-          <p className="text-xs leading-5 text-muted">{mcq.explanation}</p>
-          <button onClick={next} className="hover-lift w-full rounded-lg bg-gradient-accent py-2 text-xs font-semibold text-white">
-            {index + 1 >= mcqs.length ? "Finish" : "Next Question"}
-          </button>
         </div>
       )}
     </Card>

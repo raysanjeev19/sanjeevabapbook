@@ -13,9 +13,9 @@ export const launchpadServiceQuestions: BtpQuestion[] = [
     expectedAnswer:
       "A tile is a clickable visual entry point on the Launchpad home page representing one app or action; common types include static tiles (just a link, no live data), dynamic tiles (show live data like a count or KPI, refreshed periodically), and custom tiles (fully custom visuals/behavior).",
     detailedAnswer:
-      "A static tile simply shows a title, icon, and subtitle and navigates to an app when clicked — no runtime data involved. A dynamic tile additionally calls a service (an OData request, typically) to display a live number or short piece of information — like an 'Open Orders: 12' count that updates periodically — giving at-a-glance status before even opening the app. Custom tiles let developers build entirely bespoke visuals and behavior beyond what the standard tile types support, useful for specialized dashboards or KPI displays that don't fit the standard static/dynamic pattern.",
+      "A static tile simply shows a title, icon, and subtitle and navigates to an app when clicked — no runtime data involved. A dynamic tile additionally calls a service (an OData request, typically) to display a live number or short piece of information — like an 'Open Orders: 12' count that updates periodically — giving at-a-glance status before even opening the app. Custom tiles let developers build entirely bespoke visuals and behavior beyond what the standard tile types support, useful for specialized dashboards or KPI displays that don't fit the standard static/dynamic pattern. These three tile types are the same regardless of content model — what differs is where a tile actually lives: in the current, default Spaces & Pages model (configured via the Content Manager), a tile sits inside a Section within a Page; in the legacy Catalog/Group model, it sits inside a Group. The tile itself — static, dynamic, or custom — doesn't change; only its container does.",
     hindiExplanation:
-      "Static tile bas ek title, icon, aur subtitle dikhata hai aur click hone pe ek app navigate karta hai — koi runtime data involved nahi. Dynamic tile additionally ek service call karti hai (typically OData request) live number ya short information dikhane ke liye — jaise 'Open Orders: 12' count jo periodically update hota hai — app khole bina hi at-a-glance status deta hai. Custom tiles developers ko poori tarah bespoke visuals/behavior banane dete hain standard tile types se aage, specialized dashboards ke liye useful.",
+      "Static tile bas ek title, icon, aur subtitle dikhata hai aur click hone pe ek app navigate karta hai — koi runtime data involved nahi. Dynamic tile additionally ek service call karti hai (typically OData request) live number ya short information dikhane ke liye — jaise 'Open Orders: 12' count jo periodically update hota hai — app khole bina hi at-a-glance status deta hai. Custom tiles developers ko poori tarah bespoke visuals/behavior banane dete hain standard tile types se aage, specialized dashboards ke liye useful. Ye teen tile types content model ke hisaab se same rehte hain — jo differ karta hai wo hai tile kaha rehta hai: current, default Spaces & Pages model mein (Content Manager se configure hota hai), tile ek Page ke andar ek Section mein rehta hai; legacy Catalog/Group model mein, wo ek Group mein rehta hai. Tile khud — static, dynamic, ya custom — change nahi hota, sirf uska container change hota hai.",
     interviewExplanation:
       "I'd name all three types: 'A tile is a clickable entry point on the home page. Static tiles just link to an app with no live data. Dynamic tiles call a service, typically OData, to show live data like a count, refreshed periodically. Custom tiles let developers build entirely bespoke visuals for cases the standard types don't cover.'",
     diagramNote:
@@ -47,44 +47,53 @@ export const launchpadServiceQuestions: BtpQuestion[] = [
   {
     id: "lp-q2",
     topic: "Catalog",
-    prompt: "What is a Catalog in the Launchpad configuration, and how does it relate to what a user sees?",
+    prompt: "What is a Catalog in the Launchpad configuration, and how does it relate to what a user sees? Is Catalog/Group still how modern BTP Launchpad Service content is modeled?",
     difficulty: "Intermediate",
     experienceLevel: "0-2 Years",
-    tags: ["catalog", "configuration"],
-    estimatedMinutes: 2,
+    tags: ["catalog", "configuration", "spaces-pages"],
+    estimatedMinutes: 3,
     expectedAnswer:
-      "A Catalog is the definition of available tiles/apps and their target mappings — essentially the full inventory of what exists; a user only sees tiles from catalogs that are assigned to them (typically via a role), not the entire catalog inventory automatically.",
+      "A Catalog is the definition of available tiles/apps and their target mappings — the full inventory of what exists; a user only sees tiles from catalogs assigned to them (via a role), not the entire inventory automatically. Important nuance: Catalog + Group is the LEGACY content model. Since the 2021 release, the current, SAP-recommended default for the BTP Launchpad Service / SAP Build Work Zone is Spaces & Pages, configured in the Content Manager, with Role Collections assigning users to Spaces — Catalog/Group is now mainly kept around to federate content from on-premise ABAP Fiori Launchpad systems and for older tenants that haven't migrated.",
     detailedAnswer:
-      "A Catalog contains tile definitions (which app, which intent, display properties) — think of it as the master list of everything potentially available in an area of the business. But simply existing in a catalog doesn't mean a specific user sees it; catalogs are assigned to roles, and only users with a role that includes a given catalog actually get access to those tiles (and only if they're also added to a Group they can see, which we'll cover separately). This two-level design — catalog defines what exists, role/group assignment determines who actually sees what — is what enables fine-grained, role-based Launchpad personalization at scale.",
+      "A Catalog contains tile definitions (which app, which intent, display properties) — the master list of everything potentially available in an area of the business. Simply existing in a catalog doesn't mean a specific user sees it; catalogs are assigned to roles, and only users with a role that includes a given catalog actually get access to those tiles (and only if they're also added to a Group they can see). That two-level design — catalog defines what exists, role/group assignment determines who sees what — is the mechanism, but it's the OLDER mechanism. Since 2021, SAP's default and recommended content model for the BTP Launchpad Service (and SAP Build Work Zone, standard and advanced editions) is Spaces & Pages: a Space is a container of one or more Pages representing a role/persona-based work area (e.g. 'Finance Manager'), a Page holds Sections, and each Section holds the actual app tiles — all configured through the Content Manager admin tool, with Role Collections doing the assignment (a Role Collection is assigned to a Space, and everyone holding that Role Collection gets that Space, and therefore its Pages/tiles, on their launchpad). Catalog/Group hasn't disappeared — it's still fully supported and is the mechanism used to federate content from an on-premise ABAP Fiori Launchpad (SAP_UI business catalogs exposed via a system alias/destination) into the cloud launchpad, and some tenants that pre-date the 2021 change still run on it — but for anything built new today, Spaces & Pages is what you configure.",
     hindiExplanation:
-      "Catalog tile definitions contain karta hai (kaunsa app, kaunsa intent, display properties) — ise business ke ek area mein potentially available sab kuch ki master list samjho. Lekin sirf catalog mein exist karne ka matlab ye nahi ki koi specific user use dekhega — catalogs roles ko assign hote hain, aur sirf un users ko jinke paas ek role hai jisme ek given catalog include hai, un tiles tak access milta hai. Ye two-level design — catalog batata hai kya exist karta hai, role/group assignment decide karta hai kaun kya actually dekhta hai — fine-grained, role-based Launchpad personalization enable karta hai scale pe.",
+      "Catalog tile definitions contain karta hai (kaunsa app, kaunsa intent, display properties) — business ke ek area mein potentially available sab kuch ki master list. Sirf catalog mein exist karne ka matlab ye nahi ki koi specific user use dekhega — catalogs roles ko assign hote hain, aur sirf un users ko jinke paas wo role hai, tiles tak access milta hai. Lekin ye poora Catalog+Group mechanism ab LEGACY hai. 2021 se, BTP Launchpad Service / SAP Build Work Zone ka default aur recommended content model Spaces & Pages hai: Space ek container hai ek ya zyada Pages ka, ek role/persona-based work area represent karta hai (jaise 'Finance Manager'), Page ke andar Sections hote hain, aur Section ke andar actual tiles — sab Content Manager admin tool se configure hota hai, Role Collections assignment karti hain (ek Role Collection Space ko assign hoti hai, jiske paas wo Role Collection hai use wo Space, aur uski Pages/tiles, launchpad pe milti hain). Catalog/Group gaya nahi hai — abhi bhi fully supported hai aur on-premise ABAP Fiori Launchpad ka content cloud launchpad mein federate karne ke liye use hota hai, aur kuch purane tenants abhi bhi isi pe chal rahe hain — lekin naya kuch banate waqt Spaces & Pages hi configure karte hain.",
     interviewExplanation:
-      "I'd explain the two-level model: 'A Catalog is the master inventory of tile definitions — which app, which intent. But existing in a catalog doesn't mean a user sees it automatically. Catalogs get assigned to roles, and only users with that role — and who can see the relevant Group — actually get access to those tiles. Catalog defines what exists; role assignment decides who sees it.'",
+      "I'd correct the premise first, then explain both models: 'A Catalog is the master inventory of tile definitions, assigned to roles, with Groups being the actual arranged home page — but that's the legacy model. Since 2021, the default and recommended model for BTP Launchpad Service and Work Zone is Spaces and Pages, configured in the Content Manager, with Role Collections assigning users to Spaces. Catalog/Group is still fully supported and is mainly used today to federate content from an on-premise ABAP Fiori Launchpad, or on tenants that haven't migrated — but if I were configuring something new, I'd reach for Spaces and Pages.'",
     diagramNote:
-      "'Catalog (master tile inventory)' → assigned to → 'Role' → assigned to → 'User' → 'User sees only catalog tiles their role grants access to'.",
-    diagramMermaid: `flowchart LR
+      "Legacy: 'Catalog (master tile inventory)' → assigned to → 'Role' → assigned to → 'User'. Current default: 'Content Manager' → 'Space (container of Pages)' → 'Role Collection assigned to the Space' → 'User with that Role Collection sees the Space's Pages/tiles'. Catalog/Group persists mainly for on-prem ABAP Fiori Launchpad content federation.",
+    diagramMermaid: `flowchart TD
+    subgraph Legacy["Legacy model (still supported)"]
     A["Catalog<br/>master tile inventory"] --> B["Role"]
     B --> C["User"]
-    C --> D["Sees only tiles<br/>their role grants"]`,
+    end
+    subgraph Current["Current default (since 2021)"]
+    D["Content Manager"] --> E["Space<br/>container of Pages"]
+    E --> F["Role Collection<br/>assigned to Space"]
+    F --> G["User with that<br/>Role Collection"]
+    end
+    Legacy -.->|"used to federate<br/>on-prem ABAP Fiori Launchpad content"| Current`,
     realProjectExample:
-      "A 'Finance Apps' catalog contained dozens of tile definitions, but individual users only saw the specific subset relevant to their actual job function, based on which of several finance-related roles they'd been assigned.",
+      "A 'Finance Apps' catalog contained dozens of tile definitions surfaced to individual users based on their assigned roles — that was the original 2019-era setup. When the team migrated to SAP Build Work Zone, they rebuilt the same experience as a 'Finance' Space containing role-specific Pages (Finance Manager, AP Clerk), assigned via Role Collections through the Content Manager, while keeping the old catalog only as a federation source for a handful of on-premise ABAP Fiori apps that hadn't been replatformed yet.",
     interviewTip:
-      "If asked 'if a tile is in a catalog, will every user see it', the correct answer is no — role assignment (and group visibility) is what actually determines a specific user's view.",
+      "If asked 'if a tile is in a catalog, will every user see it', the correct answer is no — role assignment (and group visibility) determines it. But also proactively mention that Catalog/Group is the legacy model and Spaces & Pages (via Content Manager, driven by Role Collections) is the current default — that distinction is exactly what many candidates miss and interviewers probe for.",
     followupQuestions: [
       "How is a catalog different from a group?",
-      "Can one catalog be assigned to multiple different roles?",
-      "What happens if a tile's catalog isn't assigned to any role a user has?",
+      "What are Spaces and Pages, and how do Role Collections drive Space assignment?",
+      "Why would you still use Catalog/Group on a modern BTP subaccount?",
     ],
     commonMistakes: [
       "Assuming every tile in a catalog is automatically visible to every user.",
-      "Confusing catalogs (inventory) with groups (a user's personalized home page layout).",
+      "Presenting Catalog/Group as 'the' Launchpad content model without mentioning Spaces & Pages is the current default.",
+      "Not knowing Catalog/Group's main remaining purpose is federating on-premise ABAP Fiori Launchpad content.",
     ],
     importantPoints: [
-      "Catalog = master inventory of tile/app definitions.",
-      "Assigned to roles; only users with that role get access.",
+      "Catalog = master inventory of tile/app definitions, assigned to roles — this is the legacy model.",
       "Existing in a catalog doesn't mean automatic visibility — role assignment does.",
+      "Since 2021, Spaces & Pages (via Content Manager, driven by Role Collections) is SAP's recommended default content model.",
+      "Catalog/Group persists mainly for on-prem ABAP Fiori Launchpad content federation and un-migrated tenants.",
     ],
-    revisionNotes: "Catalog = master tile inventory, assigned to roles. Only users with the assigned role actually get access — not automatic visibility.",
+    revisionNotes: "Catalog = legacy master tile inventory, assigned to roles. Current default since 2021 = Spaces & Pages via Content Manager, with Role Collections assigning Spaces. Catalog/Group survives mainly to federate on-prem ABAP Fiori Launchpad content.",
   },
   {
     id: "lp-q3",
@@ -95,37 +104,47 @@ export const launchpadServiceQuestions: BtpQuestion[] = [
     tags: ["groups", "catalog"],
     estimatedMinutes: 2,
     expectedAnswer:
-      "A Group defines the actual visual layout of tiles on a user's home page (which tiles, in what order/section), while a Catalog is just the underlying inventory of what tiles are available — a tile must exist in an assigned catalog before it can be added to a group, but the group is what a user actually sees arranged on their home page.",
+      "A Group defines the actual visual layout of tiles on a user's home page (which tiles, in what order/section), while a Catalog is just the underlying inventory of what tiles are available — a tile must exist in an assigned catalog before it can be added to a group, but the group is what a user actually sees arranged on their home page. Note that Group is the legacy counterpart of a Page in the current Spaces & Pages model — a Page (made of Sections) is what actually holds the tile layout today, while a Group still plays that role only where the older Catalog/Group model is still in use.",
     detailedAnswer:
-      "Think of the Catalog as the warehouse of available products, and the Group as the specific display shelf a particular user sees, arranged with only the items relevant to them, in a specific order. You can't add a tile to a group unless its underlying catalog is assigned to that user's role — but conversely, having catalog access doesn't automatically populate a group; someone (an admin, or the user via self-service 'app finder' if enabled) explicitly adds specific tiles from accessible catalogs into a group, arranging the actual home page layout. This separation lets the same catalog of available apps be arranged differently into different groups for different user populations, or even personalized per individual.",
+      "Think of the Catalog as the warehouse of available products, and the Group as the specific display shelf a particular user sees, arranged with only the items relevant to them, in a specific order. You can't add a tile to a group unless its underlying catalog is assigned to that user's role — but conversely, having catalog access doesn't automatically populate a group; someone (an admin, or the user via self-service 'app finder' if enabled) explicitly adds specific tiles from accessible catalogs into a group, arranging the actual home page layout. This separation lets the same catalog of available apps be arranged differently into different groups for different user populations, or even personalized per individual. It's worth being precise in an interview about where this model actually sits today: Catalog/Group is the LEGACY content model. Since the 2021 release, the current default is Spaces & Pages — a Page is the direct conceptual successor to a Group (it's the thing that actually holds the arranged tile layout a user sees), except a Page is built from one or more Sections (each Section is a labelled grouping of tiles, similar in spirit to how a Group grouped tiles, just nested one level deeper inside a Space), and Pages are configured in the Content Manager rather than the classic catalog/group admin UI. Multiple Pages are bundled into a Space, and a Space is what actually gets assigned to users — via a Role Collection, not a role template/catalog chain.",
     hindiExplanation:
-      "Catalog ko available products ka warehouse samjho, aur Group ko wo specific display shelf jo ek particular user dekhta hai, sirf unke relevant items ke saath arranged, ek specific order mein. Tum ek tile ko group mein add nahi kar sakte jab tak uska underlying catalog us user ke role ko assign na ho — lekin ulta, catalog access hone se group automatically populate nahi hota; koi (admin, ya user khud self-service 'app finder' se agar enabled ho) explicitly accessible catalogs se specific tiles group mein add karta hai, actual home page layout arrange karte hue.",
+      "Catalog ko available products ka warehouse samjho, aur Group ko wo specific display shelf jo ek particular user dekhta hai, sirf unke relevant items ke saath arranged, ek specific order mein. Tum ek tile ko group mein add nahi kar sakte jab tak uska underlying catalog us user ke role ko assign na ho — lekin ulta, catalog access hone se group automatically populate nahi hota; koi (admin, ya user khud self-service 'app finder' se agar enabled ho) explicitly accessible catalogs se specific tiles group mein add karta hai, actual home page layout arrange karte hue. Lekin interview mein precise rehna zaroori hai: Catalog/Group LEGACY content model hai. 2021 se, current default Spaces & Pages hai — Page hi Group ka direct conceptual successor hai (wahi cheez jo actually arranged tile layout hold karti hai jo user dekhta hai), bas Page ek ya zyada Sections se bana hota hai (har Section tiles ka ek labelled grouping hai, kuch Group jaisa hi, bas ek level deeper Space ke andar), aur Pages Content Manager mein configure hoti hain, purane catalog/group admin UI mein nahi. Multiple Pages ek Space mein bundle hoti hain, aur Space hi actually users ko assign hota hai — Role Collection ke through, role template/catalog chain se nahi.",
     interviewExplanation:
-      "I'd use the warehouse-vs-shelf analogy: 'Catalog is the warehouse of available apps. Group is the actual shelf layout a specific user sees on their home page. A tile needs its catalog assigned to the user's role before it can be added to a group, but catalog access alone doesn't populate a group — someone explicitly adds specific tiles into the group, arranging the actual layout.'",
+      "I'd use the warehouse-vs-shelf analogy, then place it in the current model: 'Catalog is the warehouse of available apps, Group is the actual shelf layout a user sees — but that's the legacy model. Today, the direct equivalent of a Group is a Page, built from Sections that hold the tiles, configured in the Content Manager. Several Pages roll up into a Space, and it's the Space that gets assigned to users, via a Role Collection. Catalog/Group still works and is still used, mainly for on-prem content federation, but if I were describing the current default, I'd talk about Spaces, Pages, and Sections, not Catalogs and Groups.'",
     diagramNote:
-      "'Catalog (available tiles, role-assigned)' --tiles selected from--> 'Group (actual home page layout, arranged)' --seen by--> 'User'.",
-    diagramMermaid: `flowchart LR
+      "Legacy: 'Catalog (available tiles, role-assigned)' --tiles selected from--> 'Group (actual home page layout, arranged)' --seen by--> 'User'. Current: 'Space' contains 'Page(s)' contains 'Section(s)' contains 'Tiles' — Space assigned to users via a 'Role Collection'. Page = the modern successor to Group.",
+    diagramMermaid: `flowchart TD
+    subgraph Legacy["Legacy model"]
     A["Catalog<br/>available tiles, role-assigned"] -- "tiles selected from" --> B["Group<br/>actual home page layout"]
-    B --> C["User sees this"]`,
+    B --> C["User sees this"]
+    end
+    subgraph Current["Current model (Spaces & Pages)"]
+    D["Space"] --> E["Page(s)<br/>successor to Group"]
+    E --> F["Section(s)"]
+    F --> G["Tiles"]
+    H["Role Collection"] --> D
+    end`,
     realProjectExample:
-      "Two different user populations had access to the same 'Finance Apps' catalog, but were assigned to different Groups — one arranged for approval-focused daily tasks, another for month-end reporting tasks — giving each a tailored home page from the same underlying catalog.",
+      "Two different user populations had access to the same 'Finance Apps' catalog but were assigned to different Groups — one arranged for approval-focused daily tasks, another for month-end reporting — under the old model. After migrating to SAP Build Work Zone, this became two Pages ('Approvals', 'Month-End Reporting') inside a single 'Finance' Space, each with its own Sections, with the whole Space assigned via a Role Collection instead of maintaining separate role/catalog assignments per group.",
     interviewTip:
-      "The warehouse/shelf analogy is a memorable way to explain this distinction clearly in an interview without getting lost in configuration terminology.",
+      "The warehouse/shelf analogy is a memorable way to explain the legacy Catalog/Group distinction — but immediately follow it up by naming Page as the modern successor to Group, built from Sections inside a Space, since that's the part interviewers are actually listening for in 2024+ hiring.",
     followupQuestions: [
-      "Can a user be assigned to multiple groups?",
+      "Can a user be assigned to multiple groups (or, today, multiple Spaces/Pages)?",
       "What is 'app finder' and how does it relate to groups?",
-      "Does removing a tile from a catalog automatically remove it from groups referencing it?",
+      "How does a Page's Section structure compare to a Group's tile list?",
     ],
     commonMistakes: [
       "Confusing a Catalog (inventory) with a Group (actual home page layout).",
       "Assuming catalog role access automatically populates a user's home page groups.",
+      "Not knowing that Page (inside a Space) is the current, SAP-recommended successor to Group.",
     ],
     importantPoints: [
-      "Group = actual home page tile layout a user sees.",
-      "Catalog = underlying inventory of available tiles (role-gated).",
-      "Tiles must come from an accessible catalog, but groups are separately, explicitly arranged.",
+      "Group = actual home page tile layout a user sees — this is the legacy model.",
+      "Catalog = underlying inventory of available tiles (role-gated) — also legacy.",
+      "Page (built from Sections, inside a Space) is the current default successor to Group, configured via Content Manager.",
+      "Spaces are assigned to users via Role Collections, not the role-template-to-catalog chain.",
     ],
-    revisionNotes: "Group = actual home page layout (like a shelf). Catalog = available tile inventory (like a warehouse) — tiles come from catalogs into groups, arranged separately.",
+    revisionNotes: "Legacy: Group = actual home page layout (shelf), Catalog = available tile inventory (warehouse). Current default: Page (built from Sections) inside a Space is the successor to Group — Space assigned via Role Collection, configured in Content Manager.",
   },
   {
     id: "lp-q4",
@@ -133,43 +152,50 @@ export const launchpadServiceQuestions: BtpQuestion[] = [
     prompt: "How do BTP role collections tie into what a user sees on their Launchpad?",
     difficulty: "Intermediate",
     experienceLevel: "0-2 Years",
-    tags: ["roles", "role-collections"],
-    estimatedMinutes: 2,
+    tags: ["roles", "role-collections", "spaces-pages"],
+    estimatedMinutes: 3,
     expectedAnswer:
-      "A role collection bundles role templates that include catalog assignments (among other permissions); when a user is assigned a role collection that includes a catalog, they gain access to that catalog's tiles, which can then appear in groups they're assigned to.",
+      "Role Collections are the assignment mechanism in BOTH content models, but the thing they assign to differs. In the current, default Spaces & Pages model, a Role Collection is assigned directly to a Space in the Content Manager — every user holding that Role Collection gets that Space (and therefore its Pages/tiles) on their launchpad. In the legacy Catalog/Group model, a role template (bundled inside a Role Collection) grants access to a Catalog, and the tile only becomes visible once it's also placed in a Group the user is assigned to.",
     detailedAnswer:
-      "This connects the earlier BTP security concepts (role templates, role collections) directly to the Launchpad: a role template can grant access to a specific catalog (among possibly other, non-Launchpad permissions like API scopes). An admin assigns a Role Collection containing that template to a user, which grants them access to that catalog's tiles. Whether those tiles actually show up on the user's home page then further depends on group assignment — so the full chain to 'a user sees a specific tile' is: role template grants catalog access → role collection (bundling that template) assigned to the user → tile from that catalog added to a group the user is also assigned to.",
+      "This connects the earlier BTP security concepts (role collections) directly to the Launchpad, and it's important to know both wirings since interviewers often test whether you know the model changed in 2021. Current default (Spaces & Pages): in the Content Manager, an admin assigns one or more Role Collections directly to a Space. Any user who holds that Role Collection automatically gets that Space — and every Page (and its Sections/tiles) inside it — on their launchpad; no separate catalog or group step is needed, the Role Collection-to-Space assignment IS the access-and-visibility mechanism in one step. Legacy (Catalog/Group): a role template can grant access to a specific catalog (among possibly other, non-Launchpad permissions like API scopes); an admin assigns a Role Collection containing that template to a user, granting them access to that catalog's tiles; whether those tiles actually show up on the home page then further depends on group assignment — so the full legacy chain is role template grants catalog access → role collection (bundling that template) assigned to the user → tile from that catalog added to a group the user is also assigned to. Both models still exist side by side on many tenants (Spaces & Pages for native cloud apps, Catalog/Group federating on-prem ABAP Fiori Launchpad content) — a senior answer names both and says which one is the default today.",
     hindiExplanation:
-      "Ye pehle wale BTP security concepts (role templates, role collections) ko directly Launchpad se connect karta hai: ek role template ek specific catalog tak access grant kar sakta hai (shayad doosre, non-Launchpad permissions ke saath bhi jaise API scopes). Admin ek Role Collection jisme wo template ho, user ko assign karta hai, jo unhe us catalog ke tiles tak access deta hai. Wo tiles actually user ke home page pe dikhenge ya nahi, ye further group assignment pe depend karta hai — toh poori chain 'ek user ek specific tile dekhta hai' tak hai: role template catalog access grant karta hai → role collection (us template ko bundle karke) user ko assign hota hai → us catalog se tile ek group mein add hota hai jise user bhi assigned hai.",
+      "Ye pehle wale BTP security concepts (role collections) ko directly Launchpad se connect karta hai, aur dono wiring jaanna zaroori hai kyunki interviewers often test karte hain ki tumhe pata hai ki model 2021 mein change hua. Current default (Spaces & Pages): Content Manager mein, admin ek ya zyada Role Collections directly ek Space ko assign karta hai. Jis user ke paas wo Role Collection hai use automatically wo Space milta hai — aur uske andar ki har Page (aur uski Sections/tiles) — launchpad pe; koi separate catalog ya group step nahi chahiye, Role Collection-to-Space assignment hi access-aur-visibility mechanism hai ek hi step mein. Legacy (Catalog/Group): ek role template ek specific catalog tak access grant kar sakta hai; admin ek Role Collection jisme wo template ho, user ko assign karta hai, jo unhe us catalog ke tiles tak access deta hai; wo tiles actually dikhenge ya nahi, ye further group assignment pe depend karta hai — toh poori legacy chain hai: role template catalog access grant karta hai → role collection (us template ko bundle karke) user ko assign hota hai → us catalog se tile ek group mein add hota hai jise user bhi assigned hai. Dono models kai tenants pe saath-saath exist karte hain (Spaces & Pages native cloud apps ke liye, Catalog/Group on-prem ABAP Fiori Launchpad content federate karne ke liye) — ek senior answer dono naam leta hai aur batata hai ki aaj kaunsa default hai.",
     interviewExplanation:
-      "I'd give the full chain, connecting back to security concepts: 'A role template can grant access to a specific catalog. An admin assigns a role collection bundling that template to a user, granting catalog access. Whether the tile actually appears then depends on group assignment too — so the full chain is role template → role collection assignment → catalog access → tile in an assigned group → visible on the user's home page.'",
+      "I'd give both chains and be explicit about which is current: 'In the current default model, Spaces and Pages, a Role Collection is assigned directly to a Space in the Content Manager — anyone holding it gets that Space's Pages and tiles, full stop, one step. In the legacy Catalog/Group model, a role template grants catalog access, a role collection bundling that template is assigned to the user, and the tile only shows up once it's also placed in a group the user is assigned to — so that's a two-step chain. I'd name both because a lot of real tenants still have some on-prem content coming in through the legacy path even while running Spaces and Pages for everything else.'",
     diagramNote:
-      "Full chain: 'Role template (grants catalog access)' → 'Role collection (bundles template)' → 'Assigned to user' → 'Catalog access granted' → 'Tile in an assigned Group' → 'Visible on home page'.",
-    diagramMermaid: `flowchart LR
+      "Current default: 'Content Manager' → 'Role Collection assigned to Space' → 'User with that Role Collection gets the Space's Pages/tiles' (one step). Legacy chain: 'Role template (grants catalog access)' → 'Role collection (bundles template)' → 'Assigned to user' → 'Catalog access granted' → 'Tile in an assigned Group' → 'Visible on home page' (two steps).",
+    diagramMermaid: `flowchart TD
+    subgraph Current["Current default: Spaces & Pages"]
+    RC1["Role Collection"] --> SP["assigned to a Space<br/>(in Content Manager)"]
+    SP --> U1["User holding that<br/>Role Collection"]
+    U1 --> V1["Gets the Space's<br/>Pages/tiles"]
+    end
+    subgraph Legacy["Legacy: Catalog & Group"]
     A["Role template<br/>grants catalog access"] --> B["Role collection<br/>bundles template"]
     B --> C["Assigned to user"]
     C --> D["Catalog access granted"]
     D --> E["Tile in assigned Group"]
-    E --> F["Visible on home page"]`,
+    E --> F["Visible on home page"]
+    end`,
     realProjectExample:
-      "Troubleshooting why a user couldn't see an expected tile traced back through this exact chain — their role collection was missing the specific role template granting that tile's catalog, even though they were correctly assigned to the relevant group.",
+      "Troubleshooting why a user couldn't see an expected tile in an older tenant traced back through the legacy chain — their role collection was missing the specific role template granting that tile's catalog, even though they were correctly assigned to the relevant group. On a newer Work Zone tenant, the equivalent issue was simpler to diagnose: the user's Role Collection just hadn't been assigned to the relevant Space in the Content Manager yet.",
     interviewTip:
-      "If asked to debug 'a user can't see a tile they should have', walking the full chain (role template → role collection → catalog → group) systematically is the strong, structured answer.",
+      "If asked to debug 'a user can't see a tile they should have', ask (or state) which model the tenant uses — for Spaces & Pages, check the Role Collection-to-Space assignment in Content Manager first; for Catalog/Group, walk the full chain (role template → role collection → catalog → group). Naming both paths shows you're not just parroting one memorized flow.",
     followupQuestions: [
       "What's the fastest way to check why a specific user can't see an expected tile?",
-      "Can a single role collection grant access to multiple different catalogs?",
-      "Does removing a role collection from a user immediately hide their tiles?",
+      "Can a single Role Collection be assigned to multiple different Spaces?",
+      "Does removing a Role Collection from a user immediately hide their Space/tiles?",
     ],
     commonMistakes: [
-      "Only checking group assignment when debugging a missing tile, skipping the role/catalog chain.",
-      "Not connecting Launchpad tile visibility back to the broader BTP role collection/role template model.",
+      "Only describing the legacy role-template → catalog → group chain and not knowing Role Collections assign directly to Spaces today.",
+      "Not connecting Launchpad tile visibility back to the broader BTP Role Collection model in either content model.",
     ],
     importantPoints: [
-      "Role template can grant catalog access (among other permissions).",
-      "Role collection bundles templates, assigned to users.",
-      "Full visibility chain: role template → role collection → catalog access → group assignment → visible tile.",
+      "Current default: Role Collection is assigned directly to a Space (in Content Manager) — one step to full visibility.",
+      "Legacy: role template grants catalog access, bundled in a Role Collection assigned to the user, tile still needs group placement — two steps.",
+      "Both models can coexist on one tenant; know which one you're being asked about.",
     ],
-    revisionNotes: "Tile visibility chain: role template (grants catalog) → role collection (bundles it, assigned to user) → catalog access → tile in an assigned group → visible.",
+    revisionNotes: "Current: Role Collection → assigned to Space (Content Manager) → user gets Space's Pages/tiles (1 step). Legacy: role template (grants catalog) → role collection (bundles it, assigned to user) → catalog access → tile in an assigned group → visible (2 steps).",
   },
   {
     id: "lp-q5",
@@ -348,9 +374,9 @@ export const launchpadServiceQuestions: BtpQuestion[] = [
     expectedAnswer:
       "Developers typically define the tile/app content within a catalog as part of an app's deployment (since it's tied to the app's own intents/target mappings), while admins handle assigning that catalog to roles and building groups from it — this split matches 'what the app technically offers' (developer concern) versus 'who gets access and how it's organized' (admin/business concern).",
     detailedAnswer:
-      "The content of a catalog — its tile definitions, which intents they trigger, their display properties — is closely tied to the app itself and is typically defined/deployed alongside the app by its developers, since it's essentially part of describing what the app offers navigationally. Once that catalog exists, though, deciding who should have access to it (assigning it to specific roles) and how those tiles get organized into a specific user population's home page (building groups) is fundamentally a business/organizational decision, not a technical one — appropriately handled by admins who understand the organization's actual role structure and user needs, not by the developers who built the underlying app. This split keeps technical app-definition concerns separate from organizational access/layout decisions.",
+      "The content of a catalog — its tile definitions, which intents they trigger, their display properties — is closely tied to the app itself and is typically defined/deployed alongside the app by its developers, since it's essentially part of describing what the app offers navigationally. Once that catalog exists, though, deciding who should have access to it (assigning it to specific roles) and how those tiles get organized into a specific user population's home page (building groups) is fundamentally a business/organizational decision, not a technical one — appropriately handled by admins who understand the organization's actual role structure and user needs, not by the developers who built the underlying app. This split keeps technical app-definition concerns separate from organizational access/layout decisions. Note this Q&A describes the legacy Catalog/Group workflow. In the current default Spaces & Pages model, the same split still holds conceptually — developers still define what apps/tiles exist — but admins do the organizational work (building Spaces, Pages, and Sections, and assigning Role Collections to Spaces) inside the Content Manager instead of a separate catalog-and-group admin UI, and there's no separate 'assign catalog to role' step since Role Collections attach directly to the Space.",
     hindiExplanation:
-      "Ek catalog ka content — uske tile definitions, kaunse intents wo trigger karte hain, unki display properties — closely app se hi tied hota hai aur typically app ke developers dwara define/deploy hota hai app ke saath, kyunki ye essentially describe karta hai app kya navigationally offer karta hai. Ek baar wo catalog exist karta hai, though, decide karna ki kisko uska access hona chahiye (specific roles ko assign karna) aur wo tiles kaise organize hote hain ek specific user population ke home page mein (groups banana) fundamentally ek business/organizational decision hai, technical nahi — admins dwara appropriately handle kiya jaata hai.",
+      "Ek catalog ka content — uske tile definitions, kaunse intents wo trigger karte hain, unki display properties — closely app se hi tied hota hai aur typically app ke developers dwara define/deploy hota hai app ke saath, kyunki ye essentially describe karta hai app kya navigationally offer karta hai. Ek baar wo catalog exist karta hai, though, decide karna ki kisko uska access hona chahiye (specific roles ko assign karna) aur wo tiles kaise organize hote hain ek specific user population ke home page mein (groups banana) fundamentally ek business/organizational decision hai, technical nahi — admins dwara appropriately handle kiya jaata hai. Ye Q&A legacy Catalog/Group workflow describe karta hai. Current default Spaces & Pages model mein, yehi split conceptually hold karta hai — developers abhi bhi define karte hain ki apps/tiles kya exist karte hain — lekin admins organizational kaam (Spaces, Pages, Sections banana, aur Role Collections ko Spaces assign karna) Content Manager ke andar karte hain, alag catalog-aur-group admin UI mein nahi, aur koi separate 'catalog ko role assign karo' step nahi hai kyunki Role Collections directly Space se attach hoti hain.",
     interviewExplanation:
       "I'd explain the natural split: 'A catalog's content — its tile definitions and intents — is closely tied to the app and typically deployed alongside it by developers, since it's part of describing what the app offers. Deciding who gets access, by assigning the catalog to roles, and how those tiles get organized into groups, is fundamentally a business/organizational decision, appropriately handled by admins who understand the org's role structure — not something developers should be deciding.'",
     diagramNote:
@@ -389,9 +415,9 @@ export const launchpadServiceQuestions: BtpQuestion[] = [
     expectedAnswer:
       "App Finder is a self-service feature letting users browse all apps they have catalog access to (even ones not yet in any of their groups) and add specific tiles to their own personal groups themselves, rather than waiting for an admin to explicitly place every tile into a group on their behalf.",
     detailedAnswer:
-      "Without App Finder, a user's only path to seeing a tile is an admin explicitly adding it to a group they're assigned to — even if the user has catalog access (via their role) to many more apps than currently appear on their home page. App Finder gives users a self-service way to browse everything they're actually authorized to access (their full accessible catalog inventory) and personally add specific tiles into their own groups, customizing their home page layout themselves rather than depending entirely on an admin's manual group curation. This is useful for apps that are relevant to some but not all users with a given role, letting individuals opt in to what's actually useful for their specific work rather than an admin trying to guess and pre-populate everything for everyone.",
+      "Without App Finder, a user's only path to seeing a tile is an admin explicitly adding it to a group they're assigned to — even if the user has catalog access (via their role) to many more apps than currently appear on their home page. App Finder gives users a self-service way to browse everything they're actually authorized to access (their full accessible catalog inventory) and personally add specific tiles into their own groups, customizing their home page layout themselves rather than depending entirely on an admin's manual group curation. This is useful for apps that are relevant to some but not all users with a given role, letting individuals opt in to what's actually useful for their specific work rather than an admin trying to guess and pre-populate everything for everyone. It's worth flagging in an interview that App Finder is specifically a legacy Catalog/Group feature — in the current default Spaces & Pages model, content is curated centrally by admins as Pages/Sections inside a Space in the Content Manager, and a user simply gets whatever Space their Role Collection grants them rather than self-service browsing a catalog inventory.",
     hindiExplanation:
-      "App Finder ke bina, ek user ka ek tile dekhne ka sirf ek path hai — ek admin explicitly use ek group mein add kare jise wo assigned hai — chahe user ke paas catalog access ho (unke role se) kai aur apps tak jo currently unke home page pe nahi dikhte. App Finder users ko ek self-service tarika deta hai sab kuch browse karne ke liye jo wo actually authorized hain access karne ke liye, aur specific tiles ko apne khud ke groups mein personally add karne ke liye, apna home page layout khud customize karte hue admin ki manual group curation pe poori tarah depend karne ki jagah.",
+      "App Finder ke bina, ek user ka ek tile dekhne ka sirf ek path hai — ek admin explicitly use ek group mein add kare jise wo assigned hai — chahe user ke paas catalog access ho (unke role se) kai aur apps tak jo currently unke home page pe nahi dikhte. App Finder users ko ek self-service tarika deta hai sab kuch browse karne ke liye jo wo actually authorized hain access karne ke liye, aur specific tiles ko apne khud ke groups mein personally add karne ke liye, apna home page layout khud customize karte hue admin ki manual group curation pe poori tarah depend karne ki jagah. Interview mein flag karna zaroori hai ki App Finder specifically legacy Catalog/Group feature hai — current default Spaces & Pages model mein, content centrally admins curate karte hain Pages/Sections ki tarah ek Space ke andar Content Manager mein, aur user ko bas wo Space mil jaata hai jo unka Role Collection grant karta hai, self-service catalog browsing nahi.",
     interviewExplanation:
       "I'd explain the self-service angle: 'Without App Finder, a user only sees a tile if an admin explicitly placed it in a group they're assigned to — even if their role already grants catalog access to more apps. App Finder lets users self-service browse their full accessible catalog inventory and personally add specific tiles into their own groups, opting into what's genuinely useful for their work rather than depending entirely on manual admin curation.'",
     diagramNote:
@@ -430,7 +456,7 @@ export const launchpadServiceQuestions: BtpQuestion[] = [
     expectedAnswer:
       "Yes — the same tile (referencing the same underlying catalog entry) can be placed into multiple different groups, useful when an app is relevant to multiple different user populations or organizational contexts, each of which has its own differently-organized group without needing to duplicate the underlying tile/catalog definition.",
     detailedAnswer:
-      "Since a group is just an arrangement referencing catalog tiles (not a separate copy of the tile's actual definition), the same tile can be placed into any number of different groups without duplicating anything at the catalog level — group A and group B can both include a reference to the same 'SalesOrder-display' tile, each with it positioned differently alongside different neighboring tiles relevant to that specific group's audience. This is useful when an app is broadly relevant across different teams or contexts (e.g. a company-wide 'submit expense report' app that different departments' groups all want to include, each alongside their own department-specific other tiles).",
+      "Since a group is just an arrangement referencing catalog tiles (not a separate copy of the tile's actual definition), the same tile can be placed into any number of different groups without duplicating anything at the catalog level — group A and group B can both include a reference to the same 'SalesOrder-display' tile, each with it positioned differently alongside different neighboring tiles relevant to that specific group's audience. This is useful when an app is broadly relevant across different teams or contexts (e.g. a company-wide 'submit expense report' app that different departments' groups all want to include, each alongside their own department-specific other tiles). The same reference-not-copy behavior holds in the current Spaces & Pages model too: the same app/tile can be placed into a Section on any number of different Pages, even across different Spaces, without duplicating the underlying app registration — a 'Submit Expense Report' tile could sit in a Section on a Sales Space's Page and equally on an Engineering Space's Page.",
     hindiExplanation:
       "Kyunki ek group sirf catalog tiles ko reference karne wali ek arrangement hai (tile ki actual definition ki separate copy nahi), wahi tile kisi bhi number of different groups mein place ho sakta hai catalog level pe kuch bhi duplicate kiye bina — group A aur group B dono ek hi 'SalesOrder-display' tile ka reference include kar sakte hain, har ek mein wo differently positioned ho sakta hai different neighboring tiles ke saath jo us specific group ki audience ke liye relevant hain. Ye useful hai jab ek app broadly relevant ho different teams/contexts mein.",
     interviewExplanation:
@@ -466,41 +492,46 @@ export const launchpadServiceQuestions: BtpQuestion[] = [
     prompt: "What's the fastest way to check why a specific user can't see an expected tile?",
     difficulty: "Advanced",
     experienceLevel: "2-5 Years",
-    tags: ["roles", "troubleshooting"],
-    estimatedMinutes: 2,
+    tags: ["roles", "troubleshooting", "spaces-pages"],
+    estimatedMinutes: 3,
     expectedAnswer:
-      "Systematically check each link in the visibility chain in order: does the user have the role collection containing the relevant role template, does that template actually grant the specific catalog, and is the specific tile actually present in a group the user is assigned to — rather than guessing randomly, walk the chain from role assignment down to group placement.",
+      "First confirm which content model the tenant actually uses. On a Spaces & Pages tenant, check whether the user's Role Collection is genuinely assigned to the relevant Space in the Content Manager — that's usually the whole story. On a legacy Catalog/Group tenant, systematically check each link in order: does the user have the role collection containing the relevant role template, does that template actually grant the specific catalog, and is the specific tile actually present in a group the user is assigned to.",
     detailedAnswer:
-      "Given the chain (role template grants catalog → role collection bundles template, assigned to user → catalog access granted → tile placed in an assigned group → visible), a systematic troubleshooting approach checks each link in order rather than guessing: first confirm the user actually has the expected role collection assigned (a simple, quick check); then confirm that role collection genuinely includes the role template granting the relevant catalog (a role collection might be missing an expected template); then confirm the specific tile is actually present in a group the user is assigned to (catalog access alone doesn't guarantee group placement). Working through this chain systematically, rather than jumping straight to reconfiguring things randomly, quickly isolates exactly which link is broken.",
+      "Current default (Spaces & Pages): the check is much shorter — confirm the user actually holds the expected Role Collection, then confirm that Role Collection is genuinely assigned to the Space containing the tile's Page/Section in the Content Manager. If both are true, the tile should appear; if not, one of those two is the gap. Legacy (Catalog/Group): given the chain (role template grants catalog → role collection bundles template, assigned to user → catalog access granted → tile placed in an assigned group → visible), a systematic troubleshooting approach checks each link in order rather than guessing: first confirm the user actually has the expected role collection assigned; then confirm that role collection genuinely includes the role template granting the relevant catalog; then confirm the specific tile is actually present in a group the user is assigned to (catalog access alone doesn't guarantee group placement). Either way, working through the relevant chain systematically, rather than jumping straight to reconfiguring things randomly, quickly isolates exactly which link is broken — and knowing which content model you're on tells you which chain to walk.",
     hindiExplanation:
-      "Given ye chain (role template catalog grant karta hai → role collection template bundle karta hai, user ko assign hota hai → catalog access milta hai → tile ek assigned group mein place hota hai → visible hota hai), ek systematic troubleshooting approach har link ko order mein check karta hai guess karne ki jagah: pehle confirm karo ki user ke paas actually expected role collection assigned hai; fir confirm karo ki wo role collection genuinely relevant catalog grant karne wala role template include karta hai; fir confirm karo ki specific tile actually ek assigned group mein present hai.",
+      "Current default (Spaces & Pages): check bahut chhota hai — confirm karo ki user ke paas actually expected Role Collection hai, fir confirm karo ki wo Role Collection genuinely us Space ko assigned hai jisme tile ki Page/Section hai, Content Manager mein. Dono true hain toh tile dikhni chahiye; nahi toh in dono mein se ek gap hai. Legacy (Catalog/Group): given ye chain (role template catalog grant karta hai → role collection template bundle karta hai, user ko assign hota hai → catalog access milta hai → tile ek assigned group mein place hota hai → visible hota hai), ek systematic troubleshooting approach har link ko order mein check karta hai guess karne ki jagah: pehle confirm karo ki user ke paas actually expected role collection assigned hai; fir confirm karo ki wo role collection genuinely relevant catalog grant karne wala role template include karta hai; fir confirm karo ki specific tile actually ek assigned group mein present hai. Dono cases mein, pehle ye jaanna zaroori hai ki tenant kaunsa content model use kar raha hai, taaki sahi chain check karo.",
     interviewExplanation:
-      "I'd walk the chain systematically: 'First, confirm the user actually has the expected role collection assigned — a quick check. Then confirm that role collection genuinely includes the role template granting the relevant catalog — it might be missing it. Then confirm the specific tile is actually present in a group the user is assigned to, since catalog access alone doesn't guarantee group placement. Working through this chain in order, rather than randomly reconfiguring things, quickly isolates exactly which link is broken.'",
+      "I'd first establish which model, then walk the right chain: 'On a modern Spaces and Pages tenant, it's usually a two-check process — does the user hold the expected Role Collection, and is that Role Collection actually assigned to the right Space in the Content Manager. On a legacy Catalog/Group tenant, it's a longer chain — role collection, then the catalog-granting role template, then group placement, checked in order. Either way, I'd figure out the content model first so I'm not walking the wrong checklist.'",
     diagramNote:
-      "Systematic check order: '1. User has expected role collection?' → '2. Role collection includes the relevant role template/catalog?' → '3. Tile actually present in an assigned group?' — check in order to isolate the broken link.",
+      "Current default: '1. User has expected Role Collection?' → '2. Role Collection assigned to the right Space in Content Manager?' → done. Legacy: '1. User has expected role collection?' → '2. Role collection includes the relevant role template/catalog?' → '3. Tile actually present in an assigned group?'.",
     diagramMermaid: `flowchart TD
-    A["1. User has expected<br/>role collection?"] --> B["2. Role collection includes<br/>relevant role template/catalog?"]
-    B --> C["3. Tile present in<br/>an assigned group?"]
-    C --> D["Isolate exactly<br/>which link is broken"]`,
+    Start{"Which content model?"} -->|"Spaces & Pages"| A1["1. User has expected<br/>Role Collection?"]
+    A1 --> A2["2. Role Collection assigned<br/>to the right Space?"]
+    A2 --> A3["Isolate the gap"]
+    Start -->|"Legacy Catalog/Group"| B1["1. User has expected<br/>role collection?"]
+    B1 --> B2["2. Role collection includes<br/>relevant role template/catalog?"]
+    B2 --> B3["3. Tile present in<br/>an assigned group?"]
+    B3 --> A3`,
     realProjectExample:
-      "A support ticket about a missing tile was resolved in minutes by checking the chain systematically — the user had the correct role collection assigned, but that specific role collection was missing the role template granting the relevant catalog, quickly pinpointing the actual gap.",
+      "A support ticket about a missing tile on a legacy tenant was resolved in minutes by checking the chain systematically — the user had the correct role collection assigned, but it was missing the role template granting the relevant catalog. On a newer Work Zone tenant, an equivalent ticket was resolved even faster — the user's Role Collection simply hadn't been attached to the right Space in the Content Manager yet.",
     interviewTip:
-      "If asked to troubleshoot this exact scenario, describing the systematic, ordered chain-check (rather than 'I'd look into the configuration') demonstrates a real, repeatable diagnostic process.",
+      "If asked to troubleshoot this exact scenario, first stating which content model you're assuming (and why the checklist differs) before walking the chain shows you know the platform actually has two different wirings today, not just one memorized flow.",
     followupQuestions: [
       "What tool or cockpit view would you use to check a user's actual assigned role collections?",
-      "How would you verify a role collection's included role templates without trial and error?",
+      "How would you verify a Role Collection's Space assignment without trial and error?",
       "Would this same troubleshooting chain apply if the issue were a dynamic tile showing stale data instead of a missing tile?",
     ],
     commonMistakes: [
-      "Jumping straight to reconfiguring group assignments without first checking role collection/catalog access.",
+      "Jumping straight to reconfiguring group/page assignments without first checking role collection access.",
       "Not having a systematic, ordered approach and instead guessing randomly at what might be wrong.",
+      "Applying the longer legacy Catalog/Group checklist on a tenant that's actually running Spaces & Pages, or vice versa.",
     ],
     importantPoints: [
-      "Check the visibility chain systematically, in order: role collection → role template/catalog → group placement.",
-      "Each link can independently be the actual point of failure.",
-      "A systematic approach isolates the broken link quickly, rather than random reconfiguration.",
+      "First identify which content model the tenant uses — that determines which checklist applies.",
+      "Spaces & Pages: check Role Collection assignment, then Role Collection-to-Space assignment in Content Manager.",
+      "Legacy Catalog/Group: check role collection → role template/catalog → group placement, in order.",
     ],
-    revisionNotes: "Troubleshoot missing tile systematically: check role collection assignment → role template/catalog grant → group placement, in order — isolates the broken link instead of guessing randomly.",
+    revisionNotes: "Troubleshoot missing tile: first confirm content model. Spaces & Pages = check Role Collection → Space assignment (Content Manager), 2 steps. Legacy Catalog/Group = check role collection → role template/catalog grant → group placement, 3 steps.",
   },
   {
     id: "lp-q13",
@@ -626,6 +657,54 @@ export const launchpadServiceQuestions: BtpQuestion[] = [
       "The semantic object stays a consistent identifier across the whole vocabulary regardless of action count.",
     ],
     revisionNotes: "One semantic object (e.g. SalesOrder) commonly has multiple actions (display/create/approve), each routed to a different purpose-built app — the intended pattern, not a monolithic single-app design.",
+  },
+  {
+    id: "lp-q16",
+    topic: "Spaces & Pages",
+    prompt: "What are Spaces and Pages in the BTP Launchpad Service, and how do they relate to Role Collections?",
+    difficulty: "Intermediate",
+    experienceLevel: "0-2 Years",
+    tags: ["spaces", "pages", "content-manager", "role-collections"],
+    estimatedMinutes: 3,
+    expectedAnswer:
+      "A Space is a container for one or more Pages, representing a role/persona-based work area (e.g. 'Sales Manager'); a Page is made of Sections, and each Section holds the actual app tiles. Both are configured through the Content Manager, and a Space is assigned to users via a Role Collection — anyone holding that Role Collection gets that Space (and every Page/tile inside it) on their launchpad. This is the SAP-recommended default content model since the 2021 release, replacing the older Catalog + Group approach for content built directly in the cloud.",
+    detailedAnswer:
+      "Spaces & Pages is the current, default content model for the BTP Launchpad Service and SAP Build Work Zone (standard and advanced editions), configured through the Content Manager admin tool rather than the older catalog/group configuration UI. The hierarchy has three levels: a Space is the top-level container, typically modeled around a role or persona (e.g. 'Finance Manager', 'Sales Rep') — it's the thing that actually gets assigned to users. Inside a Space, one or more Pages organize related work (e.g. a 'Finance Manager' Space might have an 'Approvals' Page and a 'Reporting' Page). Each Page is built from one or more Sections, which are labelled groupings of tiles (conceptually similar to what a Group used to do, just nested one level deeper). The assignment mechanism is Role Collections: in the Content Manager, an admin assigns one or more Role Collections directly to a Space; any user who holds that Role Collection automatically gets that Space — and therefore all its Pages, Sections, and tiles — on their launchpad, in one step, with no separate catalog-then-group dance. This is a meaningfully simpler and more direct model than legacy Catalog/Group (role template → role collection → catalog access → tile-in-a-group), and it's why SAP made it the default: fewer moving pieces, and Spaces map naturally onto how organizations already think about roles/personas. Catalog/Group hasn't been removed — it's still how you federate content from an on-premise ABAP Fiori Launchpad system into the cloud launchpad, and some content sources (including certain federated catalogs) can still be surfaced as tiles inside a modern Page — but for anything authored natively today, you're working in Spaces and Pages.",
+    hindiExplanation:
+      "Spaces & Pages BTP Launchpad Service aur SAP Build Work Zone (standard aur advanced editions) ka current, default content model hai, Content Manager admin tool se configure hota hai, purane catalog/group configuration UI se nahi. Hierarchy teen levels ki hai: Space top-level container hai, typically ek role ya persona ke around modeled (jaise 'Finance Manager', 'Sales Rep') — yahi cheez actually users ko assign hoti hai. Space ke andar, ek ya zyada Pages related work organize karte hain (jaise ek 'Finance Manager' Space mein ek 'Approvals' Page aur ek 'Reporting' Page ho sakta hai). Har Page ek ya zyada Sections se bana hota hai, jo tiles ka labelled grouping hai (conceptually Group jaisa hi, bas ek level deeper nested). Assignment mechanism Role Collections hai: Content Manager mein, admin ek ya zyada Role Collections directly ek Space ko assign karta hai; jis user ke paas wo Role Collection hai use automatically wo Space milta hai — aur isliye uski saari Pages, Sections, aur tiles — launchpad pe, ek hi step mein, koi separate catalog-phir-group dance nahi. Ye legacy Catalog/Group (role template → role collection → catalog access → tile-in-a-group) se meaningfully simpler aur direct model hai, aur isi wajah se SAP ne ise default banaya: kam moving pieces, aur Spaces naturally map hote hain jaise organizations already roles/personas ke baare mein sochte hain. Catalog/Group hataya nahi gaya hai — abhi bhi on-premise ABAP Fiori Launchpad system se content cloud launchpad mein federate karne ke liye use hota hai — lekin naya kuch author karte waqt, tum Spaces aur Pages mein hi kaam kar rahe ho.",
+    interviewExplanation:
+      "I'd walk the hierarchy top-down and land on the Role Collection mechanism: 'A Space is the top-level container, usually modeled around a role or persona, and it's what actually gets assigned to users. Inside it, one or more Pages organize related work, and each Page is built from Sections holding the actual tiles. Everything's configured in the Content Manager. The assignment is done via Role Collections — an admin assigns a Role Collection directly to a Space, and anyone holding that Role Collection gets the whole Space, Pages and all, in one step. This has been the SAP-recommended default since the 2021 release, replacing the older two-step Catalog-plus-Group model for natively authored content.'",
+    diagramNote:
+      "'Content Manager' configures → 'Space (container, role/persona-based)' contains → 'Page(s)' contains → 'Section(s)' contains → 'Tiles'. Assignment: 'Role Collection' → assigned to → 'Space' → 'User holding that Role Collection sees the whole Space'.",
+    diagramMermaid: `flowchart TD
+    CM["Content Manager"] --> SP["Space<br/>role/persona-based container"]
+    SP --> PG1["Page: Approvals"]
+    SP --> PG2["Page: Reporting"]
+    PG1 --> SEC1["Section(s)"]
+    SEC1 --> T1["Tiles"]
+    RC["Role Collection"] --> SP
+    RC --> U["User holding it gets<br/>the whole Space"]`,
+    realProjectExample:
+      "A 'Finance' Space was built with an 'Approvals' Page and a 'Month-End Reporting' Page, each with its own Sections of tiles, and assigned to end users purely by attaching the 'Finance Manager' Role Collection to that Space in the Content Manager — no catalog definitions or group curation were involved, a noticeably faster setup than the equivalent legacy configuration on an older tenant.",
+    interviewTip:
+      "If asked to design a new Launchpad content structure for a fresher project, describing Spaces & Pages via the Content Manager (not Catalog/Group) as your default choice — and being able to name the Space→Page→Section→Tile hierarchy plus the Role Collection assignment — is exactly what separates candidates with current knowledge from those repeating outdated tutorials.",
+    followupQuestions: [
+      "How does a Page's Section structure compare to a legacy Group's tile list?",
+      "Can the same Role Collection be assigned to more than one Space?",
+      "Why would a modern tenant still need the legacy Catalog/Group model at all?",
+    ],
+    commonMistakes: [
+      "Describing only Catalog/Group as if it's the only or current Launchpad content model.",
+      "Mixing up the hierarchy order — Space contains Pages, Pages contain Sections, Sections contain tiles, not the reverse.",
+      "Not knowing Role Collections assign directly to a Space, with no separate catalog/group step needed.",
+    ],
+    importantPoints: [
+      "Hierarchy: Space (role/persona container) → Page(s) → Section(s) → Tiles.",
+      "Configured via the Content Manager, the current default admin tool for Launchpad content.",
+      "Role Collections assign directly to a Space — one step grants a user the whole Space's Pages/tiles.",
+      "This has been SAP's recommended default since the 2021 release, alongside the still-supported legacy Catalog/Group model.",
+    ],
+    revisionNotes: "Spaces & Pages (current default, since 2021): Space (role/persona container) → Page(s) → Section(s) → Tiles, configured via Content Manager. Role Collection assigned directly to a Space grants the whole thing — simpler than legacy Catalog/Group's role template → catalog → group chain.",
   },
 ];
 
@@ -759,5 +838,44 @@ export const launchpadServiceMcqs: BtpMcq[] = [
     ],
     correctIndex: 1,
     explanation: "Intents can carry parameters (e.g. an order ID), which the target app's routing/controller logic reads from the navigation context to know exactly what specific data to load.",
+  },
+  {
+    id: "lp-mcq11",
+    topic: "Spaces & Pages",
+    prompt: "What is the SAP-recommended default content model for the BTP Launchpad Service / SAP Build Work Zone since the 2021 release?",
+    options: [
+      "Catalog and Group",
+      "Spaces and Pages, configured via the Content Manager",
+      "There is no default — every tenant must pick manually with no guidance",
+      "Business Catalogs federated from an on-premise ABAP system",
+    ],
+    correctIndex: 1,
+    explanation: "Since the 2021 release, Spaces & Pages (configured through the Content Manager) is SAP's default and recommended content model; Catalog/Group is the legacy model, kept mainly for on-premise ABAP Fiori Launchpad content federation.",
+  },
+  {
+    id: "lp-mcq12",
+    topic: "Spaces & Pages",
+    prompt: "What is the correct content hierarchy in the Spaces & Pages model?",
+    options: [
+      "Group → Catalog → Tile",
+      "Space → Page(s) → Section(s) → Tile(s)",
+      "Tile → Section → Page → Space",
+      "Role Collection → Catalog → Group",
+    ],
+    correctIndex: 1,
+    explanation: "A Space is the top-level container (typically role/persona-based), holding one or more Pages, each built from Sections, each Section holding the actual tiles — Space → Page → Section → Tile.",
+  },
+  {
+    id: "lp-mcq13",
+    topic: "Spaces & Pages",
+    prompt: "How does a Role Collection grant a user access to a Space in the current default content model?",
+    options: [
+      "It doesn't — Spaces are visible to every authenticated user automatically",
+      "An admin assigns the Role Collection directly to the Space in the Content Manager; anyone holding it gets that Space's Pages/tiles",
+      "The Role Collection must first be converted into a Catalog before it can reach a Space",
+      "Only the Space owner can manually invite individual users one at a time",
+    ],
+    correctIndex: 1,
+    explanation: "In the Content Manager, Role Collections are assigned directly to a Space — every user holding that Role Collection automatically gets that Space, and every Page/Section/tile inside it, in one step (no separate catalog-then-group chain needed).",
   },
 ];

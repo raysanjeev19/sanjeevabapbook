@@ -6,7 +6,7 @@ export const capModelTopicNotes: Record<string, string> = {
   "Java CAP":
     "CAP Java Spring Boot ke upar built hai — same CDS-driven model, lekin Java-idiomatic event handlers aur Spring configuration (`application.yaml`) ke saath. Deep Java/Spring expertise ya existing Java systems integrate karne wali teams isse choose karti hain; fresh start karne wali teams aksar Node.js prefer karti hain.",
   CDS:
-    "CAP project mein `db/` folder persistence data model hold karta hai (entities jo database tables map karti hain), aur `srv/` folder service definitions hold karta hai jo us model ko expose/project karti hain — 'kya store hua hai' se 'kya expose hua hai' ko separate karta hai. Isi CDS wahi language hai jo ABAP Environment mein bhi use hoti hai.",
+    "CAP project mein `db/` folder persistence data model hold karta hai (entities jo database tables map karti hain), aur `srv/` folder service definitions hold karta hai jo us model ko expose/project karti hain — 'kya store hua hai' se 'kya expose hua hai' ko separate karta hai. Ye CDS ABAP Environment ke CDS se conceptually related hai (dono ka core idea same hai — Core Data Services), lekin dialect aur toolchain alag hai: CAP ka CDS Node.js/Java `cds` toolchain se compile hoke HDI/SQLite artifacts banata hai, jabki ABAP CDS DDL-based hota hai, ABAP Repository mein embedded hota hai apne ABAP-specific annotations aur alag compiler/runtime ke saath.",
   Entities:
     "Entity CDS ka structured data type hai (fields, types, associations), roughly ek database table ya domain object jaisa. `key` keyword un fields ko mark karta hai jo record ko uniquely identify karte hain — generated DB primary key aur OData addressing (jaise `/Orders(1)`) isi pe based hoti hai. Zyada tar CAP projects generated UUID key use karte hain natural business key ki jagah, collision avoid karne ke liye.",
   Associations:
@@ -48,9 +48,9 @@ export const capModelCodingQuestions: BtpCodingQuestion[] = [
     topic: "Authorization",
     language: "CDS",
     difficulty: "Intermediate",
-    prompt: "Add an annotation to the 'Books' entity restricting CREATE, UPDATE, and DELETE to the 'Admin' role, while allowing READ for any authenticated user.",
-    solution: "@restrict: [\n  { grant: ['CREATE','UPDATE','DELETE'], to: 'Admin' },\n  { grant: 'READ', to: 'any' }\n]\nentity Books : cuid { ... }",
-    explanation: "@restrict declares per-operation role requirements; 'any' means any authenticated user, while mutation operations require the 'Admin' role from the validated token.",
+    prompt: "Add an annotation to the 'Books' entity restricting CREATE, UPDATE, and DELETE to the 'Admin' role, while allowing READ for anyone, including unauthenticated (anonymous) users.",
+    solution: "@restrict: [\n  { grant: ['CREATE','UPDATE','DELETE'], to: 'Admin' },\n  { grant: 'READ', to: 'any' } // 'any' = public access, no login required\n]\nentity Books : cuid { ... }",
+    explanation: "@restrict declares per-operation role requirements; 'any' is the pseudo-role for unrestricted, public access — it does not require authentication at all, so even anonymous requests are allowed. Mutation operations instead require the 'Admin' role from a validated token. (This is different from 'authenticated-user', the pseudo-role meaning any logged-in user regardless of role.)",
   },
   {
     id: "cap-cq3",
